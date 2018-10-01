@@ -32,6 +32,8 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\EventHandlerActor\EventHandlerActor.csproj" />
+    <ProjectReference Include="..\EventReaderActor\EventReaderActor.csproj" />
     <ProjectReference Include="..\MessagingDirector\MessagingDirector.csproj" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
