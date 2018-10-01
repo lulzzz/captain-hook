@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EndpointDispatcherActor.Interfaces\EndpointDispatcherActor.Interfaces.csproj" />
+    <ProjectReference Include="..\CaptainHook.Interfaces\CaptainHook.Interfaces.csproj" />
   </ItemGroup>
 
 </Project>
