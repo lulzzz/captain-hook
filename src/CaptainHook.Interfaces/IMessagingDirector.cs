@@ -1,4 +1,4 @@
-﻿namespace MessagingDirector.Interfaces
+﻿namespace CaptainHook.Interfaces
 {
     using System.Threading;
     using System.Threading.Tasks;
