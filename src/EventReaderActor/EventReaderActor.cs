@@ -15,7 +15,7 @@
     ///  - None: State is kept in memory only and not replicated.
     /// </remarks>
     [StatePersistence(StatePersistence.Persisted)]
-    internal class EventReaderActor : Actor, IEventReaderActor
+    public class EventReaderActor : Actor, IEventReaderActor
     {
         /// <summary>
         /// Initializes a new instance of EventReaderActor

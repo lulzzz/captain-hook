@@ -15,7 +15,7 @@
     ///  - None: State is kept in memory only and not replicated.
     /// </remarks>
     [StatePersistence(StatePersistence.Persisted)]
-    internal class MessagingDirector : Actor, IMessagingDirector
+    public class MessagingDirector : Actor, IMessagingDirector
     {
         /// <summary>
         /// Initializes a new instance of MessagingDirector

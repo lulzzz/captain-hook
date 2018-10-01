@@ -15,7 +15,7 @@
     ///  - None: State is kept in memory only and not replicated.
     /// </remarks>
     [StatePersistence(StatePersistence.Persisted)]
-    internal class EventHandlerActor : Actor, IEventHandlerActor
+    public class EventHandlerActor : Actor, IEventHandlerActor
     {
         /// <summary>
         /// Initializes a new instance of EventHandlerActor

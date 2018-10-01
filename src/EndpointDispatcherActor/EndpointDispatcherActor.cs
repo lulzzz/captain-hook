@@ -15,7 +15,7 @@
     ///  - None: State is kept in memory only and not replicated.
     /// </remarks>
     [StatePersistence(StatePersistence.Persisted)]
-    internal class EndpointDispatcherActor : Actor, IEndpointDispatcherActor
+    public class EndpointDispatcherActor : Actor, IEndpointDispatcherActor
     {
         /// <summary>
         /// Initializes a new instance of EndpointDispatcherActor

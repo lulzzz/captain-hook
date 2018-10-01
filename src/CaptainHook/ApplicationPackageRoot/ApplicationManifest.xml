@@ -4,6 +4,15 @@
     <Parameter Name="MessagingDirectorActorService_PartitionCount" DefaultValue="10" />
     <Parameter Name="MessagingDirectorActorService_MinReplicaSetSize" DefaultValue="3" />
     <Parameter Name="MessagingDirectorActorService_TargetReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="EndpointDispatcherActorService_PartitionCount" DefaultValue="10" />
+    <Parameter Name="EndpointDispatcherActorService_MinReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="EndpointDispatcherActorService_TargetReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="EventHandlerActorService_PartitionCount" DefaultValue="10" />
+    <Parameter Name="EventHandlerActorService_MinReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="EventHandlerActorService_TargetReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="EventReaderActorService_PartitionCount" DefaultValue="10" />
+    <Parameter Name="EventReaderActorService_MinReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="EventReaderActorService_TargetReplicaSetSize" DefaultValue="3" />
   </Parameters>
   <!-- Import the ServiceManifest from the ServicePackage. The ServiceManifestName and ServiceManifestVersion 
        should match the Name and Version attributes of the ServiceManifest element defined in the 
@@ -24,6 +33,21 @@
     <Service Name="MessagingDirectorActorService" GeneratedIdRef="38429cfc-ce1c-4d94-a8d6-efe78e47baf6|Persisted">
       <StatefulService ServiceTypeName="MessagingDirectorActorServiceType" TargetReplicaSetSize="[MessagingDirectorActorService_TargetReplicaSetSize]" MinReplicaSetSize="[MessagingDirectorActorService_MinReplicaSetSize]">
         <UniformInt64Partition PartitionCount="[MessagingDirectorActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
+      </StatefulService>
+    </Service>
+    <Service Name="EndpointDispatcherActorService" GeneratedIdRef="a3c63b44-b579-46c9-b19c-b98abdce236f|Persisted">
+      <StatefulService ServiceTypeName="EndpointDispatcherActorServiceType" TargetReplicaSetSize="[EndpointDispatcherActorService_TargetReplicaSetSize]" MinReplicaSetSize="[EndpointDispatcherActorService_MinReplicaSetSize]">
+        <UniformInt64Partition PartitionCount="[EndpointDispatcherActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
+      </StatefulService>
+    </Service>
+    <Service Name="EventHandlerActorService" GeneratedIdRef="63d8dc82-40b6-4f04-9c45-46a241468ee9|Persisted">
+      <StatefulService ServiceTypeName="EventHandlerActorServiceType" TargetReplicaSetSize="[EventHandlerActorService_TargetReplicaSetSize]" MinReplicaSetSize="[EventHandlerActorService_MinReplicaSetSize]">
+        <UniformInt64Partition PartitionCount="[EventHandlerActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
+      </StatefulService>
+    </Service>
+    <Service Name="EventReaderActorService" GeneratedIdRef="4350c38e-89ca-4b48-9b64-b4713de2f347|Persisted">
+      <StatefulService ServiceTypeName="EventReaderActorServiceType" TargetReplicaSetSize="[EventReaderActorService_TargetReplicaSetSize]" MinReplicaSetSize="[EventReaderActorService_MinReplicaSetSize]">
+        <UniformInt64Partition PartitionCount="[EventReaderActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
       </StatefulService>
     </Service>
     <!-- The section below creates instances of service types, when an instance of this 
