@@ -1,5 +1,6 @@
 ﻿namespace MessagingDirector
 {
+    using System.Diagnostics.CodeAnalysis;
     using System.Threading;
     using System.Threading.Tasks;
     using CaptainHook.Interfaces;
