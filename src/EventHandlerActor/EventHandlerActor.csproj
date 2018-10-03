@@ -10,7 +10,7 @@
     <ServicePackagePath>PackageRoot</ServicePackagePath>
     <ServicePackagePrefix>$(MSBuildProjectName)</ServicePackagePrefix>
     <FabActUtilWorkingDir>$(BaseIntermediateOutputPath)\FabActUtilTemp</FabActUtilWorkingDir>
-    <Platform>x64</Platform>
+    <Platforms>x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
