@@ -1,8 +1,8 @@
-﻿namespace EndpointDispatcherActor
+﻿namespace CaptainHook.EventHandlerActor
 {
     using System.Threading;
     using System.Threading.Tasks;
-    using CaptainHook.Interfaces;
+    using Interfaces;
     using Microsoft.ServiceFabric.Actors;
     using Microsoft.ServiceFabric.Actors.Runtime;
 
@@ -15,14 +15,14 @@
     ///  - None: State is kept in memory only and not replicated.
     /// </remarks>
     [StatePersistence(StatePersistence.Persisted)]
-    public class EndpointDispatcherActor : Actor, IEndpointDispatcherActor
+    public class EventHandlerActor : Actor, IEventHandlerActor
     {
         /// <summary>
-        /// Initializes a new instance of EndpointDispatcherActor
+        /// Initializes a new instance of EventHandlerActor
         /// </summary>
         /// <param name="actorService">The Microsoft.ServiceFabric.Actors.Runtime.ActorService that will host this actor instance.</param>
         /// <param name="actorId">The Microsoft.ServiceFabric.Actors.ActorId for this actor instance.</param>
-        public EndpointDispatcherActor(ActorService actorService, ActorId actorId)
+        public EventHandlerActor(ActorService actorService, ActorId actorId)
             : base(actorService, actorId)
         {
         }
@@ -47,7 +47,7 @@
         /// TODO: Replace with your own actor method.
         /// </summary>
         /// <returns></returns>
-        Task<int> IEndpointDispatcherActor.GetCountAsync(CancellationToken cancellationToken)
+        Task<int> IEventHandlerActor.GetCountAsync(CancellationToken cancellationToken)
         {
             return this.StateManager.GetStateAsync<int>("count", cancellationToken);
         }
@@ -57,7 +57,7 @@
         /// </summary>
         /// <param name="count"></param>
         /// <returns></returns>
-        Task IEndpointDispatcherActor.SetCountAsync(int count, CancellationToken cancellationToken)
+        Task IEventHandlerActor.SetCountAsync(int count, CancellationToken cancellationToken)
         {
             // Requests are not guaranteed to be processed in order nor at most once.
             // The update function here verifies that the incoming count is greater than the current count to preserve order.

@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ServiceManifest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="MessagingDirectorPkg" Version="1.0.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
+<ServiceManifest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="CaptainHook.MessagingDirectorPkg" Version="1.0.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
   <ServiceTypes>
     <StatefulServiceType ServiceTypeName="MessagingDirectorActorServiceType" HasPersistedState="true">
       <Extensions>
-        <Extension Name="__GeneratedServiceType__" GeneratedId="38429cfc-ce1c-4d94-a8d6-efe78e47baf6|Persisted">
+        <Extension Name="__GeneratedServiceType__" GeneratedId="c3129cea-65b2-4d45-a2d9-e7d7160fc2e0|Persisted">
           <GeneratedNames xmlns="http://schemas.microsoft.com/2015/03/fabact-no-schema">
             <DefaultService Name="MessagingDirectorActorService" />
             <ReplicatorEndpoint Name="MessagingDirectorActorServiceReplicatorEndpoint" />
@@ -19,13 +19,14 @@
   <CodePackage Name="Code" Version="1.0.0">
     <EntryPoint>
       <ExeHost>
-        <Program>MessagingDirector.exe</Program>
+        <Program>CaptainHook.MessagingDirector.exe</Program>
       </ExeHost>
     </EntryPoint>
   </CodePackage>
   <ConfigPackage Name="Config" Version="1.0.0" />
   <Resources>
     <Endpoints>
+      <Endpoint Name="CaptainHook.MessagingDirectorActorServiceEndpointV2_1" />
       <Endpoint Name="MessagingDirectorActorServiceEndpointV2_1" />
       <Endpoint Name="MessagingDirectorActorServiceReplicatorEndpoint" />
     </Endpoints>

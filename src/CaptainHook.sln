@@ -5,15 +5,15 @@ VisualStudioVersion = 15.0.28010.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{A07B5EB6-E848-4116-A8D0-A826331D98C6}") = "CaptainHook", "CaptainHook\CaptainHook.sfproj", "{D44FA61E-30BD-487C-97CB-877E596872A8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessagingDirector", "MessagingDirector\MessagingDirector.csproj", "{0E84E12B-91F6-4426-82DF-3559D475CB1B}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Interfaces", "CaptainHook.Interfaces\CaptainHook.Interfaces.csproj", "{2EFD6F18-374F-4DB7-95D9-419310F5283E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EventReaderActor", "EventReaderActor\EventReaderActor.csproj", "{5B8A734D-0868-4FB9-8B4A-D3DCDE2AF11E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.EndpointDispatcherActor", "CaptainHook.EndpointDispatcherActor\CaptainHook.EndpointDispatcherActor.csproj", "{84A8AF48-7380-4032-AD1C-DBFB947B97F8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EventHandlerActor", "EventHandlerActor\EventHandlerActor.csproj", "{31CC43C2-BB59-420D-AC60-12DA24230894}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.EventHandlerActor", "CaptainHook.EventHandlerActor\CaptainHook.EventHandlerActor.csproj", "{FE882D21-737F-4085-8E33-26E3CD619BD5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EndpointDispatcherActor", "EndpointDispatcherActor\EndpointDispatcherActor.csproj", "{92C9CF38-8C5E-472F-9D88-B58138ED35F2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.EventReaderActor", "CaptainHook.EventReaderActor\CaptainHook.EventReaderActor.csproj", "{06EAC07A-92C6-455E-BD0C-F25DD35C86EB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.MessagingDirector", "CaptainHook.MessagingDirector\CaptainHook.MessagingDirector.csproj", "{2801EDE9-FBBE-414A-9C89-B49770BE91DB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,26 +27,26 @@ Global
 		{D44FA61E-30BD-487C-97CB-877E596872A8}.Release|x64.ActiveCfg = Release|x64
 		{D44FA61E-30BD-487C-97CB-877E596872A8}.Release|x64.Build.0 = Release|x64
 		{D44FA61E-30BD-487C-97CB-877E596872A8}.Release|x64.Deploy.0 = Release|x64
-		{0E84E12B-91F6-4426-82DF-3559D475CB1B}.Debug|x64.ActiveCfg = Debug|x64
-		{0E84E12B-91F6-4426-82DF-3559D475CB1B}.Debug|x64.Build.0 = Debug|x64
-		{0E84E12B-91F6-4426-82DF-3559D475CB1B}.Release|x64.ActiveCfg = Release|x64
-		{0E84E12B-91F6-4426-82DF-3559D475CB1B}.Release|x64.Build.0 = Release|x64
 		{2EFD6F18-374F-4DB7-95D9-419310F5283E}.Debug|x64.ActiveCfg = Debug|x64
 		{2EFD6F18-374F-4DB7-95D9-419310F5283E}.Debug|x64.Build.0 = Debug|x64
 		{2EFD6F18-374F-4DB7-95D9-419310F5283E}.Release|x64.ActiveCfg = Release|x64
 		{2EFD6F18-374F-4DB7-95D9-419310F5283E}.Release|x64.Build.0 = Release|x64
-		{5B8A734D-0868-4FB9-8B4A-D3DCDE2AF11E}.Debug|x64.ActiveCfg = Debug|x64
-		{5B8A734D-0868-4FB9-8B4A-D3DCDE2AF11E}.Debug|x64.Build.0 = Debug|x64
-		{5B8A734D-0868-4FB9-8B4A-D3DCDE2AF11E}.Release|x64.ActiveCfg = Release|x64
-		{5B8A734D-0868-4FB9-8B4A-D3DCDE2AF11E}.Release|x64.Build.0 = Release|x64
-		{31CC43C2-BB59-420D-AC60-12DA24230894}.Debug|x64.ActiveCfg = Debug|x64
-		{31CC43C2-BB59-420D-AC60-12DA24230894}.Debug|x64.Build.0 = Debug|x64
-		{31CC43C2-BB59-420D-AC60-12DA24230894}.Release|x64.ActiveCfg = Release|x64
-		{31CC43C2-BB59-420D-AC60-12DA24230894}.Release|x64.Build.0 = Release|x64
-		{92C9CF38-8C5E-472F-9D88-B58138ED35F2}.Debug|x64.ActiveCfg = Debug|x64
-		{92C9CF38-8C5E-472F-9D88-B58138ED35F2}.Debug|x64.Build.0 = Debug|x64
-		{92C9CF38-8C5E-472F-9D88-B58138ED35F2}.Release|x64.ActiveCfg = Release|x64
-		{92C9CF38-8C5E-472F-9D88-B58138ED35F2}.Release|x64.Build.0 = Release|x64
+		{84A8AF48-7380-4032-AD1C-DBFB947B97F8}.Debug|x64.ActiveCfg = Debug|x64
+		{84A8AF48-7380-4032-AD1C-DBFB947B97F8}.Debug|x64.Build.0 = Debug|x64
+		{84A8AF48-7380-4032-AD1C-DBFB947B97F8}.Release|x64.ActiveCfg = Release|x64
+		{84A8AF48-7380-4032-AD1C-DBFB947B97F8}.Release|x64.Build.0 = Release|x64
+		{FE882D21-737F-4085-8E33-26E3CD619BD5}.Debug|x64.ActiveCfg = Debug|x64
+		{FE882D21-737F-4085-8E33-26E3CD619BD5}.Debug|x64.Build.0 = Debug|x64
+		{FE882D21-737F-4085-8E33-26E3CD619BD5}.Release|x64.ActiveCfg = Release|x64
+		{FE882D21-737F-4085-8E33-26E3CD619BD5}.Release|x64.Build.0 = Release|x64
+		{06EAC07A-92C6-455E-BD0C-F25DD35C86EB}.Debug|x64.ActiveCfg = Debug|x64
+		{06EAC07A-92C6-455E-BD0C-F25DD35C86EB}.Debug|x64.Build.0 = Debug|x64
+		{06EAC07A-92C6-455E-BD0C-F25DD35C86EB}.Release|x64.ActiveCfg = Release|x64
+		{06EAC07A-92C6-455E-BD0C-F25DD35C86EB}.Release|x64.Build.0 = Release|x64
+		{2801EDE9-FBBE-414A-9C89-B49770BE91DB}.Debug|x64.ActiveCfg = Debug|x64
+		{2801EDE9-FBBE-414A-9C89-B49770BE91DB}.Debug|x64.Build.0 = Debug|x64
+		{2801EDE9-FBBE-414A-9C89-B49770BE91DB}.Release|x64.ActiveCfg = Release|x64
+		{2801EDE9-FBBE-414A-9C89-B49770BE91DB}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

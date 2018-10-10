@@ -1,4 +1,4 @@
-﻿namespace EventReaderActor
+﻿namespace CaptainHook.EventHandlerActor
 {
     using System;
     using System.Threading;
@@ -17,7 +17,7 @@
                 var builder = new ContainerBuilder();
                 builder.RegisterServiceFabricSupport();
 
-                builder.RegisterActor<EventReaderActor>();
+                builder.RegisterActor<EventHandlerActor>();
 
                 using (builder.Build())
                 {

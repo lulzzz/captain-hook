@@ -1,4 +1,4 @@
-﻿namespace EndpointDispatcherActor
+﻿namespace CaptainHook.EndpointDispatcherActor
 {
     using System;
     using System.Threading;

@@ -1,9 +1,8 @@
-﻿namespace MessagingDirector
+﻿namespace CaptainHook.MessagingDirector
 {
-    using System.Diagnostics.CodeAnalysis;
     using System.Threading;
     using System.Threading.Tasks;
-    using CaptainHook.Interfaces;
+    using Interfaces;
     using Microsoft.ServiceFabric.Actors;
     using Microsoft.ServiceFabric.Actors.Runtime;
 

@@ -1,11 +1,11 @@
-﻿namespace EventHandlerActor
+﻿namespace CaptainHook.EndpointDispatcherActor
 {
     using System;
     using System.Diagnostics.Tracing;
     using System.Threading.Tasks;
     using Microsoft.ServiceFabric.Actors.Runtime;
 
-    [EventSource(Name = "MyCompany-CaptainHook-EventHandlerActor")]
+    [EventSource(Name = "MyCompany-CaptainHook-EndpointDispatcherActor")]
     internal sealed class ActorEventSource : EventSource
     {
         public static readonly ActorEventSource Current = new ActorEventSource();

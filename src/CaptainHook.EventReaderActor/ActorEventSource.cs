@@ -1,4 +1,4 @@
-﻿namespace EventReaderActor
+﻿namespace CaptainHook.EventReaderActor
 {
     using System;
     using System.Diagnostics.Tracing;
