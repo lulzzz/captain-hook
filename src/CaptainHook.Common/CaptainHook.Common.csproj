@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetLatestRuntimePatch>True</TargetLatestRuntimePatch>
+
+    <LangVersion>latest</LangVersion>
+    <DebugType>Full</DebugType>
+
+    <Platforms>x64</Platforms>
+  </PropertyGroup>
+
+</Project>
