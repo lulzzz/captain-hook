@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading;
+    using System.Threading.Tasks;
     using Autofac;
     using Autofac.Integration.ServiceFabric;
 
@@ -10,7 +11,7 @@
         /// <summary>
         /// This is the entry point of the service host process.
         /// </summary>
-        private static void Main()
+        private static async Task Main()
         {
             try
             {
@@ -21,8 +22,7 @@
 
                 using (builder.Build())
                 {
-                    // Prevents this host process from terminating so services keep running.
-                    Thread.Sleep(Timeout.Infinite);
+                    await Task.Delay(Timeout.Infinite);
                 }
             }
             catch (Exception e)
