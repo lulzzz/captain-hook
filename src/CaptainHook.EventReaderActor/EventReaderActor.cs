@@ -2,6 +2,8 @@
 {
     using System.Threading;
     using System.Threading.Tasks;
+    using Common.Telemetry;
+    using Eshopworld.Core;
     using Interfaces;
     using Microsoft.ServiceFabric.Actors;
     using Microsoft.ServiceFabric.Actors.Runtime;
@@ -17,14 +19,18 @@
     [StatePersistence(StatePersistence.Persisted)]
     public class EventReaderActor : Actor, IEventReaderActor
     {
+        private readonly IBigBrother _bb;
+
         /// <summary>
         /// Initializes a new instance of EventReaderActor
         /// </summary>
         /// <param name="actorService">The Microsoft.ServiceFabric.Actors.Runtime.ActorService that will host this actor instance.</param>
         /// <param name="actorId">The Microsoft.ServiceFabric.Actors.ActorId for this actor instance.</param>
-        public EventReaderActor(ActorService actorService, ActorId actorId)
+        /// <param name="bb">The <see cref="IBigBrother"/> telemetry instance that this actor instance will use to publish.</param>
+        public EventReaderActor(ActorService actorService, ActorId actorId, IBigBrother bb)
             : base(actorService, actorId)
         {
+            _bb = bb;
         }
 
         /// <summary>
@@ -33,7 +39,7 @@
         /// </summary>
         protected override Task OnActivateAsync()
         {
-            ActorEventSource.Current.ActorMessage(this, "Actor activated.");
+            _bb.Publish(new ActorActivated(this));
 
             // The StateManager is this actor's private state store.
             // Data stored in the StateManager will be replicated for high-availability for actors that use volatile or persisted state storage.

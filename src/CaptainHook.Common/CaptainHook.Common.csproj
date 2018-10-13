@@ -10,4 +10,9 @@
     <Platforms>x64</Platforms>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Eshopworld.Core" Version="2.0.0" />
+    <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="3.2.187" />
+  </ItemGroup>
+
 </Project>

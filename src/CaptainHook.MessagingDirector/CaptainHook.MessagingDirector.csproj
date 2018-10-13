@@ -20,10 +20,12 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac.ServiceFabric" Version="2.0.0" />
-    <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="3.2.176" />
+    <PackageReference Include="Eshopworld.Telemetry" Version="2.0.0" />
+    <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="3.2.187" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CaptainHook.Common\CaptainHook.Common.csproj" />
     <ProjectReference Include="..\CaptainHook.Interfaces\CaptainHook.Interfaces.csproj" />
   </ItemGroup>
 

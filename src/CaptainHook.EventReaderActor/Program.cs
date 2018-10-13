@@ -5,6 +5,8 @@
     using System.Threading.Tasks;
     using Autofac;
     using Autofac.Integration.ServiceFabric;
+    using Eshopworld.Core;
+    using Eshopworld.Telemetry;
 
     internal static class Program
     {
@@ -15,10 +17,16 @@
         {
             try
             {
+                var bb = new BigBrother("", "");
+                bb.UseEventSourceSink().ForExceptions();
+
                 var builder = new ContainerBuilder();
                 builder.RegisterServiceFabricSupport();
 
                 builder.RegisterActor<EventReaderActor>();
+                builder.RegisterInstance(bb)
+                       .As<IBigBrother>()
+                       .SingleInstance();
 
                 using (builder.Build())
                 {
@@ -27,7 +35,7 @@
             }
             catch (Exception e)
             {
-                ActorEventSource.Current.ActorHostInitializationFailed(e.ToString());
+                BigBrother.Write(e);
                 throw;
             }
         }
