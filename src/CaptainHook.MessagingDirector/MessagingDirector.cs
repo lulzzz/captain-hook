@@ -3,12 +3,14 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Common.Telemetry;
     using Eshopworld.Core;
     using Eshopworld.Telemetry;
     using Interfaces;
     using Microsoft.ServiceFabric.Actors;
+    using Microsoft.ServiceFabric.Actors.Client;
     using Microsoft.ServiceFabric.Actors.Runtime;
 
     /// <remarks>
@@ -41,9 +43,15 @@
             var foo = await StateManager.TryGetStateAsync<string[]>(MessageTypesKey);
         }
 
-        public async Task StartWork()
+        public async Task Run()
         {
-            await Task.Yield();
+            var types = await StateManager.TryGetStateAsync<string[]>(MessageTypesKey);
+
+            foreach (var type in types.Value)
+            {
+                var eventReaderActor = ActorProxy.Create<IEventReaderActor>(new ActorId(type));
+                await eventReaderActor.ConfigureSource(type, new CancellationTokenSource().Token); // PROPAGATE CANCELLATION
+            }
         }
     }
 }

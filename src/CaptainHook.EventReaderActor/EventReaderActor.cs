@@ -1,10 +1,20 @@
 ﻿namespace CaptainHook.EventReaderActor
 {
+    using System;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Common.Telemetry;
     using Eshopworld.Core;
     using Interfaces;
+    using Microsoft.Azure.Management.Fluent;
+    using Microsoft.Azure.Management.ResourceManager.Fluent;
+    using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
+    using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+    using Microsoft.Azure.ServiceBus;
+    using Microsoft.Azure.ServiceBus.Core;
+    using Microsoft.Azure.Services.AppAuthentication;
+    using Microsoft.Rest;
     using Microsoft.ServiceFabric.Actors;
     using Microsoft.ServiceFabric.Actors.Runtime;
 
@@ -19,7 +29,14 @@
     [StatePersistence(StatePersistence.Persisted)]
     public class EventReaderActor : Actor, IEventReaderActor
     {
+        private const string SubscriptionName = "captain-hook";
+
+        // TAKE NUMBER OF HANDLERS INTO CONSIDERATION, DO NOT BATCH MORE THEN HANDLERS
+        private const int BatchSize = 10; // make this configurable
+
         private readonly IBigBrother _bb;
+        private IActorTimer _poolTimer;
+        private MessageReceiver _receiver;
 
         /// <summary>
         /// Initializes a new instance of EventReaderActor
@@ -33,41 +50,66 @@
             _bb = bb;
         }
 
-        /// <summary>
-        /// This method is called whenever an actor is activated.
-        /// An actor is activated the first time any of its methods are invoked.
-        /// </summary>
-        protected override Task OnActivateAsync()
+        protected override async Task OnActivateAsync()
         {
             _bb.Publish(new ActorActivated(this));
 
-            // The StateManager is this actor's private state store.
-            // Data stored in the StateManager will be replicated for high-availability for actors that use volatile or persisted state storage.
-            // Any serializable object can be saved in the StateManager.
-            // For more information, see https://aka.ms/servicefabricactorsstateserialization
+            _poolTimer = RegisterTimer(
+                ReadEvents,
+                null,
+                TimeSpan.FromMilliseconds(15),
+                TimeSpan.FromMilliseconds(15));
 
-            return this.StateManager.TryAddStateAsync("count", 0);
+            await Task.Yield();
         }
 
-        /// <summary>
-        /// TODO: Replace with your own actor method.
-        /// </summary>
-        /// <returns></returns>
-        Task<int> IEventReaderActor.GetCountAsync(CancellationToken cancellationToken)
+        protected override Task OnDeactivateAsync()
         {
-            return this.StateManager.GetStateAsync<int>("count", cancellationToken);
+            if (_poolTimer != null)
+            {
+                UnregisterTimer(_poolTimer);
+            }
+
+            return base.OnDeactivateAsync();
         }
 
-        /// <summary>
-        /// TODO: Replace with your own actor method.
-        /// </summary>
-        /// <param name="count"></param>
-        /// <returns></returns>
-        Task IEventReaderActor.SetCountAsync(int count, CancellationToken cancellationToken)
+        public async Task ConfigureSource(string eventType, CancellationToken cancellationToken)
         {
-            // Requests are not guaranteed to be processed in order nor at most once.
-            // The update function here verifies that the incoming count is greater than the current count to preserve order.
-            return this.StateManager.AddOrUpdateStateAsync("count", count, (key, value) => count > value ? count : value, cancellationToken);
+            var token = new AzureServiceTokenProvider().GetAccessTokenAsync("https://management.core.windows.net/", string.Empty).Result;
+            var tokenCredentials = new TokenCredentials(token);
+
+            var client = RestClient.Configure()
+                .WithEnvironment(AzureEnvironment.AzureGlobalCloud)
+                .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
+                .WithCredentials(new AzureCredentials(tokenCredentials, tokenCredentials, string.Empty, AzureEnvironment.AzureGlobalCloud))
+                .Build();
+
+            var sbNamespace = Azure.Authenticate(client, string.Empty)
+                .WithSubscription("--- SUBSCRIPTION ID ---")
+                .ServiceBusNamespaces.List()
+                .SingleOrDefault(n => n.Name == "--- NAMESPACE NAME ---");
+
+            if (sbNamespace == null)
+            {
+                throw new InvalidOperationException($"Couldn't find the service bus namespace {"!!!"} in the subscription with ID {"!!!"}");
+            }
+
+            var azureTopic = sbNamespace.CreateTopicIfNotExists(TypeExtensions.GetEntityName(eventType)).Result;
+            var subscription = await azureTopic.CreateSubscriptionIfNotExists(SubscriptionName);
+
+            _receiver = new MessageReceiver("--- CONNECTION STRING ---", EntityNameHelper.FormatSubscriptionPath(azureTopic.Name, SubscriptionName), ReceiveMode.PeekLock, new RetryExponential(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), 3), BatchSize);
+
+            await Task.Yield();
+        }
+
+        private async Task ReadEvents(object _)
+        {
+            if (_receiver.IsClosedOrClosing) return;
+
+            var messages = await _receiver.ReceiveAsync(BatchSize).ConfigureAwait(false);
+            if (messages == null) return;
+
+            // Do stuff with messages
         }
     }
 }

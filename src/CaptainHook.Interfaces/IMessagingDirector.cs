@@ -10,6 +10,6 @@
     /// </summary>
     public interface IMessagingDirector : IActor
     {
-        Task StartWork();
+        Task Run();
     }
 }
