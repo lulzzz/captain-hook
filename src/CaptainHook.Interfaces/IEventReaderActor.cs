@@ -10,6 +10,6 @@
     /// </summary>
     public interface IEventReaderActor : IActor
     {
-        Task ConfigureSource(string eventType, CancellationToken cancellationToken);
+        Task Run();
     }
 }

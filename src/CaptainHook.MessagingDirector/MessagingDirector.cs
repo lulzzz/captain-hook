@@ -1,13 +1,7 @@
 ﻿namespace CaptainHook.MessagingDirector
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Common.Telemetry;
-    using Eshopworld.Core;
-    using Eshopworld.Telemetry;
     using Interfaces;
     using Microsoft.ServiceFabric.Actors;
     using Microsoft.ServiceFabric.Actors.Client;
@@ -39,18 +33,16 @@
         /// <inheritdoc />
         protected override async Task OnActivateAsync()
         {
-            await StateManager.TryAddStateAsync(MessageTypesKey, new[] { "", "" });
-            var foo = await StateManager.TryGetStateAsync<string[]>(MessageTypesKey);
+            await StateManager.TryAddStateAsync(MessageTypesKey, new[] { "myexampleevent1", "myexampleevent2" }); // MOVING TO CONFIG AFTER V1
         }
 
-        public async Task Run()
+        public async Task Run(CancellationToken cancellationToken)
         {
-            var types = await StateManager.TryGetStateAsync<string[]>(MessageTypesKey);
+            var types = await StateManager.TryGetStateAsync<string[]>(MessageTypesKey, cancellationToken);
 
             foreach (var type in types.Value)
             {
-                var eventReaderActor = ActorProxy.Create<IEventReaderActor>(new ActorId(type));
-                await eventReaderActor.ConfigureSource(type, new CancellationTokenSource().Token); // PROPAGATE CANCELLATION
+                await ActorProxy.Create<IEventReaderActor>(new ActorId(type)).Run();
             }
         }
     }

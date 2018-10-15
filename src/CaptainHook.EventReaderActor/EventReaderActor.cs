@@ -2,7 +2,6 @@
 {
     using System;
     using System.Linq;
-    using System.Threading;
     using System.Threading.Tasks;
     using Common.Telemetry;
     using Eshopworld.Core;
@@ -52,7 +51,9 @@
 
         protected override async Task OnActivateAsync()
         {
+            var foo = Id;
             _bb.Publish(new ActorActivated(this));
+            await SetupServiceBus();
 
             _poolTimer = RegisterTimer(
                 ReadEvents,
@@ -60,7 +61,14 @@
                 TimeSpan.FromMilliseconds(15),
                 TimeSpan.FromMilliseconds(15));
 
-            await Task.Yield();
+            _receiver = new MessageReceiver(
+                "--- CONNECTION STRING ---",
+                EntityNameHelper.FormatSubscriptionPath(TypeExtensions.GetEntityName(Id.GetStringId()), SubscriptionName),
+                ReceiveMode.PeekLock,
+                new RetryExponential(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), 3),
+                BatchSize);
+
+            await base.OnActivateAsync();
         }
 
         protected override Task OnDeactivateAsync()
@@ -73,36 +81,37 @@
             return base.OnDeactivateAsync();
         }
 
-        public async Task ConfigureSource(string eventType, CancellationToken cancellationToken)
+        public async Task Run()
+        {
+            await Task.Yield();
+        }
+
+        internal async Task SetupServiceBus()
         {
             var token = new AzureServiceTokenProvider().GetAccessTokenAsync("https://management.core.windows.net/", string.Empty).Result;
             var tokenCredentials = new TokenCredentials(token);
 
             var client = RestClient.Configure()
-                .WithEnvironment(AzureEnvironment.AzureGlobalCloud)
-                .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
-                .WithCredentials(new AzureCredentials(tokenCredentials, tokenCredentials, string.Empty, AzureEnvironment.AzureGlobalCloud))
-                .Build();
+                                   .WithEnvironment(AzureEnvironment.AzureGlobalCloud)
+                                   .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
+                                   .WithCredentials(new AzureCredentials(tokenCredentials, tokenCredentials, string.Empty, AzureEnvironment.AzureGlobalCloud))
+                                   .Build();
 
             var sbNamespace = Azure.Authenticate(client, string.Empty)
-                .WithSubscription("--- SUBSCRIPTION ID ---")
-                .ServiceBusNamespaces.List()
-                .SingleOrDefault(n => n.Name == "--- NAMESPACE NAME ---");
+                                   .WithSubscription("--- SUBSCRIPTION ID ---")
+                                   .ServiceBusNamespaces.List()
+                                   .SingleOrDefault(n => n.Name == "--- NAMESPACE NAME ---");
 
             if (sbNamespace == null)
             {
                 throw new InvalidOperationException($"Couldn't find the service bus namespace {"!!!"} in the subscription with ID {"!!!"}");
             }
 
-            var azureTopic = sbNamespace.CreateTopicIfNotExists(TypeExtensions.GetEntityName(eventType)).Result;
-            var subscription = await azureTopic.CreateSubscriptionIfNotExists(SubscriptionName);
-
-            _receiver = new MessageReceiver("--- CONNECTION STRING ---", EntityNameHelper.FormatSubscriptionPath(azureTopic.Name, SubscriptionName), ReceiveMode.PeekLock, new RetryExponential(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), 3), BatchSize);
-
-            await Task.Yield();
+            var azureTopic = await sbNamespace.CreateTopicIfNotExists(TypeExtensions.GetEntityName(Id.GetStringId()));
+            await azureTopic.CreateSubscriptionIfNotExists(SubscriptionName);
         }
 
-        private async Task ReadEvents(object _)
+        internal async Task ReadEvents(object _)
         {
             if (_receiver.IsClosedOrClosing) return;
 
