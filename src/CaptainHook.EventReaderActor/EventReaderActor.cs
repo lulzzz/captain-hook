@@ -51,7 +51,6 @@
 
         protected override async Task OnActivateAsync()
         {
-            var foo = Id;
             _bb.Publish(new ActorActivated(this));
             await SetupServiceBus();
 

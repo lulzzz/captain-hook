@@ -1,5 +1,7 @@
 ﻿namespace CaptainHook.MessagingDirector
 {
+    using System;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Interfaces;
@@ -43,6 +45,12 @@
             foreach (var type in types.Value)
             {
                 await ActorProxy.Create<IEventReaderActor>(new ActorId(type)).Run();
+
+                // REFLECTION BASE EXPERIMENT
+                //var foo = typeof(ActorProxy).GetMethods().Single(m => m.Name == nameof(ActorProxy.Create) && m.GetParameters().Length == 4);
+                //foo = foo.MakeGenericMethod(typeof(IEventReaderActor));
+                //var actor = (IEventReaderActor)foo.Invoke(null, new object[] { new ActorId(type), null, null, null }); // CAST TO COMMON INTERFACE
+                //await actor.Run();
             }
         }
     }
