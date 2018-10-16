@@ -5,8 +5,13 @@
     using System.Threading.Tasks;
     using Autofac;
     using Autofac.Integration.ServiceFabric;
+    using Common;
     using Eshopworld.Core;
     using Eshopworld.Telemetry;
+    using Microsoft.Azure.KeyVault;
+    using Microsoft.Azure.Services.AppAuthentication;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Configuration.AzureKeyVault;
 
     internal static class Program
     {
@@ -17,6 +22,16 @@
         {
             try
             {
+                var config = new ConfigurationBuilder().AddAzureKeyVault(
+                                                                  "https://esw-captain-hook-ci.vault.azure.net/", // DO THIS ENVIRONMENT BASED
+                                                                  new KeyVaultClient(
+                                                                      new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
+                                                                  new DefaultKeyVaultSecretManager())
+                                                              .Build();
+
+                var settings = new ConfigurationSettings();
+                config.Bind(settings);
+
                 var bb = new BigBrother("", "");
                 bb.UseEventSourceSink().ForExceptions();
 
