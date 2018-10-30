@@ -23,11 +23,9 @@
             try
             {
                 var config = new ConfigurationBuilder().AddAzureKeyVault(
-                                                                  "https://esw-captain-hook-ci.vault.azure.net/", // DO THIS ENVIRONMENT BASED
-                                                                  new KeyVaultClient(
-                                                                      new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
-                                                                  new DefaultKeyVaultSecretManager())
-                                                              .Build();
+                    "https://esw-captain-hook-ci.vault.azure.net/", // DO THIS ENVIRONMENT BASED
+                    new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
+                    new DefaultKeyVaultSecretManager()).Build();
 
                 var settings = new ConfigurationSettings();
                 config.Bind(settings);

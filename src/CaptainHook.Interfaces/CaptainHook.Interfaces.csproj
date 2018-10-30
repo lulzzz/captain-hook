@@ -8,6 +8,7 @@
     <DebugType>Full</DebugType>
 
     <Platforms>x64</Platforms>
+    <Platform>x64</Platform>
   </PropertyGroup>
 
   <ItemGroup>
