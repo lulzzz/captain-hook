@@ -22,8 +22,10 @@
         {
             try
             {
+                var kvUri = Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable);
+
                 var config = new ConfigurationBuilder().AddAzureKeyVault(
-                    "https://esw-captain-hook-ci.vault.azure.net/", // DO THIS ENVIRONMENT BASED
+                    kvUri,
                     new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
                     new DefaultKeyVaultSecretManager()).Build();
 
