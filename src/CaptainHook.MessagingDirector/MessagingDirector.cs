@@ -33,7 +33,7 @@
         /// <inheritdoc />
         protected override async Task OnActivateAsync()
         {
-            await StateManager.TryAddStateAsync(MessageTypesKey, new[] { "myexampleevent1", "myexampleevent2" }); // MOVING TO CONFIG AFTER V1
+            await StateManager.TryAddStateAsync(MessageTypesKey, new[] { "myexampleevent1", "myexampleevent2" });
         }
 
         public async Task Run(CancellationToken cancellationToken)
