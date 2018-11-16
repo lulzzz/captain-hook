@@ -1,31 +1,57 @@
 ﻿namespace CaptainHook.PoolManagerActor
 {
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using System.Threading;
-    using Microsoft.ServiceFabric.Actors.Runtime;
+    using System.Threading.Tasks;
+    using Autofac;
+    using Autofac.Integration.ServiceFabric;
+    using Common;
+    using Eshopworld.Core;
+    using Eshopworld.Telemetry;
+    using Microsoft.Azure.KeyVault;
+    using Microsoft.Azure.Services.AppAuthentication;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Configuration.AzureKeyVault;
 
     internal static class Program
     {
         /// <summary>
         /// This is the entry point of the service host process.
         /// </summary>
-        private static void Main()
+        private static async Task Main()
         {
             try
             {
-                // This line registers an Actor Service to host your actor class with the Service Fabric runtime.
-                // The contents of your ServiceManifest.xml and ApplicationManifest.xml files
-                // are automatically populated when you build this project.
-                // For more information, see https://aka.ms/servicefabricactorsplatform
+                var kvUri = Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable);
 
-                ActorRuntime.RegisterActorAsync<PoolManagerActor>(
-                   (context, actorType) => new ActorService(context, actorType)).GetAwaiter().GetResult();
+                var config = new ConfigurationBuilder().AddAzureKeyVault(
+                    kvUri,
+                    new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
+                    new DefaultKeyVaultSecretManager()).Build();
 
-                Thread.Sleep(Timeout.Infinite);
+                var settings = new ConfigurationSettings();
+                config.Bind(settings);
+
+                var bb = new BigBrother(settings.InstrumentationKey, settings.InstrumentationKey);
+                bb.UseEventSourceSink().ForExceptions();
+
+                var builder = new ContainerBuilder();
+                builder.RegisterInstance(bb)
+                       .As<IBigBrother>()
+                       .SingleInstance();
+
+                builder.RegisterServiceFabricSupport();
+                builder.RegisterActor<PoolManagerActor>();
+
+                using (builder.Build())
+                {
+                    await Task.Delay(Timeout.Infinite);
+                }
             }
             catch (Exception e)
             {
-                //ActorEventSource.Current.ActorHostInitializationFailed(e.ToString());
+                BigBrother.Write(e);
                 throw;
             }
         }

@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Settings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/2011/01/fabric">
-  <Section Name="EventReaderActorServiceReplicatorConfig">
-    <Parameter Name="ReplicatorEndpoint" Value="EventReaderActorServiceReplicatorEndpoint" />
+  <Section Name="IEventReaderActorReplicatorConfig">
+    <Parameter Name="ReplicatorEndpoint" Value="IEventReaderActorReplicatorEndpoint" />
     <Parameter Name="BatchAcknowledgementInterval" Value="0.005" />
   </Section>
-  <Section Name="EventReaderActorServiceReplicatorSecurityConfig">
+  <Section Name="IEventReaderActorReplicatorSecurityConfig">
     <Parameter Name="CredentialType" Value="None" />
   </Section>
   <!-- The content will be generated during build -->

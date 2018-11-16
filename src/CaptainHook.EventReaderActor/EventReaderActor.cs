@@ -26,6 +26,7 @@
     ///  - None: State is kept in memory only and not replicated.
     /// </remarks>
     [StatePersistence(StatePersistence.Persisted)]
+    [ActorService(Name = nameof(IEventReaderActor))]
     public class EventReaderActor : Actor, IEventReaderActor
     {
         private const string SubscriptionName = "captain-hook";
@@ -118,6 +119,12 @@
             if (messages == null) return;
 
             // Do stuff with messages
+        }
+
+        public async Task CompleteWork(Guid id)
+        {
+            await Task.Yield();
+            throw new NotImplementedException();
         }
     }
 }

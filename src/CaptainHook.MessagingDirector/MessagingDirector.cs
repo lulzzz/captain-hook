@@ -42,7 +42,7 @@
 
             foreach (var type in types.Value)
             {
-                await ActorProxy.Create<IEventReaderActor>(new ActorId(type)).Run();
+                await ActorProxy.Create<IEventReaderActor>(new ActorId(type), null, nameof(IEventReaderActor)).Run();
 
                 // REFLECTION BASE EXPERIMENT
                 //var foo = typeof(ActorProxy).GetMethods().Single(m => m.Name == nameof(ActorProxy.Create) && m.GetParameters().Length == 4);

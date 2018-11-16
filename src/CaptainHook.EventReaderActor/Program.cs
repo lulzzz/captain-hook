@@ -1,6 +1,7 @@
 ﻿namespace CaptainHook.EventReaderActor
 {
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using System.Threading;
     using System.Threading.Tasks;
     using Autofac;
@@ -32,16 +33,16 @@
                 var settings = new ConfigurationSettings();
                 config.Bind(settings);
 
-                var bb = new BigBrother("", "");
+                var bb = new BigBrother(settings.InstrumentationKey, settings.InstrumentationKey);
                 bb.UseEventSourceSink().ForExceptions();
 
                 var builder = new ContainerBuilder();
-                builder.RegisterServiceFabricSupport();
-
-                builder.RegisterActor<EventReaderActor>();
                 builder.RegisterInstance(bb)
                        .As<IBigBrother>()
                        .SingleInstance();
+
+                builder.RegisterServiceFabricSupport();
+                builder.RegisterActor<EventReaderActor>();
 
                 using (builder.Build())
                 {

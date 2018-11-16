@@ -10,12 +10,12 @@
     <Parameter Name="EventHandlerActorService_PartitionCount" DefaultValue="10" />
     <Parameter Name="EventHandlerActorService_MinReplicaSetSize" DefaultValue="3" />
     <Parameter Name="EventHandlerActorService_TargetReplicaSetSize" DefaultValue="3" />
-    <Parameter Name="EventReaderActorService_PartitionCount" DefaultValue="10" />
-    <Parameter Name="EventReaderActorService_MinReplicaSetSize" DefaultValue="3" />
-    <Parameter Name="EventReaderActorService_TargetReplicaSetSize" DefaultValue="3" />
     <Parameter Name="PoolManagerActorService_PartitionCount" DefaultValue="10" />
     <Parameter Name="PoolManagerActorService_MinReplicaSetSize" DefaultValue="3" />
     <Parameter Name="PoolManagerActorService_TargetReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="IEventReaderActor_PartitionCount" DefaultValue="10" />
+    <Parameter Name="IEventReaderActor_MinReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="IEventReaderActor_TargetReplicaSetSize" DefaultValue="3" />
   </Parameters>
   <!-- Import the ServiceManifest from the ServicePackage. The ServiceManifestName and ServiceManifestVersion 
        should match the Name and Version attributes of the ServiceManifest element defined in the 
@@ -58,11 +58,6 @@
         <UniformInt64Partition PartitionCount="[EventHandlerActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
       </StatefulService>
     </Service>
-    <Service Name="EventReaderActorService" GeneratedIdRef="b24af6af-089b-4420-be8f-c09721958645|Persisted">
-      <StatefulService ServiceTypeName="EventReaderActorServiceType" TargetReplicaSetSize="[EventReaderActorService_TargetReplicaSetSize]" MinReplicaSetSize="[EventReaderActorService_MinReplicaSetSize]">
-        <UniformInt64Partition PartitionCount="[EventReaderActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
-      </StatefulService>
-    </Service>
     <Service Name="MessagingDirectorActorService" GeneratedIdRef="c3129cea-65b2-4d45-a2d9-e7d7160fc2e0|Persisted">
       <StatefulService ServiceTypeName="MessagingDirectorActorServiceType" TargetReplicaSetSize="[MessagingDirectorActorService_TargetReplicaSetSize]" MinReplicaSetSize="[MessagingDirectorActorService_MinReplicaSetSize]">
         <UniformInt64Partition PartitionCount="[MessagingDirectorActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
@@ -71,6 +66,11 @@
     <Service Name="PoolManagerActorService" GeneratedIdRef="40a21cc9-613c-46e0-a95c-d03db8182571|Persisted">
       <StatefulService ServiceTypeName="PoolManagerActorServiceType" TargetReplicaSetSize="[PoolManagerActorService_TargetReplicaSetSize]" MinReplicaSetSize="[PoolManagerActorService_MinReplicaSetSize]">
         <UniformInt64Partition PartitionCount="[PoolManagerActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
+      </StatefulService>
+    </Service>
+    <Service Name="IEventReaderActor" GeneratedIdRef="a389d280-90c5-4d20-a13d-5ba9033de812|Persisted">
+      <StatefulService ServiceTypeName="IEventReaderActorType" TargetReplicaSetSize="[IEventReaderActor_TargetReplicaSetSize]" MinReplicaSetSize="[IEventReaderActor_MinReplicaSetSize]">
+        <UniformInt64Partition PartitionCount="[IEventReaderActor_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
       </StatefulService>
     </Service>
     <!-- The section below creates instances of service types, when an instance of this 

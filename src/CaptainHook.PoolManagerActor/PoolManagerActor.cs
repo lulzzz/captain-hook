@@ -1,6 +1,6 @@
 ﻿namespace CaptainHook.PoolManagerActor
 {
-    using System.Threading;
+    using System;
     using System.Threading.Tasks;
     using Interfaces;
     using Microsoft.ServiceFabric.Actors;
@@ -41,25 +41,10 @@
             return this.StateManager.TryAddStateAsync("count", 0);
         }
 
-        /// <summary>
-        /// TODO: Replace with your own actor method.
-        /// </summary>
-        /// <returns></returns>
-        Task<int> IPoolManagerActor.GetCountAsync(CancellationToken cancellationToken)
+        public async Task<Guid> DoWork(string payload, string type)
         {
-            return this.StateManager.GetStateAsync<int>("count", cancellationToken);
-        }
-
-        /// <summary>
-        /// TODO: Replace with your own actor method.
-        /// </summary>
-        /// <param name="count"></param>
-        /// <returns></returns>
-        Task IPoolManagerActor.SetCountAsync(int count, CancellationToken cancellationToken)
-        {
-            // Requests are not guaranteed to be processed in order nor at most once.
-            // The update function here verifies that the incoming count is greater than the current count to preserve order.
-            return this.StateManager.AddOrUpdateStateAsync("count", count, (key, value) => count > value ? count : value, cancellationToken);
+            await Task.Yield();
+            throw new NotImplementedException();
         }
     }
 }
