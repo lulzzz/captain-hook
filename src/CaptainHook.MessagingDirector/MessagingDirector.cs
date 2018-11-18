@@ -42,7 +42,7 @@
 
             foreach (var type in types.Value)
             {
-                await ActorProxy.Create<IEventReaderActor>(new ActorId(type), null, nameof(IEventReaderActor)).Run();
+                await ActorProxy.Create<IEventReaderActor>(new ActorId(type)).Run();
 
                 // REFLECTION BASE EXPERIMENT
                 //var foo = typeof(ActorProxy).GetMethods().Single(m => m.Name == nameof(ActorProxy.Create) && m.GetParameters().Length == 4);
@@ -50,9 +50,6 @@
                 //var actor = (IEventReaderActor)foo.Invoke(null, new object[] { new ActorId(type), null, null, null }); // CAST TO COMMON INTERFACE
                 //await actor.Run();
             }
-
-            ActorProxy.Create<IPoolManagerActor>(new ActorId(0)); // singleton for event handlers
-            // we'll deal with event dispatchers on v1, in that case there will be more then this one and they *probably* won't be instantiated here!
         }
     }
 }

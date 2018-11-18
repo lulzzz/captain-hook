@@ -12,6 +12,6 @@
     {
         Task Run();
 
-        Task CompleteMessage(Guid id);
+        Task CompleteMessage(Guid handle);
     }
 }

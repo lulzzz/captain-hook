@@ -11,5 +11,7 @@
     public interface IEventHandlerActor : IActor
     {
         Task Handle(Guid handle, string payload, string type);
+
+        Task CompleteHandle(Guid handle);
     }
 }

@@ -1,7 +1,9 @@
 ﻿namespace CaptainHook.EventReaderActor
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
     using Common;
     using Common.Telemetry;
@@ -16,7 +18,9 @@
     using Microsoft.Azure.Services.AppAuthentication;
     using Microsoft.Rest;
     using Microsoft.ServiceFabric.Actors;
+    using Microsoft.ServiceFabric.Actors.Client;
     using Microsoft.ServiceFabric.Actors.Runtime;
+    using Microsoft.ServiceFabric.Data;
 
     /// <remarks>
     /// This class represents an actor.
@@ -39,6 +43,8 @@
         private IActorTimer _poolTimer;
         private MessageReceiver _receiver;
 
+        private ConditionalValue<Dictionary<Guid, string>> _messagesInHandlers;
+
         /// <summary>
         /// Initializes a new instance of EventReaderActor
         /// </summary>
@@ -56,6 +62,18 @@
         protected override async Task OnActivateAsync()
         {
             _bb.Publish(new ActorActivated(this));
+
+            var inHandlers = await StateManager.TryGetStateAsync<Dictionary<Guid, string>>(nameof(_messagesInHandlers));
+            if (inHandlers.HasValue)
+            {
+                _messagesInHandlers = inHandlers;
+            }
+            else
+            {
+                _messagesInHandlers = new ConditionalValue<Dictionary<Guid, string>>(true, new Dictionary<Guid, string>());
+                await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers, (s, value) => _messagesInHandlers);
+            }
+
             await SetupServiceBus();
 
             _poolTimer = RegisterTimer(
@@ -126,13 +144,21 @@
             var messages = await _receiver.ReceiveAsync(BatchSize).ConfigureAwait(false);
             if (messages == null) return;
 
-            // Do stuff with messages
+            foreach (var message in messages)
+            {
+                var handle = await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).DoWork(Encoding.UTF8.GetString(message.Body), Id.GetStringId());
+                _messagesInHandlers.Value.Add(handle, message.SystemProperties.LockToken);
+                await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers, (s, value) => _messagesInHandlers);
+            }
         }
 
-        public async Task CompleteWork(Guid id)
+        public async Task CompleteWork(Guid handle)
         {
-            await Task.Yield();
-            throw new NotImplementedException();
+            // NOT HANDLING FAULTS YET - BE CAREFUL HERE!
+
+            await _receiver.CompleteAsync(_messagesInHandlers.Value[handle]);
+            _messagesInHandlers.Value.Remove(handle);
+            await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers, (s, value) => _messagesInHandlers);
         }
     }
 }
