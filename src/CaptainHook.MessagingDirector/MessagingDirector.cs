@@ -50,6 +50,9 @@
                 //var actor = (IEventReaderActor)foo.Invoke(null, new object[] { new ActorId(type), null, null, null }); // CAST TO COMMON INTERFACE
                 //await actor.Run();
             }
+
+            ActorProxy.Create<IPoolManagerActor>(new ActorId(0)); // singleton for event handlers
+            // we'll deal with event dispatchers on v1, in that case there will be more then this one and they *probably* won't be instantiated here!
         }
     }
 }

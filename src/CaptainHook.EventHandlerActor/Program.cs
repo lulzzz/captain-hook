@@ -27,7 +27,7 @@
             }
             catch (Exception e)
             {
-                ActorEventSource.Current.ActorHostInitializationFailed(e.ToString());
+                // publish to BigBrother
                 throw;
             }
         }

@@ -1,5 +1,7 @@
 ﻿namespace CaptainHook.EventHandlerActor
 {
+    using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using Interfaces;
@@ -17,6 +19,7 @@
     [StatePersistence(StatePersistence.Persisted)]
     public class EventHandlerActor : Actor, IEventHandlerActor
     {
+        private IActorTimer _handleTimer;
         /// <summary>
         /// Initializes a new instance of EventHandlerActor
         /// </summary>
@@ -33,35 +36,24 @@
         /// </summary>
         protected override Task OnActivateAsync()
         {
-            ActorEventSource.Current.ActorMessage(this, "Actor activated.");
-
-            // The StateManager is this actor's private state store.
-            // Data stored in the StateManager will be replicated for high-availability for actors that use volatile or persisted state storage.
-            // Any serializable object can be saved in the StateManager.
-            // For more information, see https://aka.ms/servicefabricactorsstateserialization
-
-            return this.StateManager.TryAddStateAsync("count", 0);
+            return Task.CompletedTask;
         }
 
-        /// <summary>
-        /// TODO: Replace with your own actor method.
-        /// </summary>
-        /// <returns></returns>
-        Task<int> IEventHandlerActor.GetCountAsync(CancellationToken cancellationToken)
+        public async Task Handle(Guid handle, string payload, string type)
         {
-            return this.StateManager.GetStateAsync<int>("count", cancellationToken);
+            var handlerMeta = new KeyValuePair<string, string>(type, payload);
+            await StateManager.AddOrUpdateStateAsync(handle.ToString(), handlerMeta, (s, pair) => handlerMeta);
+
+            _handleTimer = RegisterTimer(
+                InternalHandle,
+                null,
+                TimeSpan.FromMilliseconds(100),
+                TimeSpan.MaxValue);
         }
 
-        /// <summary>
-        /// TODO: Replace with your own actor method.
-        /// </summary>
-        /// <param name="count"></param>
-        /// <returns></returns>
-        Task IEventHandlerActor.SetCountAsync(int count, CancellationToken cancellationToken)
+        private async Task InternalHandle(object _)
         {
-            // Requests are not guaranteed to be processed in order nor at most once.
-            // The update function here verifies that the incoming count is greater than the current count to preserve order.
-            return this.StateManager.AddOrUpdateStateAsync("count", count, (key, value) => count > value ? count : value, cancellationToken);
+            await Task.Yield();
         }
     }
 }

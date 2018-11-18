@@ -62,8 +62,8 @@
             _poolTimer = RegisterTimer(
                 ReadEvents,
                 null,
-                TimeSpan.FromMilliseconds(15),
-                TimeSpan.FromMilliseconds(15));
+                TimeSpan.FromMilliseconds(100),
+                TimeSpan.FromMilliseconds(100));
 
             _receiver = new MessageReceiver(
                 _settings.ServiceBusConnectionString,

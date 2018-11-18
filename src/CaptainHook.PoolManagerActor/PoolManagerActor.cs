@@ -2,7 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
+    using System.Transactions;
     using Eshopworld.Core;
     using Interfaces;
     using Microsoft.ServiceFabric.Actors;
@@ -23,7 +25,7 @@
     {
         private readonly IBigBrother _bigBrother;
         private ConditionalValue<HashSet<int>> _free; // free pool resources
-        private ConditionalValue<HashSet<int>> _busy; // busy pool resources
+        private ConditionalValue<Dictionary<Guid, int>> _busy; // busy pool resources
 
         private const int NumberOfHandlers = 10; // TODO: TWEAK THIS - HARDCODED FOR NOW
 
@@ -49,25 +51,51 @@
 
             if (_free.HasValue)
             {
-                _busy = await StateManager.TryGetStateAsync<HashSet<int>>(nameof(_busy));
+                _busy = await StateManager.TryGetStateAsync<Dictionary<Guid, int>>(nameof(_busy));
             }
             else
             {
+                _free = new ConditionalValue<HashSet<int>>(true, new HashSet<int>());
+                _busy = new ConditionalValue<Dictionary<Guid, int>>(true, new Dictionary<Guid, int>());
+
                 for (var i = 0; i < NumberOfHandlers; i++)
                 {
-                    ActorProxy.Create<IEventReaderActor>(new ActorId(i));
+                    ActorProxy.Create<IEventHandlerActor>(new ActorId(i));
                     _free.Value.Add(i);
                 }
 
                 await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => _free);
+                await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => _busy);
             }
         }
 
         public async Task<Guid> DoWork(string payload, string type)
         {
+            // need to handle the possibility of the resources in the pool being all busy!
 
-            await Task.Yield();
-            throw new NotImplementedException();
+            using (var scope = new TransactionScope())
+            {
+                try
+                {
+                    var handlerId = _free.Value.First();
+                    var handle = Guid.NewGuid();
+                    _free.Value.Remove(handlerId);
+                    _busy.Value.Add(handle, handlerId);
+
+                    await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => _free);
+                    await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => _busy);
+
+                    scope.Complete();
+
+                    return handle;
+                }
+                catch (Exception e)
+                {
+                    _bigBrother.Publish(e.ToExceptionEvent());
+                    scope.Dispose();
+                    throw;
+                }
+            }
         }
     }
 }
