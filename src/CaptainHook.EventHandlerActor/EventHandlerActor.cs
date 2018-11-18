@@ -34,15 +34,30 @@
         /// This method is called whenever an actor is activated.
         /// An actor is activated the first time any of its methods are invoked.
         /// </summary>
-        protected override Task OnActivateAsync()
+        protected override async Task OnActivateAsync()
         {
-            return Task.CompletedTask;
+            if ((await StateManager.TryGetStateAsync<MessageData>(nameof(EventHandlerActor))).HasValue)
+            {
+                // There's a message to handle, but we're not sure if it was fully handled or not, so we are going to handle it anyways
+
+                _handleTimer = RegisterTimer(
+                    InternalHandle,
+                    null,
+                    TimeSpan.FromMilliseconds(100),
+                    TimeSpan.MaxValue);
+            }
         }
 
         public async Task Handle(Guid handle, string payload, string type)
         {
-            var handlerMeta = new KeyValuePair<string, string>(type, payload);
-            await StateManager.AddOrUpdateStateAsync(handle.ToString(), handlerMeta, (s, pair) => handlerMeta);
+            var messageData = new MessageData
+            {
+                Handle = handle,
+                Payload = payload,
+                Type = type
+            };
+
+            await StateManager.AddOrUpdateStateAsync(nameof(EventHandlerActor), messageData, (s, pair) => messageData);
 
             _handleTimer = RegisterTimer(
                 InternalHandle,
@@ -53,7 +68,17 @@
 
         private async Task InternalHandle(object _)
         {
-            await Task.Yield();
+            UnregisterTimer(_handleTimer);
+
+            var messageData = await StateManager.TryGetStateAsync<MessageData>(nameof(EventHandlerActor));
+            if (!messageData.HasValue)
+            {
+                return;
+            }
+
+            // TODO: HANDLE THE THING - PROBABLY PUT A TRANSACTION HERE AND SCOPE IT TO THE STATEMANAGER CALL
+
+            await StateManager.RemoveStateAsync(nameof(EventHandlerActor));
         }
     }
 }
