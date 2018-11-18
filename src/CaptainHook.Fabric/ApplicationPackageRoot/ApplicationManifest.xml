@@ -13,9 +13,9 @@
     <Parameter Name="PoolManagerActorService_PartitionCount" DefaultValue="10" />
     <Parameter Name="PoolManagerActorService_MinReplicaSetSize" DefaultValue="3" />
     <Parameter Name="PoolManagerActorService_TargetReplicaSetSize" DefaultValue="3" />
-    <Parameter Name="IEventReaderActor_PartitionCount" DefaultValue="10" />
-    <Parameter Name="IEventReaderActor_MinReplicaSetSize" DefaultValue="3" />
-    <Parameter Name="IEventReaderActor_TargetReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="EventReaderActorService_PartitionCount" DefaultValue="10" />
+    <Parameter Name="EventReaderActorService_MinReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="EventReaderActorService_TargetReplicaSetSize" DefaultValue="3" />
   </Parameters>
   <!-- Import the ServiceManifest from the ServicePackage. The ServiceManifestName and ServiceManifestVersion 
        should match the Name and Version attributes of the ServiceManifest element defined in the 
@@ -68,9 +68,9 @@
         <UniformInt64Partition PartitionCount="[PoolManagerActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
       </StatefulService>
     </Service>
-    <Service Name="IEventReaderActor" GeneratedIdRef="a389d280-90c5-4d20-a13d-5ba9033de812|Persisted">
-      <StatefulService ServiceTypeName="IEventReaderActorType" TargetReplicaSetSize="[IEventReaderActor_TargetReplicaSetSize]" MinReplicaSetSize="[IEventReaderActor_MinReplicaSetSize]">
-        <UniformInt64Partition PartitionCount="[IEventReaderActor_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
+    <Service Name="EventReaderActorService" GeneratedIdRef="721b0349-2561-4ed0-8296-401fc9bd13e5|Persisted">
+      <StatefulService ServiceTypeName="EventReaderActorServiceType" TargetReplicaSetSize="[EventReaderActorService_TargetReplicaSetSize]" MinReplicaSetSize="[EventReaderActorService_MinReplicaSetSize]">
+        <UniformInt64Partition PartitionCount="[EventReaderActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
       </StatefulService>
     </Service>
     <!-- The section below creates instances of service types, when an instance of this 
