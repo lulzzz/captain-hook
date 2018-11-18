@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using Common;
     using Common.Telemetry;
     using Eshopworld.Core;
     using Interfaces;
@@ -35,6 +36,7 @@
         private const int BatchSize = 10; // make this configurable
 
         private readonly IBigBrother _bb;
+        private readonly ConfigurationSettings _settings;
         private IActorTimer _poolTimer;
         private MessageReceiver _receiver;
 
@@ -44,10 +46,12 @@
         /// <param name="actorService">The Microsoft.ServiceFabric.Actors.Runtime.ActorService that will host this actor instance.</param>
         /// <param name="actorId">The Microsoft.ServiceFabric.Actors.ActorId for this actor instance.</param>
         /// <param name="bb">The <see cref="IBigBrother"/> telemetry instance that this actor instance will use to publish.</param>
-        public EventReaderActor(ActorService actorService, ActorId actorId, IBigBrother bb)
+        /// <param name="settings">The <see cref="ConfigurationSettings"/> being read from the KeyVault.</param>
+        public EventReaderActor(ActorService actorService, ActorId actorId, IBigBrother bb, ConfigurationSettings settings)
             : base(actorService, actorId)
         {
             _bb = bb;
+            _settings = settings;
         }
 
         protected override async Task OnActivateAsync()
@@ -62,7 +66,7 @@
                 TimeSpan.FromMilliseconds(15));
 
             _receiver = new MessageReceiver(
-                "--- CONNECTION STRING ---",
+                _settings.ServiceBusConnectionString,
                 EntityNameHelper.FormatSubscriptionPath(TypeExtensions.GetEntityName(Id.GetStringId()), SubscriptionName),
                 ReceiveMode.PeekLock,
                 new RetryExponential(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), 3),
@@ -98,13 +102,13 @@
                                    .Build();
 
             var sbNamespace = Azure.Authenticate(client, string.Empty)
-                                   .WithSubscription("--- SUBSCRIPTION ID ---")
+                                   .WithSubscription(_settings.AzureSubscriptionId)
                                    .ServiceBusNamespaces.List()
-                                   .SingleOrDefault(n => n.Name == "--- NAMESPACE NAME ---");
+                                   .SingleOrDefault(n => n.Name == _settings.ServiceBusNamespace);
 
             if (sbNamespace == null)
             {
-                throw new InvalidOperationException($"Couldn't find the service bus namespace {"!!!"} in the subscription with ID {"!!!"}");
+                throw new InvalidOperationException($"Couldn't find the service bus namespace {_settings.ServiceBusNamespace} in the subscription with ID {_settings.AzureSubscriptionId}");
             }
 
             var azureTopic = await sbNamespace.CreateTopicIfNotExists(TypeExtensions.GetEntityName(Id.GetStringId()));

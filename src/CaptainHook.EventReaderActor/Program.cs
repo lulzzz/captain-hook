@@ -41,6 +41,9 @@
                        .As<IBigBrother>()
                        .SingleInstance();
 
+                builder.RegisterInstance(settings)
+                       .SingleInstance();
+
                 builder.RegisterServiceFabricSupport();
                 builder.RegisterActor<EventReaderActor>();
 

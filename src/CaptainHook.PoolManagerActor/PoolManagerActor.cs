@@ -43,6 +43,7 @@
 
         public async Task<Guid> DoWork(string payload, string type)
         {
+
             await Task.Yield();
             throw new NotImplementedException();
         }
