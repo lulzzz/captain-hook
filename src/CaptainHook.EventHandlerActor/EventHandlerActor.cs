@@ -66,6 +66,12 @@
                 TimeSpan.MaxValue);
         }
 
+        public async Task CompleteHandle(Guid handle)
+        {
+            await Task.Yield();
+            throw new NotImplementedException();
+        }
+
         private async Task InternalHandle(object _)
         {
             UnregisterTimer(_handleTimer);
