@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using System.Transactions;
+    using Common;
     using Eshopworld.Core;
     using Interfaces;
     using Microsoft.ServiceFabric.Actors;
@@ -25,7 +26,7 @@
     {
         private readonly IBigBrother _bigBrother;
         private ConditionalValue<HashSet<int>> _free; // free pool resources
-        private ConditionalValue<Dictionary<Guid, int>> _busy; // busy pool resources
+        private ConditionalValue<Dictionary<Guid, MessageHook>> _busy; // busy pool resources
 
         private const int NumberOfHandlers = 10; // TODO: TWEAK THIS - HARDCODED FOR NOW
 
@@ -51,16 +52,16 @@
 
             if (_free.HasValue)
             {
-                _busy = await StateManager.TryGetStateAsync<Dictionary<Guid, int>>(nameof(_busy));
+                _busy = await StateManager.TryGetStateAsync<Dictionary<Guid, MessageHook>>(nameof(_busy));
             }
             else
             {
                 _free = new ConditionalValue<HashSet<int>>(true, new HashSet<int>());
-                _busy = new ConditionalValue<Dictionary<Guid, int>>(true, new Dictionary<Guid, int>());
+                _busy = new ConditionalValue<Dictionary<Guid, MessageHook>>(true, new Dictionary<Guid, MessageHook>());
 
                 for (var i = 0; i < NumberOfHandlers; i++)
                 {
-                    ActorProxy.Create<IEventHandlerActor>(new ActorId(i));
+                    ActorProxy.Create<IEventHandlerActor>(new ActorId(i)); // TODO: this probably isn't needed here since we're not invoking the actor at this point - REVIEW
                     _free.Value.Add(i);
                 }
 
@@ -80,14 +81,48 @@
                     var handlerId = _free.Value.First();
                     var handle = Guid.NewGuid();
                     _free.Value.Remove(handlerId);
-                    _busy.Value.Add(handle, handlerId);
+                    _busy.Value.Add(
+                        handle,
+                        new MessageHook
+                        {
+                            HandlerId = handlerId,
+                            Type = type
+                        });
 
                     await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => _free);
                     await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => _busy);
 
-                    scope.Complete();
+                    await ActorProxy.Create<IEventHandlerActor>(new ActorId(handlerId)).Handle(handle, payload, type);
+
+                    scope.Complete(); // TODO: make sure we test this behaviour - fail the transaction if we can't invoke handle on the handler
 
                     return handle;
+                }
+                catch (Exception e)
+                {
+                    _bigBrother.Publish(e.ToExceptionEvent());
+                    scope.Dispose();
+                    throw;
+                }
+            }
+        }
+
+        public async Task CompleteWork(Guid handle)
+        {
+            using (var scope = new TransactionScope())
+            {
+                try
+                {
+                    var msgHook = _busy.Value[handle];
+                    _busy.Value.Remove(handle);
+                    _free.Value.Add(msgHook.HandlerId);
+
+                    await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => _free);
+                    await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => _busy);
+
+                    await ActorProxy.Create<IEventReaderActor>(new ActorId(msgHook.Type)).CompleteMessage(handle);
+
+                    scope.Complete();
                 }
                 catch (Exception e)
                 {

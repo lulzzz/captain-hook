@@ -11,5 +11,7 @@
     public interface IPoolManagerActor : IActor
     {
         Task<Guid> DoWork(string payload, string type);
+
+        Task CompleteWork(Guid handle);
     }
 }

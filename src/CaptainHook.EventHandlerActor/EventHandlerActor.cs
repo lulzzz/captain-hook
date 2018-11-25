@@ -39,6 +39,7 @@
             if ((await StateManager.TryGetStateAsync<MessageData>(nameof(EventHandlerActor))).HasValue)
             {
                 // There's a message to handle, but we're not sure if it was fully handled or not, so we are going to handle it anyways
+                // Assuming whatever I'm calling can handle idempotency
 
                 _handleTimer = RegisterTimer(
                     InternalHandle,
@@ -66,10 +67,13 @@
                 TimeSpan.MaxValue);
         }
 
+        /// <remarks>
+        /// Not used in this case, because we are hard-coding all handling logic in this Actor, so there's no need to handle completion in higher actors.
+        /// </remarks>>
         public async Task CompleteHandle(Guid handle)
         {
             await Task.Yield();
-            throw new NotImplementedException();
+            throw new NotImplementedException("Not used - nothing above this actor will actually be called in v0");
         }
 
         private async Task InternalHandle(object _)
