@@ -102,16 +102,6 @@
             return base.OnDeactivateAsync();
         }
 
-        public async Task Run()
-        {
-            await Task.Yield();
-        }
-
-        public async Task CompleteMessage(Guid id)
-        {
-            await Task.Yield();
-        }
-
         internal async Task SetupServiceBus()
         {
             var token = new AzureServiceTokenProvider().GetAccessTokenAsync("https://management.core.windows.net/", string.Empty).Result;
@@ -152,7 +142,15 @@
             }
         }
 
-        public async Task CompleteWork(Guid handle)
+        /// <remarks>
+        /// Do nothing by design. We just need to make sure that the actor is properly activated.
+        /// </remarks>>
+        public async Task Run()
+        {
+            await Task.Yield();
+        }
+
+        public async Task CompleteMessage(Guid handle)
         {
             // NOT HANDLING FAULTS YET - BE CAREFUL HERE!
 
