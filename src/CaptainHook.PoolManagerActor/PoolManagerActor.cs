@@ -22,7 +22,7 @@
     ///  - None: State is kept in memory only and not replicated.
     /// </remarks>
     [StatePersistence(StatePersistence.Persisted)]
-    internal class PoolManagerActor : Actor, IPoolManagerActor
+    public class PoolManagerActor : Actor, IPoolManagerActor
     {
         private readonly IBigBrother _bigBrother;
         private ConditionalValue<HashSet<int>> _free; // free pool resources
