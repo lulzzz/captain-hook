@@ -22,6 +22,10 @@
         <Program>CaptainHook.PoolManagerActor.exe</Program>
       </ExeHost>
     </EntryPoint>
+    <EnvironmentVariables>
+      <EnvironmentVariable Name="KEYVAULT_BASE_URI" Value="N/A" />
+      <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="N/A" />
+    </EnvironmentVariables>
   </CodePackage>
   <ConfigPackage Name="Config" Version="1.0.0" />
   <Resources>
