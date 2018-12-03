@@ -1,11 +1,10 @@
 ﻿namespace CaptainHook.EventHandlerActor
 {
     using System;
-    using System.Collections.Generic;
-    using System.Threading;
     using System.Threading.Tasks;
     using Interfaces;
     using Microsoft.ServiceFabric.Actors;
+    using Microsoft.ServiceFabric.Actors.Client;
     using Microsoft.ServiceFabric.Actors.Runtime;
 
     /// <remarks>
@@ -58,7 +57,7 @@
                 Type = type
             };
 
-            await StateManager.AddOrUpdateStateAsync(nameof(EventHandlerActor), messageData, (s, pair) => messageData);
+            await StateManager.AddOrUpdateStateAsync(nameof(EventHandlerActor), messageData, (s, pair) => pair);
 
             _handleTimer = RegisterTimer(
                 InternalHandle,
@@ -89,6 +88,7 @@
             // TODO: HANDLE THE THING - PROBABLY PUT A TRANSACTION HERE AND SCOPE IT TO THE STATEMANAGER CALL
 
             await StateManager.RemoveStateAsync(nameof(EventHandlerActor));
+            await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).CompleteWork(messageData.Value.Handle);
         }
     }
 }
