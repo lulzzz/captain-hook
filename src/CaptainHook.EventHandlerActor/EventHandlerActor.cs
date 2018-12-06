@@ -2,6 +2,10 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Common.Telemetry;
+    using Eshopworld.Core;
+    using Eshopworld.Telemetry;
+    using Handlers;
     using Interfaces;
     using Microsoft.ServiceFabric.Actors;
     using Microsoft.ServiceFabric.Actors.Client;
@@ -18,15 +22,26 @@
     [StatePersistence(StatePersistence.Persisted)]
     public class EventHandlerActor : Actor, IEventHandlerActor
     {
+        private readonly IHandlerFactory _handlerFactory;
+        private readonly IBigBrother _bigBrother;
         private IActorTimer _handleTimer;
+
         /// <summary>
         /// Initializes a new instance of EventHandlerActor
         /// </summary>
         /// <param name="actorService">The Microsoft.ServiceFabric.Actors.Runtime.ActorService that will host this actor instance.</param>
         /// <param name="actorId">The Microsoft.ServiceFabric.Actors.ActorId for this actor instance.</param>
-        public EventHandlerActor(ActorService actorService, ActorId actorId)
+        /// <param name="handlerFactory"></param>
+        /// <param name="bigBrother"></param>
+        public EventHandlerActor(
+            ActorService actorService,
+            ActorId actorId,
+            IHandlerFactory handlerFactory,
+            IBigBrother bigBrother)
             : base(actorService, actorId)
         {
+            _handlerFactory = handlerFactory;
+            _bigBrother = bigBrother;
         }
 
         /// <summary>
@@ -82,13 +97,27 @@
             var messageData = await StateManager.TryGetStateAsync<MessageData>(nameof(EventHandlerActor));
             if (!messageData.HasValue)
             {
+               _bigBrother.Publish(new WebhookEvent("message was empty") );
                 return;
             }
 
-            // TODO: HANDLE THE THING - PROBABLY PUT A TRANSACTION HERE AND SCOPE IT TO THE STATEMANAGER CALL
+            try
+            {
+                //todo nuke this in V1
+                var (brandType, domainType) = ModelParser.ParseBrandAndDomainType(messageData.Value.Payload);
 
-            await StateManager.RemoveStateAsync(nameof(EventHandlerActor));
-            await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).CompleteWork(messageData.Value.Handle);
+                //todo need to register the handlers based on the contents of the domain events and the data in the messages
+                var handler = _handlerFactory.CreateHandler(brandType, domainType);
+
+                await handler.Call(messageData.Value);
+
+                await StateManager.RemoveStateAsync(nameof(EventHandlerActor));
+                await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).CompleteWork(messageData.Value.Handle);
+            }
+            catch (Exception e)
+            {
+                BigBrother.Write(e);
+            }
         }
     }
 }
