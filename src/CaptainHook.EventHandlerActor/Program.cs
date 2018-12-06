@@ -40,7 +40,7 @@
                 var section = config.GetSection("webhook");
                 var values = section.GetChildren().ToList();
 
-                var list = new List<WebHookConfig>(values.Count);
+               var list = new List<WebHookConfig>(values.Count);
                 foreach (var configurationSection in values)
                 {
                     var webHookConfig = new WebHookConfig
