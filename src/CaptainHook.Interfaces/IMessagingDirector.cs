@@ -10,6 +10,6 @@
     /// </summary>
     public interface IMessagingDirector : IActor
     {
-        Task Run(CancellationToken cancellationToken);
+        Task Run();
     }
 }

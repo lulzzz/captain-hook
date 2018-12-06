@@ -74,7 +74,7 @@
         {
             _token.AccessToken = response.AccessToken;
             _token.RefreshToken = response.RefreshToken;
-            _token.Update(response.ExpiresIn);
+            _token.ExpiresIn = response.ExpiresIn;
         }
     }
 }

@@ -10,24 +10,24 @@
 
     public class AuthHandlerFactory : IAuthHandlerFactory
     {
-        private readonly IIndex<string, AuthConfig> _authConfigs;
+        private readonly IIndex<string, WebHookConfig> _webHookConfigs;
 
-        public AuthHandlerFactory(IIndex<string, AuthConfig> authConfigs)
+        public AuthHandlerFactory(IIndex<string, WebHookConfig> webHookConfigs)
         {
-            _authConfigs = authConfigs;
+            _webHookConfigs = webHookConfigs;
         }
 
         public IAuthHandler Get(string name)
         {
-            if(_authConfigs.TryGetValue(name, out var config))
+            if(_webHookConfigs.TryGetValue(name.ToLower(), out var config))
             {
-                switch (name)
+                switch (name.ToLower())
                 {
-                    case "MAX":
-                    case "DIF":
-                        return new MmAuthHandler(config);
+                    case "max":
+                    case "dif":
+                        return new MmAuthHandler(config.AuthConfig);
                     default:
-                        return new AuthHandler(config);
+                        return new AuthHandler(config.AuthConfig);
                 }
             }
             else

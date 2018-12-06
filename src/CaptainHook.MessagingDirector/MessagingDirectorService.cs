@@ -20,7 +20,7 @@
             await base.RunAsync(cancellationToken);
 
             var proxy = ActorProxy.Create<IMessagingDirector>(new ActorId(0));
-            await proxy.Run(cancellationToken);
+            await proxy.Run();
         }
     }
 }

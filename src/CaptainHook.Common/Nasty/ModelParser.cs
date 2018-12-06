@@ -1,4 +1,4 @@
-﻿namespace CaptainHook.EventHandlerActor
+﻿namespace CaptainHook.Common.Nasty
 {
     using System;
     using Newtonsoft.Json.Linq;
@@ -26,8 +26,13 @@
                 jObject = JObject.Parse(payload);
             }
 
-            var orderCode = jObject.SelectToken("OrderCode").Value<Guid>();
-            return orderCode;
+            var orderCode = jObject.SelectToken("OrderCode").Value<string>();
+            if (Guid.TryParse(orderCode, out var result))
+            {
+                return result;
+            }
+
+            throw new FormatException($"cannot parse order code in payload {orderCode}");
         }
 
         public static string ParseBrandType(string payload, JObject jObject = null)
@@ -36,16 +41,18 @@
             {
                 jObject = JObject.Parse(payload);
             }
-            var brandType = jObject.SelectToken("BrandType").Value<string>();
+            var brandType = jObject.SelectToken("BrandCode").Value<string>();
             return brandType;
         }
 
-        public static (string brandType, string domainType) ParseBrandAndDomainType(string payload)
+        public static (string brandType, string domainType) ParseBrandAndDomainType(MessageData data)
         {
-            var jObject = JObject.Parse(payload);
+            var jObject = JObject.Parse(data.Payload);
 
-            var brandType = ParseBrandType(payload, jObject);
-            var domainType = ParseDomainType(payload, jObject);
+            var brandType = ParseBrandType(data.Payload, jObject);
+
+            //todo need to something here as the type is not in the payload so need to get it from 
+            var domainType = data.Type;
 
             return (brandType, domainType);
         }

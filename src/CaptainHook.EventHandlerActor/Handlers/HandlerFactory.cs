@@ -35,23 +35,21 @@
         /// <returns></returns>
         public IHandler CreateHandler(string brandType, string domainType)
         {
-            if (!_webHookConfig.TryGetValue(brandType.ToUpper(), out var webhookConfig))
+            if (!_webHookConfig.TryGetValue(brandType.ToLower(), out var webhookConfig))
             {
                 throw new Exception("Boom, don't know the brand type");
             }
 
             var tokenHandler = _authHandlerFactory.Get(brandType);
 
-            switch ($"{brandType.ToLower()}-{domainType.ToLower()}")
+            switch ($"{domainType.ToLower()}")
             {
-                case "max-checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
-                case "dif-checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
-                    return new MmEventHandler(this, _httpClients[brandType], _bigBrother, webhookConfig, tokenHandler);
+                case "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
+                    return new MmEventHandler(this, _httpClients[brandType.ToLower()], _bigBrother, webhookConfig, tokenHandler);
 
-                case "max-checkout.domain.infrastructure.domainevents.platformordercreatedomainevent":
-                case "dif-checkout.domain.infrastructure.domainevents.platformordercreatedomainevent":
+                case "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent":
                 case "esw":
-                    return new GenericEventHandler(tokenHandler, _bigBrother, _httpClients[brandType], webhookConfig);
+                    return new GenericEventHandler(tokenHandler, _bigBrother, _httpClients[brandType.ToLower()], webhookConfig);
                 default:
                     throw new Exception("Boom, don't know the brand type");
             }

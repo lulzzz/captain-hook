@@ -8,6 +8,8 @@
     /// </summary>
     public class AuthToken
     {
+        private int _expiresIn;
+
         /// <summary>
         /// 
         /// </summary>
@@ -23,7 +25,15 @@
         /// Time in seconds
         /// </summary>
         [JsonProperty("expires_in")]
-        public int ExpiresIn { get; private set; }
+        public int ExpiresIn
+        {
+            get => _expiresIn;
+            set
+            {
+                _expiresIn = value;
+                ExpiresTime = DateTime.UtcNow.AddSeconds(_expiresIn);
+            }
+        }
 
         /// <summary>
         /// Wall clock time of expires in
@@ -41,15 +51,5 @@
         /// </summary>
         [JsonProperty("token_type")]
         public string TokenType { get; set; }
-
-        /// <summary>
-        /// Updates the local expiration time in seconds and gives an estimated expires time
-        /// </summary>
-        /// <param name="expiresIn">Expires in seconds after creation time</param>
-        public void Update(int expiresIn)
-        {
-            ExpiresIn = expiresIn;
-            ExpiresTime = DateTime.UtcNow.AddSeconds(expiresIn);
-        }
     }
 }

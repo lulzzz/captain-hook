@@ -8,6 +8,7 @@
     using Common.Nasty;
     using Common.Telemetry;
     using Eshopworld.Core;
+    using Newtonsoft.Json;
 
     public class MmEventHandler : GenericEventHandler
     {
@@ -41,11 +42,12 @@
             //todo move order code to body so we don't have to deal with it in CH
             var orderCode = ModelParser.ParseOrderCode(data.Payload);
 
-            var response = await _client.PostAsJsonReliability($"{WebHookConfig.Uri}/{orderCode}", data.Payload, BigBrother);
+            var uri = new Uri(new Uri(WebHookConfig.Uri), orderCode.ToString());
+            var response = await _client.PostAsJsonReliability(uri.AbsoluteUri, data.Payload, BigBrother);
 
             BigBrother.Publish(new WebhookEvent(data.Handle, data.Type, data.Payload, response.IsSuccessStatusCode.ToString()));
 
-            var eswHandler = _handlerFactory.CreateHandler("esw", string.Empty);
+            var eswHandler = _handlerFactory.CreateHandler("esw", "esw");
 
             var payload = new HttpResponseDto
             {
@@ -53,7 +55,8 @@
                 StatusCode = (int) response.StatusCode
             };
 
-            await eswHandler.Call(payload);
+            data.Payload = JsonConvert.SerializeObject(payload);
+            await eswHandler.Call(data);
         }
     }
 }
