@@ -12,15 +12,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Eshopworld.Core" Version="2.0.3" />
-    <PackageReference Include="IdentityModel" Version="3.10.2" />
-    <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="3.2.187" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Autofac">
-      <HintPath>..\..\..\..\..\.nuget\packages\autofac\4.6.2\lib\netstandard1.1\Autofac.dll</HintPath>
-    </Reference>
+    <PackageReference Include="Eshopworld.Core" Version="2.0.5" />
+    <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="3.3.617" />
   </ItemGroup>
 
 </Project>

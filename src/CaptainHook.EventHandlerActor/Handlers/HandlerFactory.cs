@@ -7,6 +7,7 @@
     using Common;
     using Eshopworld.Core;
 
+    //todo remove in v1
     public class HandlerFactory : IHandlerFactory
     {
         private readonly IIndex<string, HttpClient> _httpClients;
