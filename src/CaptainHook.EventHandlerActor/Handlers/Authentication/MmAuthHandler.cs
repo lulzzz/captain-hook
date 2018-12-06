@@ -35,7 +35,6 @@
                 client.SetBearerToken(stsResult.AccessToken);
                 return;
             }
-            //todo handle token failure
             throw new Exception("didn't get a token from the provider");
         }
     }

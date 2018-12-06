@@ -1,4 +1,6 @@
-﻿namespace CaptainHook.EventHandlerActor.Handlers
+﻿using System;
+
+namespace CaptainHook.EventHandlerActor.Handlers
 {
     using System;
     using System.Net;
@@ -6,6 +8,7 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Common;
     using Common.Telemetry;
     using Eshopworld.Core;
     using Newtonsoft.Json;
@@ -14,12 +17,12 @@
     public static class HttpClientExtensions
     {
         /// <summary>
-        /// Extenion to http client to send requests via polly with some retries
+        /// Extension to http client to send requests via polly with some retries
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="client"></param>
         /// <param name="uri"></param>
-        /// <param name="payload"></param>
+        /// <param name="data"></param>
         /// <param name="bigBrother"></param>
         /// <param name="contentType"></param>
         /// <param name="token"></param>
@@ -27,23 +30,30 @@
         public static async Task<HttpResponseMessage> PostAsJsonReliability<T>(
             this HttpClient client,
             string uri,
-            T payload,
+            T data,
             IBigBrother bigBrother,
             string contentType = "application/json",
-            CancellationToken token = default)
+            CancellationToken token = default) where T : MessageData
         {
-            var response = await Policy
-                .HandleResult<HttpResponseMessage>(message => message.StatusCode == HttpStatusCode.ServiceUnavailable || message.StatusCode == HttpStatusCode.TooManyRequests)
+            var response = await Policy.HandleResult<HttpResponseMessage>(
+                    message =>
+                    message.StatusCode == HttpStatusCode.ServiceUnavailable ||
+                    message.StatusCode == HttpStatusCode.TooManyRequests)
                 .WaitAndRetryAsync(new[]
                 {
-                    TimeSpan.FromSeconds(1),TimeSpan.FromSeconds(2),TimeSpan.FromSeconds(5)
+                    TimeSpan.FromSeconds(1),
+                    TimeSpan.FromSeconds(2),
+                    TimeSpan.FromSeconds(5)
 
                 }, (result, timeSpan, retryCount, context) =>
                 {
-                    //todo fill this in correctly for telemetry
-                    bigBrother.Publish(new HttpClientFailure(Guid.NewGuid(), string.Empty, string.Empty, $"retry count {retryCount} of {context.Count}"));
-                })
-                .ExecuteAsync(() => client.PostAsJson(uri, payload, contentType, token));
+                        bigBrother.Publish(new HttpClientFailure(
+                            data.Handle, 
+                            data.Type, 
+                            data.Payload,
+                            $"retry count {retryCount} of {context.Count}"));
+                    
+                }).ExecuteAsync(() => client.PostAsJson(uri, data.Payload, contentType, token));
 
             return response;
         }
@@ -65,7 +75,17 @@
             string contentType = "application/json",
             CancellationToken token = default)
         {
-            var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF32, contentType);
+            StringContent content;
+            
+            if (payload is string s)
+            {
+                content = new StringContent(s, Encoding.UTF32, contentType);
+            }
+            else
+            {
+                content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF32, contentType);
+            }
+            
             return await client.PostAsync(uri, content, token);
         }
     }

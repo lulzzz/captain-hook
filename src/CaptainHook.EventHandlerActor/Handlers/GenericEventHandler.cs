@@ -48,7 +48,7 @@
                 await AuthHandler.GetToken(_client);
             }
 
-            var response = await _client.PostAsJsonReliability(WebHookConfig.Uri, data.Payload, BigBrother);
+            var response = await _client.PostAsJsonReliability(WebHookConfig.Uri, data, BigBrother);
 
             BigBrother.Publish(new WebhookEvent(data.Handle, data.Type, data.Payload, response.IsSuccessStatusCode.ToString()));
         }
@@ -73,7 +73,7 @@
                 await AuthHandler.GetToken(_client);
             }
 
-            var response = await _client.PostAsJsonReliability(WebHookConfig.Uri, data.Payload, BigBrother);
+            var response = await _client.PostAsJsonReliability(WebHookConfig.Uri, data, BigBrother);
 
             BigBrother.Publish(new WebhookEvent(data.Handle, data.Type, data.Payload, response.IsSuccessStatusCode.ToString()));
 

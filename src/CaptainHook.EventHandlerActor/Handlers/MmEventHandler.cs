@@ -43,7 +43,7 @@
             var orderCode = ModelParser.ParseOrderCode(data.Payload);
 
             var uri = new Uri(new Uri(WebHookConfig.Uri), orderCode.ToString());
-            var response = await _client.PostAsJsonReliability(uri.AbsoluteUri, data.Payload, BigBrother);
+            var response = await _client.PostAsJsonReliability(uri.AbsoluteUri, data, BigBrother);
 
             BigBrother.Publish(new WebhookEvent(data.Handle, data.Type, data.Payload, response.IsSuccessStatusCode.ToString()));
 
