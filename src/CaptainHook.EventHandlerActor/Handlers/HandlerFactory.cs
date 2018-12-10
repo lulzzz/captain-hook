@@ -42,12 +42,13 @@
 
             var tokenHandler = _authHandlerFactory.Get(brandType);
 
-            switch ($"{domainType.ToLower()}")
+            switch ($"{brandType.ToLower()}-{domainType.ToLower()}")
             {
-                case "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
+                case "max-checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
                     return new MmEventHandler(this, _httpClients[brandType.ToLower()], _bigBrother, webhookConfig, tokenHandler);
-
+                
                 case "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent":
+                case "goc-checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
                 case "esw":
                     return new GenericEventHandler(tokenHandler, _bigBrother, _httpClients[brandType.ToLower()], webhookConfig);
                 default:

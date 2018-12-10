@@ -30,11 +30,13 @@
             //get initial access token and refresh token
             if (_token.AccessToken == null)
             {
-                var response = await client.RequestTokenAsync(new TokenRequest
+                var response = await client.RequestTokenAsync(new ClientCredentialsTokenRequest
                 {
                     Address = Config.Uri,
                     ClientId = Config.ClientId,
                     ClientSecret = Config.ClientSecret,
+                    GrantType = Config.GrantType,
+                    Scope = Config.Scopes
                 });
 
                 if (response.IsError)
@@ -47,7 +49,7 @@
             }
 
             //get a new access token from the refresh token
-            if (_token.ExpiresTime >= DateTime.UtcNow)
+            if (_token.ExpiresTime <= DateTime.UtcNow)
             {
                 var response = await client.RequestRefreshTokenAsync(new RefreshTokenRequest
                 {
