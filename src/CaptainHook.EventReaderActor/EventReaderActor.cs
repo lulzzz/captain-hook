@@ -41,6 +41,9 @@
 
         private readonly IBigBrother _bb;
         private readonly ConfigurationSettings _settings;
+        private readonly object _gate = new object();
+
+        private volatile bool _readingEvents;
         private Timer _poolTimer;
         private MessageReceiver _receiver;
 
@@ -135,6 +138,12 @@
 
         internal void ReadEvents(object _)
         {
+            lock (_gate)
+            {
+                if (_readingEvents) return;
+                _readingEvents = true;
+            }
+
             if (_receiver.IsClosedOrClosing) return;
 
             var messages = _receiver.ReceiveAsync(BatchSize, TimeSpan.FromMilliseconds(50)).Result;
@@ -146,6 +155,8 @@
                 _messagesInHandlers.Value.Add(handle, message.SystemProperties.LockToken);
                 StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers, (s, value) => _messagesInHandlers).Wait();
             }
+
+            _readingEvents = false;
         }
 
         /// <remarks>
