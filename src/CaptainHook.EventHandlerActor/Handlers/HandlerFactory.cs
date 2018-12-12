@@ -40,20 +40,41 @@
                 throw new Exception("Boom, don't know the brand type");
             }
 
+            //todo change to brandType Only
             var tokenHandler = _authHandlerFactory.Get(brandType);
 
-            switch ($"{brandType.ToLower()}-{domainType.ToLower()}")
+            switch (domainType.ToLower())
             {
-                case "max-checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
-                    return new MmEventHandler(this, _httpClients[brandType.ToLower()], _bigBrother, webhookConfig, tokenHandler);
+                //todo not needed in v1
+                case "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
+                    return new RetailerEventHandler(this, _httpClients[brandType.ToLower()], _bigBrother, webhookConfig, tokenHandler);
                 
                 case "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent":
-                case "goc-checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
                 case "esw":
                     return new GenericEventHandler(tokenHandler, _bigBrother, _httpClients[brandType.ToLower()], webhookConfig);
+                
                 default:
-                    throw new Exception("Boom, don't know the brand type");
+                    throw new Exception($"Boom, don't know the domain type or handler name {domainType}");
             }
+        }
+
+        /// <summary>
+        /// Generic implementation for a call back handler
+        /// </summary>
+        /// <param name="providerName"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public IHandler CreateCallbackHandler(string providerName, string key)
+        {
+            if (!_webHookConfig.TryGetValue(key.ToLower(), out var webhookConfig))
+            {
+                throw new Exception("Boom, don't know the brand type");
+            }
+
+            //todo change to brandType Only
+            var tokenHandler = _authHandlerFactory.Get(key);
+
+            return new GenericEventHandler(tokenHandler, _bigBrother, _httpClients[providerName.ToLower()], webhookConfig.Callback);
         }
     }
 }
