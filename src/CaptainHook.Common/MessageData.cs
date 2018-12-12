@@ -4,10 +4,19 @@
 
     public class MessageData
     {
-        public Guid Handle { get; set; }
+        public MessageData(string payload, string type)
+        {
+            Handle = Guid.NewGuid();
+            Payload = payload;
+            Type = type;
+        }
 
-        public string Payload { get; set; }
+        public Guid Handle { get; }
 
-        public string Type { get; set; }
+        public int HandlerId { get; set; }
+
+        public string Payload { get; }
+
+        public string Type { get; }
     }
 }

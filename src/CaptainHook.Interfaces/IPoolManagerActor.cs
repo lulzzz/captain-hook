@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Common;
     using Microsoft.ServiceFabric.Actors;
 
     /// <summary>
@@ -10,7 +11,7 @@
     /// </summary>
     public interface IPoolManagerActor : IActor
     {
-        Task<Guid> DoWork(string payload, string type);
+        Task<Guid> DoWork(MessageData messageData);
 
         Task CompleteWork(Guid handle);
     }

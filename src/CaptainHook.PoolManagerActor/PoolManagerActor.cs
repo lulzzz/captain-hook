@@ -25,7 +25,7 @@
     {
         private readonly IBigBrother _bigBrother;
         private ConditionalValue<HashSet<int>> _free; // free pool resources
-        private ConditionalValue<Dictionary<Guid, MessageHook>> _busy; // busy pool resources
+        private ConditionalValue<Dictionary<Guid, MessageData>> _busy; // busy pool resources
 
         private const int NumberOfHandlers = 10; // TODO: TWEAK THIS - HARDCODED FOR NOW
 
@@ -51,12 +51,12 @@
 
             if (_free.HasValue)
             {
-                _busy = await StateManager.TryGetStateAsync<Dictionary<Guid, MessageHook>>(nameof(_busy));
+                _busy = await StateManager.TryGetStateAsync<Dictionary<Guid, MessageData>>(nameof(_busy));
             }
             else
             {
                 _free = new ConditionalValue<HashSet<int>>(true, new HashSet<int>());
-                _busy = new ConditionalValue<Dictionary<Guid, MessageHook>>(true, new Dictionary<Guid, MessageHook>());
+                _busy = new ConditionalValue<Dictionary<Guid, MessageData>>(true, new Dictionary<Guid, MessageData>());
 
                 for (var i = 0; i < NumberOfHandlers; i++)
                 {
@@ -69,29 +69,23 @@
             }
         }
 
-        public async Task<Guid> DoWork(string payload, string type)
+        public async Task<Guid> DoWork(MessageData messageData)
         {
             // need to handle the possibility of the resources in the pool being all busy!
 
             try
             {
-                var handlerId = _free.Value.First();
-                var handle = Guid.NewGuid();
-                _free.Value.Remove(handlerId);
-                _busy.Value.Add(
-                    handle,
-                    new MessageHook
-                    {
-                        HandlerId = handlerId,
-                        Type = type
-                    });
+                messageData.HandlerId = _free.Value.First();
+
+                _free.Value.Remove(messageData.HandlerId);
+                _busy.Value.Add(messageData.Handle, messageData);
 
                 await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => value);
                 await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => value);
 
-                await ActorProxy.Create<IEventHandlerActor>(new ActorId(handlerId)).Handle(handle, payload, type);
+                await ActorProxy.Create<IEventHandlerActor>(new ActorId(messageData.HandlerId)).Handle(messageData.Handle, messageData.Payload, messageData.Type);
 
-                return handle;
+                return messageData.Handle;
             }
             catch (Exception e)
             {
