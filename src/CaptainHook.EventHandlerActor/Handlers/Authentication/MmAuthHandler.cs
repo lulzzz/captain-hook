@@ -3,6 +3,7 @@
     using System;
     using System.Net;
     using System.Net.Http;
+    using System.Text;
     using System.Threading.Tasks;
     using Common;
     using Newtonsoft.Json;
@@ -21,11 +22,10 @@
         public override async Task GetToken(HttpClient client)
         {
             //todo get the auth handler
-            client.DefaultRequestHeaders.Add("Content-Type", "application/json-patch+json; charset=utf-8");
             client.DefaultRequestHeaders.TryAddWithoutValidation("client_id", Config.ClientId);
             client.DefaultRequestHeaders.TryAddWithoutValidation("client_secret", Config.ClientSecret);
 
-            var authProviderResponse = await client.PostAsync(Config.Uri, null);
+            var authProviderResponse = await client.PostAsync(Config.Uri, new StringContent("", Encoding.UTF32, "application/json-patch+json"));
 
             if (authProviderResponse.StatusCode == HttpStatusCode.Created && authProviderResponse.Content != null)
             {
@@ -33,8 +33,8 @@
                 var stsResult = JsonConvert.DeserializeObject<AuthToken>(responseContent);
 
                 client.SetBearerToken(stsResult.AccessToken);
+                return;
             }
-            //todo handle token failure
             throw new Exception("didn't get a token from the provider");
         }
     }

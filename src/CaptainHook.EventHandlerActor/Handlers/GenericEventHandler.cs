@@ -35,9 +35,22 @@
         /// <typeparam name="TRequest"></typeparam>
         /// <param name="request"></param>
         /// <returns></returns>
-        public virtual Task Call<TRequest>(TRequest request)
+        public virtual async Task Call<TRequest>(TRequest request)
         {
-            throw new NotImplementedException();
+            if (!(request is MessageData data))
+            {
+                throw new Exception("injected wrong implementation");
+            }
+
+            //make a call to client identity provider
+            if (WebHookConfig.RequiresAuth)
+            {
+                await AuthHandler.GetToken(_client);
+            }
+
+            var response = await _client.PostAsJsonReliability(WebHookConfig.Uri, data, BigBrother);
+
+            BigBrother.Publish(new WebhookEvent(data.Handle, data.Type, data.Payload, response.IsSuccessStatusCode.ToString()));
         }
 
         /// <summary>
@@ -60,7 +73,7 @@
                 await AuthHandler.GetToken(_client);
             }
 
-            var response = await _client.PostAsJsonReliability(WebHookConfig.Uri, data.Payload, BigBrother);
+            var response = await _client.PostAsJsonReliability(WebHookConfig.Uri, data, BigBrother);
 
             BigBrother.Publish(new WebhookEvent(data.Handle, data.Type, data.Payload, response.IsSuccessStatusCode.ToString()));
 

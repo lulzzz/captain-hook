@@ -41,9 +41,9 @@
                 });
         }
 
-        public async Task Run(CancellationToken cancellationToken)
+        public async Task Run()
         {
-            var types = await StateManager.TryGetStateAsync<string[]>(MessageTypesKey, cancellationToken);
+            var types = await StateManager.TryGetStateAsync<string[]>(MessageTypesKey);
 
             foreach (var type in types.Value)
             {

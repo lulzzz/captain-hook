@@ -21,5 +21,10 @@
         /// 
         /// </summary>
         public string Scopes { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string GrantType { get; } = "client_credentials";
     }
 }

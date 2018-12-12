@@ -2,6 +2,8 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Common;
+    using Common.Nasty;
     using Common.Telemetry;
     using Eshopworld.Core;
     using Eshopworld.Telemetry;
@@ -104,7 +106,7 @@
             try
             {
                 //todo nuke this in V1
-                var (brandType, domainType) = ModelParser.ParseBrandAndDomainType(messageData.Value.Payload);
+                var (brandType, domainType) = ModelParser.ParseBrandAndDomainType(messageData.Value);
 
                 //todo need to register the handlers based on the contents of the domain events and the data in the messages
                 var handler = _handlerFactory.CreateHandler(brandType, domainType);

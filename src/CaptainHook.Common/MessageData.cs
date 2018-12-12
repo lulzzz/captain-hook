@@ -1,4 +1,4 @@
-﻿namespace CaptainHook.EventHandlerActor
+﻿namespace CaptainHook.Common
 {
     using System;
 
