@@ -74,12 +74,13 @@
                 else
                 {
                     _messagesInHandlers = new ConditionalValue<Dictionary<Guid, string>>(true, new Dictionary<Guid, string>());
-                    await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers, (s, value) => _messagesInHandlers);
+                    await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers, (s, value) => value);
                 }
 
                 await SetupServiceBus();
 
                 // TODO: SET REMINDER - 10 MINS
+
                 _poolTimer = new Timer(
                     ReadEvents,
                     null,
@@ -144,7 +145,7 @@
             {
                 var handle = ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).DoWork(Encoding.UTF8.GetString(message.Body), Id.GetStringId()).Result;
                 _messagesInHandlers.Value.Add(handle, message.SystemProperties.LockToken);
-                StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers, (s, value) => _messagesInHandlers).Wait();
+                StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers, (s, value) => value).Wait();
             }
         }
 
@@ -162,7 +163,7 @@
 
             await _receiver.CompleteAsync(_messagesInHandlers.Value[handle]);
             _messagesInHandlers.Value.Remove(handle);
-            await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers, (s, value) => _messagesInHandlers);
+            await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers, (s, value) => value);
         }
     }
 }
