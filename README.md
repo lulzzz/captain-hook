@@ -17,7 +17,7 @@ Generic message dispatcher for webhooks using the Actor framework in Service Fab
 1. Register Config with Captain Hook
   1. Domain Event Name (full namespace)
   2. Hook URI
-    1. Auth required for this endpoint
+  1. Any Auth required for this endpoint
   2. Callback with response
-    1. Auth required for this endpoint
+  1. Auth required for the callback endpoint.
 1. If hitting an internal service in the hook or callback, both the scope and aud for captain hook (EDA) must be configured/granted on the application side. This involves adding "eda.api.all" scope to the policy around the webhook endpoint. And adding "tooling.eda.api" as an allowed Aud in the IdentityServer setup in Startup.cs.
