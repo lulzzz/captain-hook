@@ -1,6 +1,7 @@
 ﻿namespace CaptainHook.EventHandlerActor.Handlers
 {
     using System;
+    using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
     using Authentication;
@@ -8,8 +9,7 @@
     using Common.Nasty;
     using Common.Telemetry;
     using Eshopworld.Core;
-    using Newtonsoft.Json;
-
+    
     public class RetailerEventHandler : GenericEventHandler
     {
         private readonly HttpClient _client;
@@ -19,7 +19,7 @@
             IHandlerFactory handlerFactory,
             HttpClient client,
             IBigBrother bigBrother,
-            WebHookConfig webHookConfig, 
+            WebHookConfig webHookConfig,
             IAuthHandler authHandler)
             : base(authHandler, bigBrother, client, webHookConfig)
         {
@@ -39,23 +39,33 @@
                 await AuthHandler.GetToken(_client);
             }
 
-            //todo move order code to body so we don't have to deal with it in CH
+            //todo get publishers to send clean models
+            var domainEventConfig = WebHookConfig.DomainEvents.FirstOrDefault(t => t.Name == data.Type);
+
             var orderCode = ModelParser.ParseOrderCode(data.Payload);
 
-            var uri = new Uri(new Uri(WebHookConfig.Uri), orderCode.ToString());
+            if (domainEventConfig != null)
+            {
+                data.Payload = ModelParser.GetInnerPayload(data.Payload, domainEventConfig.Path);
+            }
+
+            //go out to the retailer on their api, in the case of goc it's a esw endpoint
+            var uri = new Uri(WebHookConfig.Uri);
             var response = await _client.PostAsJsonReliability(uri.AbsoluteUri, data, BigBrother);
 
             BigBrother.Publish(new WebhookEvent(data.Handle, data.Type, data.Payload, response.IsSuccessStatusCode.ToString()));
 
+            //call callback
             var eswHandler = _handlerFactory.CreateHandler("esw", "esw");
 
             var payload = new HttpResponseDto
             {
+                OrderCode = orderCode,
                 Content = await response.Content.ReadAsStringAsync(),
-                StatusCode = (int) response.StatusCode
+                StatusCode = (int)response.StatusCode
             };
 
-            data.Payload = JsonConvert.SerializeObject(payload);
+            data.CallbackPayload = payload;
             await eswHandler.Call(data);
         }
     }

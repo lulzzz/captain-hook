@@ -5,7 +5,6 @@
     using System.Threading.Tasks;
     using Authentication;
     using Common;
-    using Common.Nasty;
     using Common.Telemetry;
     using Eshopworld.Core;
 
@@ -13,7 +12,6 @@
     {
         private readonly HttpClient _client;
         protected readonly IBigBrother BigBrother;
-
         protected readonly WebHookConfig WebHookConfig;
         protected readonly IAuthHandler AuthHandler;
 
@@ -48,42 +46,23 @@
                 await AuthHandler.GetToken(_client);
             }
 
-            var response = await _client.PostAsJsonReliability(WebHookConfig.Uri, data, BigBrother);
+            //call the platform something like 
+            //call checkout
+            var uri = WebHookConfig.Uri;
 
-            BigBrother.Publish(new WebhookEvent(data.Handle, data.Type, data.Payload, response.IsSuccessStatusCode.ToString()));
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TRequest"></typeparam>
-        /// <typeparam name="TResponse"></typeparam>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        public virtual async Task<HttpResponseDto> Call<TRequest, TResponse>(TRequest request)
-        {
-            if (!(request is MessageData data))
+            if (data.Type == "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent")
             {
-                throw new Exception("injected wrong implementation");
+                uri = $"https://checkout-api.ci.eshopworld.net/api/v2/webhook/PutOrderConfirmationResult/{data.CallbackPayload.OrderCode}";
             }
 
-            //make a call to client identity provider
-            if (WebHookConfig.RequiresAuth)
+            if (data.Type == "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent")
             {
-                await AuthHandler.GetToken(_client);
+                uri = $"https://checkout-api.ci.eshopworld.net/api/v2/PutCorePlatformOrderCreateResult/{data.CallbackPayload.OrderCode}";
             }
 
-            var response = await _client.PostAsJsonReliability(WebHookConfig.Uri, data, BigBrother);
+            var response = await _client.PostAsJsonReliability(uri, data, BigBrother);
 
             BigBrother.Publish(new WebhookEvent(data.Handle, data.Type, data.Payload, response.IsSuccessStatusCode.ToString()));
-
-            var dto = new HttpResponseDto
-            {
-                Content = await response.Content.ReadAsStringAsync(),
-                StatusCode = (int)response.StatusCode
-            };
-
-            return dto;
         }
     }
 }

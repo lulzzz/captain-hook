@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace CaptainHook.EventHandlerActor.Handlers
+﻿namespace CaptainHook.EventHandlerActor.Handlers
 {
     using System;
     using System.Net;
