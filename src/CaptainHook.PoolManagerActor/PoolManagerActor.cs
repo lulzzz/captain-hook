@@ -83,7 +83,7 @@
                 await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => value);
                 await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => value);
 
-                await ActorProxy.Create<IEventHandlerActor>(new ActorId(messageData.HandlerId)).Handle(messageData.Handle, messageData.Payload, messageData.Type);
+                await ActorProxy.Create<IEventHandlerActor>(new ActorId(messageData.HandlerId)).DoWork(messageData);
 
                 return messageData.Handle;
             }

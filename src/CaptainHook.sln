@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28010.2036
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28407.52
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Interfaces", "CaptainHook.Interfaces\CaptainHook.Interfaces.csproj", "{2EFD6F18-374F-4DB7-95D9-419310F5283E}"
 EndProject
@@ -18,6 +18,8 @@ EndProject
 Project("{A07B5EB6-E848-4116-A8D0-A826331D98C6}") = "CaptainHook.Fabric", "CaptainHook.Fabric\CaptainHook.Fabric.sfproj", "{D44FA61E-30BD-487C-97CB-877E596872A8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.PoolManagerActor", "CaptainHook.PoolManagerActor\CaptainHook.PoolManagerActor.csproj", "{4035A243-CDC8-4A50-B759-CA51810454FD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Api", "CaptainHook.Api\CaptainHook.Api.csproj", "{EF7F5F71-486F-4212-A391-27ABA2DACF74}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -77,6 +79,14 @@ Global
 		{4035A243-CDC8-4A50-B759-CA51810454FD}.Release|Any CPU.ActiveCfg = Release|x64
 		{4035A243-CDC8-4A50-B759-CA51810454FD}.Release|x64.ActiveCfg = Release|x64
 		{4035A243-CDC8-4A50-B759-CA51810454FD}.Release|x64.Build.0 = Release|x64
+		{EF7F5F71-486F-4212-A391-27ABA2DACF74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF7F5F71-486F-4212-A391-27ABA2DACF74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF7F5F71-486F-4212-A391-27ABA2DACF74}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EF7F5F71-486F-4212-A391-27ABA2DACF74}.Debug|x64.Build.0 = Debug|Any CPU
+		{EF7F5F71-486F-4212-A391-27ABA2DACF74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF7F5F71-486F-4212-A391-27ABA2DACF74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF7F5F71-486F-4212-A391-27ABA2DACF74}.Release|x64.ActiveCfg = Release|Any CPU
+		{EF7F5F71-486F-4212-A391-27ABA2DACF74}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

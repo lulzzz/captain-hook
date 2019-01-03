@@ -1,15 +1,15 @@
-﻿namespace CaptainHook.EventHandlerActor.Handlers
-{
-    using System;
-    using System.Net.Http;
-    using System.Threading.Tasks;
-    using Authentication;
-    using Common;
-    using Common.Nasty;
-    using Common.Telemetry;
-    using Eshopworld.Core;
-    using Newtonsoft.Json;
+﻿using System;
+using System.Net.Http;
+using System.Threading.Tasks;
+using CaptainHook.Common;
+using CaptainHook.Common.Nasty;
+using CaptainHook.Common.Telemetry;
+using CaptainHook.EventHandlerActor.Handlers.Authentication;
+using Eshopworld.Core;
+using Newtonsoft.Json;
 
+namespace CaptainHook.EventHandlerActor.Handlers
+{
     public class MmEventHandler : GenericEventHandler
     {
         private readonly HttpClient _client;
@@ -55,8 +55,7 @@
                 StatusCode = (int) response.StatusCode
             };
 
-            data.Payload = JsonConvert.SerializeObject(payload);
-            await eswHandler.Call(data);
+            await eswHandler.Call(new MessageData(JsonConvert.SerializeObject(payload), data.Type));
         }
     }
 }

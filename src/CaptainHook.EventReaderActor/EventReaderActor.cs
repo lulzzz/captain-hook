@@ -152,7 +152,7 @@
 
             foreach (var message in messages)
             {
-                var handle = ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).DoWork(Encoding.UTF8.GetString(message.Body), Id.GetStringId()).Result;
+                var handle = ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).DoWork(new MessageData(Encoding.UTF8.GetString(message.Body), Id.GetStringId())).Result;
                 _messagesInHandlers.Value.Add(handle, message.SystemProperties.LockToken);
                 StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers, (s, value) => value).Wait();
             }

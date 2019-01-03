@@ -1,9 +1,9 @@
-﻿namespace CaptainHook.Interfaces
-{
-    using System;
-    using System.Threading.Tasks;
-    using Common;
+﻿using System;
+using System.Threading.Tasks;
+using CaptainHook.Common;
 
+namespace CaptainHook.Interfaces
+{
     public interface IDoWork
     {
         Task<Guid> DoWork(MessageData messageData);
