@@ -92,33 +92,35 @@ namespace CaptainHook.Api
                         c.DescribeAllEnumsAsStrings();
                         c.SwaggerDoc("v1", new Info { Version = Assembly.GetExecutingAssembly().GetName().Version.ToString(), Title = "CaptainHook.Api" });
                         c.CustomSchemaIds(x => x.FullName);
-                        c.AddSecurityDefinition("Bearer",
-                            new ApiKeyScheme
-                            {
-                                In = "header",
-                                Description = "Please insert JWT with Bearer into field",
-                                Name = "Authorization",
-                                Type = "apiKey"
-                            });
 
-                        c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>>
-                        {
-                        { "Bearer", Array.Empty<string>() }
-                        });
+                        //c.AddSecurityDefinition("Bearer",
+                        //    new ApiKeyScheme
+                        //    {
+                        //        In = "header",
+                        //        Description = "Please insert JWT with Bearer into field",
+                        //        Name = "Authorization",
+                        //        Type = "apiKey"
+                        //    });
+
+                        //c.AddSecurityRequirement(
+                        //    new Dictionary<string, IEnumerable<string>>
+                        //    {
+                        //        {"Bearer", Array.Empty<string>()}
+                        //    });
                     });
                 }
 
-                services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddIdentityServerAuthentication(
-                    x =>
-                    {
-                        x.ApiName = serviceConfigurationOptions.Value.ApiName;
-                        x.ApiSecret = serviceConfigurationOptions.Value.ApiSecret;
-                        x.Authority = serviceConfigurationOptions.Value.Authority;
-                        x.RequireHttpsMetadata = serviceConfigurationOptions.Value.IsHttps;
+                //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddIdentityServerAuthentication(
+                //    x =>
+                //    {
+                //        x.ApiName = serviceConfigurationOptions.Value.ApiName;
+                //        x.ApiSecret = serviceConfigurationOptions.Value.ApiSecret;
+                //        x.Authority = serviceConfigurationOptions.Value.Authority;
+                //        x.RequireHttpsMetadata = serviceConfigurationOptions.Value.IsHttps;
 
-                        //TODO: this requires Eshopworld.Beatles.Security to be refactored
-                        //x.AddJwtBearerEventsTelemetry(bb); 
-                    });
+                //        //TODO: this requires Eshopworld.Beatles.Security to be refactored
+                //        //x.AddJwtBearerEventsTelemetry(bb); 
+                //    });
 
                 var builder = new ContainerBuilder();
                 builder.Populate(services);
