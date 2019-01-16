@@ -36,8 +36,8 @@
             await StateManager.TryAddStateAsync(MessageTypesKey,
                 new[]
                 {
-                    "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent",
-                    "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent"
+                    "test.event.1",
+                    "test.event.2",
                 });
         }
 

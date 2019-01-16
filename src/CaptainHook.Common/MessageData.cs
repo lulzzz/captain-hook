@@ -4,6 +4,9 @@
 
     public class MessageData
     {
+        // ReSharper disable once UnusedMember.Local - Use by the data contract serializers
+        private MessageData() { }
+
         public MessageData(string payload, string type)
         {
             Handle = Guid.NewGuid();

@@ -82,8 +82,6 @@
 
                 await SetupServiceBus();
 
-                // TODO: SET REMINDER - 10 MINS
-
                 _poolTimer = new Timer(
                     ReadEvents,
                     null,
@@ -152,7 +150,8 @@
 
             foreach (var message in messages)
             {
-                var handle = ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).DoWork(new MessageData(Encoding.UTF8.GetString(message.Body), Id.GetStringId())).Result;
+                // relay the reader ID to have a 1:1 reader-pool sharding strategy to dodge bottlenecks on the pools under high load
+                var handle = ActorProxy.Create<IPoolManagerActor>(Id).DoWork(new MessageData(Encoding.UTF8.GetString(message.Body), Id.GetStringId())).Result;
                 _messagesInHandlers.Value.Add(handle, message.SystemProperties.LockToken);
                 StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers, (s, value) => value).Wait();
             }
