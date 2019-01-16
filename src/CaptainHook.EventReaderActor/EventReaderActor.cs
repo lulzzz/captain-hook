@@ -148,7 +148,11 @@
             if (_receiver.IsClosedOrClosing) return;
 
             var messages = _receiver.ReceiveAsync(BatchSize, TimeSpan.FromMilliseconds(50)).Result;
-            if (messages == null) return;
+            if (messages == null)
+            {
+                _readingEvents = false;
+                return;
+            }
 
             foreach (var message in messages)
             {
