@@ -23,12 +23,17 @@
     [StatePersistence(StatePersistence.Persisted)]
     public class PoolManagerActor : Actor, IPoolManagerActor
     {
+#if DEBUG
+        private const int NumberOfStartingHandlers = 1;
+#else
+        private const int NumberOfStartingHandlers = 10;
+#endif
+
         private readonly IBigBrother _bigBrother;
         private ConditionalValue<HashSet<int>> _free; // free pool resources
         private ConditionalValue<Dictionary<Guid, MessageData>> _busy; // busy pool resources
-
-        private const int NumberOfHandlers = 10; // TODO: TWEAK THIS - HARDCODED FOR NOW
-
+        private int HandlerCount = NumberOfStartingHandlers;
+        
         /// <summary>
         /// Initializes a new instance of PoolManagerActor
         /// </summary>
@@ -58,9 +63,9 @@
                 _free = new ConditionalValue<HashSet<int>>(true, new HashSet<int>());
                 _busy = new ConditionalValue<Dictionary<Guid, MessageData>>(true, new Dictionary<Guid, MessageData>());
 
-                for (var i = 0; i < NumberOfHandlers; i++)
+                for (var i = 0; i < NumberOfStartingHandlers; i++)
                 {
-                    ActorProxy.Create<IEventHandlerActor>(new ActorId(i)); // TODO: this probably isn't needed here since we're not invoking the actor at this point - REVIEW
+                    //ActorProxy.Create<IEventHandlerActor>(new ActorId($"{Id}-{i}"));
                     _free.Value.Add(i);
                 }
 
@@ -71,19 +76,25 @@
 
         public async Task<Guid> DoWork(MessageData messageData)
         {
-            // need to handle the possibility of the resources in the pool being all busy!
-
             try
             {
-                messageData.HandlerId = _free.Value.First();
+                if (_free.Value.Any())
+                {
+                    messageData.HandlerId = _free.Value.First();
+                    _free.Value.Remove(messageData.HandlerId);
+                }
+                else
+                {
+                    //ActorProxy.Create<IEventHandlerActor>(new ActorId($"{Id}-{++HandlerCount}")); // change ++ behaviour
+                    messageData.HandlerId = ++HandlerCount;
+                }
 
-                _free.Value.Remove(messageData.HandlerId);
                 _busy.Value.Add(messageData.Handle, messageData);
 
                 await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => value);
                 await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => value);
 
-                await ActorProxy.Create<IEventHandlerActor>(new ActorId(messageData.HandlerId)).DoWork(messageData);
+                await ActorProxy.Create<IEventHandlerActor>(new ActorId($"{Id}-{messageData.HandlerId}")).DoWork(messageData);
 
                 return messageData.Handle;
             }
