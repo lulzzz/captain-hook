@@ -77,7 +77,7 @@
                 else
                 {
                     _messagesInHandlers = new ConditionalValue<Dictionary<Guid, string>>(true, new Dictionary<Guid, string>());
-                    await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers, (s, value) => value);
+                    await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers.Value, (s, value) => value);
                 }
 
                 await SetupServiceBus();
