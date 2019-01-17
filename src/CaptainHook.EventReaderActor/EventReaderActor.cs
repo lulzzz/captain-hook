@@ -158,7 +158,7 @@
             {
                 var handle = ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).DoWork(Encoding.UTF8.GetString(message.Body), Id.GetStringId()).Result;
                 _messagesInHandlers.Value.Add(handle, message.SystemProperties.LockToken);
-                StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers, (s, value) => value).Wait();
+                StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers.Value, (s, value) => value).Wait();
             }
 
             _readingEvents = false;
@@ -179,7 +179,7 @@
             {
                 await _receiver.CompleteAsync(_messagesInHandlers.Value[handle]);
                 _messagesInHandlers.Value.Remove(handle);
-                await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers, (s, value) => value);
+                await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers.Value, (s, value) => value);
             }
             catch (Exception e)
             {
