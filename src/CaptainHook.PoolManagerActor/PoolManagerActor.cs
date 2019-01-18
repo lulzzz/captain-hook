@@ -64,8 +64,8 @@
                     _free.Value.Add(i);
                 }
 
-                await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => value);
-                await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => value);
+                await StateManager.AddOrUpdateStateAsync(nameof(_free), _free.Value, (s, value) => value);
+                await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy.Value, (s, value) => value);
             }
         }
 
@@ -86,8 +86,8 @@
                         Type = type
                     });
 
-                await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => value);
-                await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => value);
+                await StateManager.AddOrUpdateStateAsync(nameof(_free), _free.Value, (s, value) => value);
+                await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy.Value, (s, value) => value);
 
                 await ActorProxy.Create<IEventHandlerActor>(new ActorId(handlerId)).Handle(handle, payload, type);
 
@@ -108,8 +108,8 @@
                 _busy.Value.Remove(handle);
                 _free.Value.Add(msgHook.HandlerId);
 
-                await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => value);
-                await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => value);
+                await StateManager.AddOrUpdateStateAsync(nameof(_free), _free.Value, (s, value) => value);
+                await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy.Value, (s, value) => value);
 
                 await ActorProxy.Create<IEventReaderActor>(new ActorId(msgHook.Type)).CompleteMessage(handle);
             }

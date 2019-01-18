@@ -35,34 +35,43 @@
         /// <returns></returns>
         public virtual async Task Call<TRequest>(TRequest request)
         {
-            if (!(request is MessageData data))
+            try
             {
-                throw new Exception("injected wrong implementation");
-            }
+                if (!(request is MessageData data))
+                {
+                    throw new Exception("injected wrong implementation");
+                }
 
-            //make a call to client identity provider
-            if (WebHookConfig.RequiresAuth)
+                //make a call to client identity provider
+                if (WebHookConfig.RequiresAuth)
+                {
+                    await AuthHandler.GetToken(_client);
+                }
+
+                //call the platform something like 
+                //call checkout
+                var uri = WebHookConfig.Uri;
+
+                if (data.Type == "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent")
+                {
+                    uri = $"https://checkout-api.ci.eshopworld.net/api/v2/webhook/PutOrderConfirmationResult/{data.CallbackPayload.OrderCode}";
+                }
+
+                if (data.Type == "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent")
+                {
+                    uri = $"https://checkout-api.ci.eshopworld.net/api/v2/PutCorePlatformOrderCreateResult/{data.CallbackPayload.OrderCode}";
+                }
+
+                var response = await _client.PostAsJsonReliability(uri, data, BigBrother);
+
+                BigBrother.Publish(new WebhookEvent(data.Handle, data.Type, data.Payload, response.IsSuccessStatusCode.ToString()));
+
+            }
+            catch (Exception e)
             {
-                await AuthHandler.GetToken(_client);
+                BigBrother.Publish(e.ToExceptionEvent());
+                throw;
             }
-
-            //call the platform something like 
-            //call checkout
-            var uri = WebHookConfig.Uri;
-
-            if (data.Type == "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent")
-            {
-                uri = $"https://checkout-api.ci.eshopworld.net/api/v2/webhook/PutOrderConfirmationResult/{data.CallbackPayload.OrderCode}";
-            }
-
-            if (data.Type == "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent")
-            {
-                uri = $"https://checkout-api.ci.eshopworld.net/api/v2/PutCorePlatformOrderCreateResult/{data.CallbackPayload.OrderCode}";
-            }
-
-            var response = await _client.PostAsJsonReliability(uri, data, BigBrother);
-
-            BigBrother.Publish(new WebhookEvent(data.Handle, data.Type, data.Payload, response.IsSuccessStatusCode.ToString()));
         }
     }
 }

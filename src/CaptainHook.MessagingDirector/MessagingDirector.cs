@@ -1,6 +1,5 @@
 ﻿namespace CaptainHook.MessagingDirector
 {
-    using System.Threading;
     using System.Threading.Tasks;
     using Interfaces;
     using Microsoft.ServiceFabric.Actors;

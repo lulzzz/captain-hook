@@ -118,7 +118,7 @@
             }
             catch (Exception e)
             {
-                BigBrother.Write(e);
+                BigBrother.Write(e.ToExceptionEvent());
             }
         }
     }
