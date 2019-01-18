@@ -1,11 +1,11 @@
-﻿using System;
-using System.Threading.Tasks;
-using CaptainHook.Common;
-
-namespace CaptainHook.Interfaces
+﻿namespace CaptainHook.Interfaces
 {
-    public interface IDoWork
+    using System.Threading.Tasks;
+    using Common;
+    using Microsoft.ServiceFabric.Actors;
+
+    public interface IDoWork : IActor
     {
-        Task<Guid> DoWork(MessageData messageData);
+        Task DoWork(MessageData messageData);
     }
 }

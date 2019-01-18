@@ -22,7 +22,8 @@ namespace CaptainHook.EventHandlerActor
     ///  - None: State is kept in memory only and not replicated.
     /// </remarks>
     [StatePersistence(StatePersistence.Persisted)]
-    public class EventHandlerActor : Actor, IEventHandlerActor
+    [ActorService(Name = nameof(IEventHandlerActor))]
+    public class EventHandlerActor : Actor, IEventHandlerActor, IDoWork
     {
         private readonly IHandlerFactory _handlerFactory;
         private readonly IBigBrother _bigBrother;

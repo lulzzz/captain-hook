@@ -64,8 +64,8 @@
       <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
     </EnvironmentOverrides>
   </ServiceManifestImport>
-  <DefaultServices>
 
+  <DefaultServices>
     <Service Name="CaptainHook.Api" ServicePackageActivationMode="ExclusiveProcess">
       <StatelessService ServiceTypeName="CaptainHook.ApiType" InstanceCount="[CaptainHook.Api_InstanceCount]">
         <SingletonPartition />
@@ -86,8 +86,8 @@
         <UniformInt64Partition PartitionCount="[PoolManagerActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
       </StatefulService>
     </Service>
-    <Service Name="EventHandlerActorService" GeneratedIdRef="5f534f03-abfa-4f36-9fca-c9e0f131fc7a|Persisted">
-      <StatefulService ServiceTypeName="EventHandlerActorServiceType" TargetReplicaSetSize="[EventHandlerActorService_TargetReplicaSetSize]" MinReplicaSetSize="[EventHandlerActorService_MinReplicaSetSize]">
+    <Service Name="IEventHandlerActorService" GeneratedIdRef="5f534f03-abfa-4f36-9fca-c9e0f131fc7a|Persisted">
+      <StatefulService ServiceTypeName="IEventHandlerActorType" TargetReplicaSetSize="[EventHandlerActorService_TargetReplicaSetSize]" MinReplicaSetSize="[EventHandlerActorService_MinReplicaSetSize]">
         <UniformInt64Partition PartitionCount="[EventHandlerActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
       </StatefulService>
     </Service>

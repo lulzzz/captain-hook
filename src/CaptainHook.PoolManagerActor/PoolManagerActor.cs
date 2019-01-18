@@ -94,8 +94,7 @@
                 await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => value);
                 await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => value);
 
-                await ActorProxy.Create<IEventHandlerActor>(new ActorId($"{Id}-{messageData.HandlerId}")).DoWork(messageData);
-
+                await ActorProxy.Create<IDoWork>(new ActorId($"{Id}-{messageData.HandlerId}"), null, nameof(IEventHandlerActor), null).DoWork(messageData);
                 return messageData.Handle;
             }
             catch (Exception e)

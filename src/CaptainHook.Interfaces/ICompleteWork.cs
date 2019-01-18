@@ -1,9 +1,10 @@
-﻿using System.Threading.Tasks;
-using CaptainHook.Common;
-
-namespace CaptainHook.Interfaces
+﻿namespace CaptainHook.Interfaces
 {
-    public interface ICompleteWork
+    using System.Threading.Tasks;
+    using Common;
+    using Microsoft.ServiceFabric.Actors;
+
+    public interface ICompleteWork : IActor
     {
         Task CompleteWork(MessageData messageData);
 

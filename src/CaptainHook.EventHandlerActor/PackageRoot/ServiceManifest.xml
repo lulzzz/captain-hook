@@ -1,16 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ServiceManifest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="CaptainHook.EventHandlerActorPkg" Version="1.0.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
   <ServiceTypes>
-    <StatefulServiceType ServiceTypeName="EventHandlerActorServiceType" HasPersistedState="true">
+    <StatefulServiceType ServiceTypeName="IEventHandlerActorType" HasPersistedState="true">
       <Extensions>
-        <Extension Name="__GeneratedServiceType__" GeneratedId="40d70313-de98-4e0e-a55b-afa6f8b013a0|Persisted">
+        <Extension Name="__GeneratedServiceType__" GeneratedId="5b24bb2d-2f54-4e18-9a67-39181535d410|Persisted">
           <GeneratedNames xmlns="http://schemas.microsoft.com/2015/03/fabact-no-schema">
-            <DefaultService Name="EventHandlerActorService" />
-            <ReplicatorEndpoint Name="EventHandlerActorServiceReplicatorEndpoint" />
-            <ReplicatorConfigSection Name="EventHandlerActorServiceReplicatorConfig" />
-            <ReplicatorSecurityConfigSection Name="EventHandlerActorServiceReplicatorSecurityConfig" />
-            <StoreConfigSection Name="EventHandlerActorServiceLocalStoreConfig" />
-            <ServiceEndpointV2_1 Name="EventHandlerActorServiceEndpointV2_1" />
+            <DefaultService Name="IEventHandlerActor" />
+            <ReplicatorEndpoint Name="IEventHandlerActorReplicatorEndpoint" />
+            <ReplicatorConfigSection Name="IEventHandlerActorReplicatorConfig" />
+            <ReplicatorSecurityConfigSection Name="IEventHandlerActorReplicatorSecurityConfig" />
+            <StoreConfigSection Name="IEventHandlerActorLocalStoreConfig" />
+            <ServiceEndpointV2_1 Name="IEventHandlerActorEndpointV2_1" />
           </GeneratedNames>
         </Extension>
       </Extensions>
@@ -32,7 +32,8 @@
     <Endpoints>
       <Endpoint Name="CaptainHook.EventHandlerActorServiceEndpointV2_1" />
       <Endpoint Name="EventHandlerActorServiceEndpointV2_1" />
-      <Endpoint Name="EventHandlerActorServiceReplicatorEndpoint" />
+      <Endpoint Name="IEventHandlerActorEndpointV2_1" />
+      <Endpoint Name="IEventHandlerActorReplicatorEndpoint" />
     </Endpoints>
   </Resources>
   <!-- The content will be generated during build -->
