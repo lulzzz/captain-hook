@@ -35,11 +35,7 @@ namespace CaptainHook.EventHandlerActor
         /// <param name="actorId">The Microsoft.ServiceFabric.Actors.ActorId for this actor instance.</param>
         /// <param name="handlerFactory"></param>
         /// <param name="bigBrother"></param>
-        public EventHandlerActor(
-            ActorService actorService,
-            ActorId actorId,
-            IHandlerFactory handlerFactory,
-            IBigBrother bigBrother)
+        public EventHandlerActor(ActorService actorService, ActorId actorId, IHandlerFactory handlerFactory, IBigBrother bigBrother)
             : base(actorService, actorId)
         {
             _handlerFactory = handlerFactory;
@@ -87,32 +83,7 @@ namespace CaptainHook.EventHandlerActor
 
         private async Task InternalHandle(object _)
         {
-            UnregisterTimer(_handleTimer);
-
-            var messageData = await StateManager.TryGetStateAsync<MessageData>(nameof(EventHandlerActor));
-            if (!messageData.HasValue)
-            {
-               _bigBrother.Publish(new WebhookEvent("message was empty") );
-                return;
-            }
-
-            try
-            {
-                //todo nuke this in V1
-                var (brandType, domainType) = ModelParser.ParseBrandAndDomainType(messageData.Value);
-
-                //todo need to register the handlers based on the contents of the domain events and the data in the messages
-                var handler = _handlerFactory.CreateHandler(brandType, domainType);
-
-                await handler.Call(messageData.Value);
-
-                await StateManager.RemoveStateAsync(nameof(EventHandlerActor));
-                await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).CompleteWork(messageData.Value.Handle);
-            }
-            catch (Exception e)
-            {
-                BigBrother.Write(e);
-            }
+            await Task.Yield();
         }
     }
 }
