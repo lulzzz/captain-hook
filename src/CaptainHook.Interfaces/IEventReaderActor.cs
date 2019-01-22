@@ -13,5 +13,7 @@ namespace CaptainHook.Interfaces
         Task Run();
 
         Task CompleteMessage(Guid handle);
+
+        Task FailMessage(Guid handle);
     }
 }

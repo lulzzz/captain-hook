@@ -1,6 +1,7 @@
 ﻿namespace CaptainHook.Common
 {
     using System;
+    using JetBrains.Annotations;
 
     public class MessageData
     {
@@ -21,5 +22,13 @@
         public string Payload { get; }
 
         public string Type { get; }
+    }
+    public class MessageDataHandleData
+    {
+        public Guid Handle { get; set; }
+
+        public int HandlerId { get; set; }
+
+        public string LockToken { get; set; }
     }
 }

@@ -47,7 +47,21 @@
         private Timer _poolTimer;
         private MessageReceiver _receiver;
 
+        // TODO: Recycle
         private ConditionalValue<Dictionary<Guid, string>> _messagesInHandlers;
+
+        // !!! NEW !!!
+        private readonly HashSet<int> _freeHandlers = new HashSet<int>();
+        private readonly Dictionary<Guid, string> _lockTokens = new Dictionary<Guid, string>();
+        private readonly Dictionary<Guid, int> _inFlightMessages = new Dictionary<Guid, int>();
+
+#if DEBUG
+        private int _handlerCount = 1;
+#else
+        private int _handlerCount = 10;
+#endif
+
+
 
         /// <summary>
         /// Initializes a new instance of EventReaderActor
@@ -154,13 +168,30 @@
 
             foreach (var message in messages)
             {
-                // DJFR: We can just keep actor state for in-flight message handlers and the handler ID
-                // free state can be kept just in memory and updated on activation in case the primary goes tits up
+                var messageData = new MessageData(Encoding.UTF8.GetString(message.Body), Id.GetStringId());
 
-                // relay the reader ID to have a 1:1 reader-pool sharding strategy to dodge bottlenecks on the pools under high load
-                var handle = ActorProxy.Create<IPoolManagerActor>(Id).QueueWork(new MessageData(Encoding.UTF8.GetString(message.Body), Id.GetStringId())).Result;
-                _messagesInHandlers.Value.Add(handle, message.SystemProperties.LockToken);
-                StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers.Value, (s, value) => value).Wait();
+                var handlerId = _freeHandlers.FirstOrDefault();
+                if (handlerId == 0)
+                {
+                    handlerId = ++_handlerCount;
+                }
+                else
+                {
+                    _freeHandlers.Remove(handlerId);
+                }
+
+                _inFlightMessages.Add(messageData.Handle, handlerId);
+                _lockTokens.Add(messageData.Handle, message.SystemProperties.LockToken);
+
+                var handleData = new MessageDataHandleData
+                {
+                    Handle = messageData.Handle,
+                    HandlerId = handlerId,
+                    LockToken = message.SystemProperties.LockToken
+                };
+
+                StateManager.AddStateAsync(handleData.Handle.ToString(), handleData).Wait();
+                ActorProxy.Create<IEventHandlerActor>(new ActorId($"{Id.GetStringId()}-{handlerId}")).HandleMessage(new MessageData(Encoding.UTF8.GetString(message.Body), Id.GetStringId())).Wait();
             }
 
             _readingEvents = false;
@@ -176,11 +207,22 @@
 
         public async Task CompleteMessage(Guid handle)
         {
-            // NOT HANDLING FAULTS YET - BE CAREFUL HERE!
+            await _receiver.CompleteAsync(_lockTokens[handle]);
+            await RemoveHandle(handle);
+        }
 
-            await _receiver.CompleteAsync(_messagesInHandlers.Value[handle]);
-            _messagesInHandlers.Value.Remove(handle);
-            await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers.Value, (s, value) => value);
+        public async Task FailMessage(Guid handle)
+        {
+            // TODO: do stuff
+
+            await RemoveHandle(handle);
+        }
+
+        private async Task RemoveHandle(Guid handle)
+        {
+            _lockTokens.Remove(handle);
+            _inFlightMessages.Remove(handle);
+            await StateManager.RemoveStateAsync(handle.ToString());
         }
     }
 }
