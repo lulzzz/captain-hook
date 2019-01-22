@@ -11,7 +11,7 @@ namespace CaptainHook.Interfaces
     /// </summary>
     public interface IPoolManagerActor : IActor
     {
-        Task<Guid> DoWork(MessageData messageData);
+        Task<Guid> QueueWork(MessageData messageData);
 
         Task CompleteWork(Guid handle);
     }

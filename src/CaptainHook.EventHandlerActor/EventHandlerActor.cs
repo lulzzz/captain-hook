@@ -61,7 +61,7 @@ namespace CaptainHook.EventHandlerActor
             }
         }
 
-        public async Task DoWork(MessageData messageData)
+        public async Task HandleMessage(MessageData messageData)
         {
             await StateManager.AddOrUpdateStateAsync(nameof(EventHandlerActor), messageData, (s, pair) => pair);
 
@@ -75,7 +75,7 @@ namespace CaptainHook.EventHandlerActor
         /// <remarks>
         /// Not used in this case, because we are hard-coding all handling logic in this Actor, so there's no need to handle completion in higher actors.
         /// </remarks>>
-        public async Task CompleteHandle(Guid handle)
+        public async Task CompleteMessage(Guid handle)
         {
             await Task.Yield();
             throw new NotImplementedException("Not used - nothing above this actor will actually be called in v0");

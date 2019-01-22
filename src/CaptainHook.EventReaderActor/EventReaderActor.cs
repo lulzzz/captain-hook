@@ -154,8 +154,11 @@
 
             foreach (var message in messages)
             {
+                // DJFR: We can just keep actor state for in-flight message handlers and the handler ID
+                // free state can be kept just in memory and updated on activation in case the primary goes tits up
+
                 // relay the reader ID to have a 1:1 reader-pool sharding strategy to dodge bottlenecks on the pools under high load
-                var handle = ActorProxy.Create<IPoolManagerActor>(Id).DoWork(new MessageData(Encoding.UTF8.GetString(message.Body), Id.GetStringId())).Result;
+                var handle = ActorProxy.Create<IPoolManagerActor>(Id).QueueWork(new MessageData(Encoding.UTF8.GetString(message.Body), Id.GetStringId())).Result;
                 _messagesInHandlers.Value.Add(handle, message.SystemProperties.LockToken);
                 StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers.Value, (s, value) => value).Wait();
             }

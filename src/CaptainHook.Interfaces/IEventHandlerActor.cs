@@ -11,8 +11,8 @@ namespace CaptainHook.Interfaces
     /// </summary>
     public interface IEventHandlerActor : IActor
     {
-        Task DoWork(MessageData messageData);
+        Task HandleMessage(MessageData messageData);
 
-        Task CompleteHandle(Guid handle);
+        Task CompleteMessage(Guid handle);
     }
 }

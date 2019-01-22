@@ -74,7 +74,7 @@
             }
         }
 
-        public async Task<Guid> DoWork(MessageData messageData)
+        public async Task<Guid> QueueWork(MessageData messageData)
         {
             try
             {
@@ -94,7 +94,7 @@
                 await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => value);
                 await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => value);
 
-                await ActorProxy.Create<IEventHandlerActor>(new ActorId($"{Id}-{messageData.HandlerId}")).DoWork(messageData);
+                await ActorProxy.Create<IEventHandlerActor>(new ActorId($"{Id}-{messageData.HandlerId}")).HandleMessage(messageData);
 
                 return messageData.Handle;
             }
