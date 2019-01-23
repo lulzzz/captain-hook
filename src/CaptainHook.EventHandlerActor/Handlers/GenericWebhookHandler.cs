@@ -51,7 +51,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 {
                     await AuthenticationHandler.GetToken(_client);
                 }
-                
+
                 var uri = WebhookConfig.Uri;
 
                 //todo remove in v1
@@ -61,6 +61,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 if (!string.IsNullOrWhiteSpace(WebhookConfig.ModelToParse))
                 {
                     innerPayload = ModelParser.GetInnerPayload(messageData.Payload, WebhookConfig.ModelToParse);
+                }
+
+                if (!string.IsNullOrWhiteSpace(messageData.CallbackPayload))
+                {
+                    innerPayload = messageData.CallbackPayload;
                 }
 
                 //todo remove in v1

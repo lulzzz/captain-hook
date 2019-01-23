@@ -6,6 +6,8 @@ using CaptainHook.Common.Nasty;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace CaptainHook.EventHandlerActor.Handlers
 {
@@ -55,11 +57,14 @@ namespace CaptainHook.EventHandlerActor.Handlers
             {
                 OrderCode = orderCode,
                 Content = await response.Content.ReadAsStringAsync(),
-                StatusCode = (int)response.StatusCode   
+                StatusCode = (int)response.StatusCode
             };
 
             messageData.OrderCode = orderCode;
-            messageData.CallbackPayload = payload;
+            messageData.CallbackPayload = JsonConvert.SerializeObject(payload);
+
+            BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.CallbackPayload));
+
             await eswHandler.Call(messageData);
         }
     }
