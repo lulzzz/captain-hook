@@ -1,18 +1,18 @@
-﻿namespace CaptainHook.EventHandlerActor
-{
-    using System;
-    using System.Threading.Tasks;
-    using Common;
-    using Common.Nasty;
-    using Common.Telemetry;
-    using Eshopworld.Core;
-    using Eshopworld.Telemetry;
-    using Handlers;
-    using Interfaces;
-    using Microsoft.ServiceFabric.Actors;
-    using Microsoft.ServiceFabric.Actors.Client;
-    using Microsoft.ServiceFabric.Actors.Runtime;
+﻿using System;
+using System.Threading.Tasks;
+using CaptainHook.Common;
+using CaptainHook.Common.Nasty;
+using CaptainHook.Common.Telemetry;
+using CaptainHook.EventHandlerActor.Handlers;
+using CaptainHook.Interfaces;
+using Eshopworld.Core;
+using Eshopworld.Telemetry;
+using Microsoft.ServiceFabric.Actors;
+using Microsoft.ServiceFabric.Actors.Client;
+using Microsoft.ServiceFabric.Actors.Runtime;
 
+namespace CaptainHook.EventHandlerActor
+{
     /// <remarks>
     /// This class represents an actor.
     /// Every ActorID maps to an instance of this class.
@@ -24,7 +24,7 @@
     [StatePersistence(StatePersistence.Persisted)]
     public class EventHandlerActor : Actor, IEventHandlerActor
     {
-        private readonly IHandlerFactory _handlerFactory;
+        private readonly IEventHandlerFactory _eventHandlerFactory;
         private readonly IBigBrother _bigBrother;
         private IActorTimer _handleTimer;
 
@@ -33,16 +33,16 @@
         /// </summary>
         /// <param name="actorService">The Microsoft.ServiceFabric.Actors.Runtime.ActorService that will host this actor instance.</param>
         /// <param name="actorId">The Microsoft.ServiceFabric.Actors.ActorId for this actor instance.</param>
-        /// <param name="handlerFactory"></param>
+        /// <param name="eventHandlerFactory"></param>
         /// <param name="bigBrother"></param>
         public EventHandlerActor(
             ActorService actorService,
             ActorId actorId,
-            IHandlerFactory handlerFactory,
+            IEventHandlerFactory eventHandlerFactory,
             IBigBrother bigBrother)
             : base(actorService, actorId)
         {
-            _handlerFactory = handlerFactory;
+            _eventHandlerFactory = eventHandlerFactory;
             _bigBrother = bigBrother;
         }
 
@@ -105,11 +105,9 @@
 
             try
             {
-                //todo nuke this in V1
-                var (brandType, domainType) = ModelParser.ParseBrandAndDomainType(messageData.Value);
+                var (brandType, eventType)  = ModelParser.ParseBrandAndEventType(messageData.Value);
 
-                //todo need to register the handlers based on the contents of the domain events and the data in the messages
-                var handler = _handlerFactory.CreateHandler(brandType, domainType);
+                var handler = _eventHandlerFactory.CreateHandler($"{brandType}-{eventType}", eventType);
 
                 await handler.Call(messageData.Value);
                 

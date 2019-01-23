@@ -37,32 +37,26 @@
                     new DefaultKeyVaultSecretManager()).Build();
 
                 //autowire up configs in keyvault to webhooks
-                var section = config.GetSection("webhook");
+                var section = config.GetSection("event");
                 var values = section.GetChildren().ToList();
 
-                var list = new List<WebHookConfig>(values.Count);
+                var eventHandlerList = new List<EventHandlerConfig>();
+                var webhookList = new List<WebhookConfig>(values.Count);
                 foreach (var configurationSection in values)
                 {
-                    var webHookConfig = config.GetSection($"webhook:{configurationSection.Key}").Get<WebHookConfig>();
+                    //var webHookConfig = config.GetSection($"webhook:{configurationSection.Key}").Get<EventHandlerConfig>();
+                    var eventHandlerConfig = configurationSection.Get<EventHandlerConfig>();
+                    eventHandlerList.Add(eventHandlerConfig);
 
-                    if (configurationSection.Key == "goc")
+                    if (eventHandlerConfig.WebHookConfig != null)
                     {
-                        var event0 = new DomainEventConfig
-                        {
-                            Name = "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent",
-                            Path = "OrderConfirmationRequestDto"
-                        };
-                        webHookConfig.DomainEvents.Add(event0);
-
-                        var event1 = new DomainEventConfig()
-                        {
-                            Name = "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent",
-                            Path = "PreOrderApiInternalModelOrderRequestDto"
-                        };
-                        webHookConfig.DomainEvents.Add(event1);
+                        webhookList.Add(eventHandlerConfig.WebHookConfig);
                     }
 
-                    list.Add(webHookConfig);
+                    if (eventHandlerConfig.CallBackEnabled)
+                    {
+                        webhookList.Add(eventHandlerConfig.CallbackConfig);
+                    }
                 }
 
                 var settings = new ConfigurationSettings();
@@ -79,14 +73,19 @@
                 builder.RegisterInstance(settings)
                     .SingleInstance();
 
-                builder.RegisterType<HandlerFactory>().As<IHandlerFactory>().SingleInstance();
-                builder.RegisterType<AuthHandlerFactory>().As<IAuthHandlerFactory>().SingleInstance();
+                builder.RegisterType<EventEventHandlerFactory>().As<IEventHandlerFactory>().SingleInstance();
+                builder.RegisterType<AuthenticationHandlerFactory>().As<IAuthHandlerFactory>().SingleInstance();
 
                 //Register each webhook config separately for injection
-                foreach (var setting in list)
+                foreach (var setting in eventHandlerList)
                 {
-                    builder.RegisterInstance(setting).Named<WebHookConfig>(setting.Name);
-                    builder.RegisterInstance(new HttpClient()).Named<HttpClient>(setting.Name).SingleInstance();
+                    builder.RegisterInstance(setting).Named<EventHandlerConfig>(setting.Name);
+                }
+
+                foreach (var webhookConfig in webhookList)
+                {
+                    builder.RegisterInstance(webhookConfig).Named<WebhookConfig>(webhookConfig.Name);
+                    builder.RegisterInstance(new HttpClient()).Named<HttpClient>(webhookConfig.Name).SingleInstance();
                 }
 
                 builder.RegisterServiceFabricSupport();
