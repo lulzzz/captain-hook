@@ -49,7 +49,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.IsSuccessStatusCode.ToString()));
 
             //call callback
-            var eswHandler = _eventHandlerFactory.CreateHandler(_eventHandlerConfig.CallbackConfig.Name);
+            var eswHandler = _eventHandlerFactory.CreateHandler($"{_eventHandlerConfig.CallbackConfig.Name}-callback");
 
             var payload = new HttpResponseDto
             {

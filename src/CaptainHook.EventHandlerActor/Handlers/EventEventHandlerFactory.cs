@@ -41,9 +41,9 @@ namespace CaptainHook.EventHandlerActor.Handlers
             {
                 throw new Exception("Boom, handler eventType not found cannot process the message");
             }
-            
-            var authHandler = _authHandlerFactory.Get(eventType);
 
+
+            var authHandler = _authHandlerFactory.Get($"{eventType}-webhook");
             if (eventHandlerConfig.CallBackEnabled)
             {
                 return new WebhookResponseHandler(
