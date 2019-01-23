@@ -9,17 +9,17 @@ using IdentityModel.Client;
 
 namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 {
-    public class AuthenticationHandler : IAuthHandler
+    public class AuthenticationHandler : IAuthenticationHandler
     {
-        protected readonly AuthenticationConfig Config;
+        protected readonly AuthenticationConfig AuthenticationConfig;
         private readonly IBigBrother _bigBrother;
 
         //todo cache and make it thread safe, ideally should have one per each auth domain and have the expiry set correctly
         private readonly AuthToken _token = new AuthToken();
 
-        public AuthenticationHandler(AuthenticationConfig config, IBigBrother bigBrother)
+        public AuthenticationHandler(AuthenticationConfig authenticationConfig, IBigBrother bigBrother)
         {
-            Config = config;
+            AuthenticationConfig = authenticationConfig;
             _bigBrother = bigBrother;
         }
 
@@ -33,43 +33,44 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         public virtual async Task GetToken(HttpClient client)
         {
             //get initial access token and refresh token
-            if (_token.AccessToken == null)
-            {
+            //if (_token.AccessToken == null)
+            //{
                 var response = await client.RequestTokenAsync(new ClientCredentialsTokenRequest 
                 {
-                    Address = Config.Uri,
-                    ClientId = Config.ClientId,
-                    ClientSecret = Config.ClientSecret,
-                    GrantType = Config.GrantType,
-                    Scope = Config.Scopes
+                    Address = AuthenticationConfig.Uri,
+                    ClientId = AuthenticationConfig.ClientId,
+                    ClientSecret = AuthenticationConfig.ClientSecret,
+                    GrantType = AuthenticationConfig.GrantType,
+                    Scope = AuthenticationConfig.Scopes
                 });
 
                 ReportTokenUpdateFailure(response);
                 UpdateToken(response);
-            }
+            //}
 
             //get a new access token from the refresh token
-            if (_token.ExpireTime >= DateTime.UtcNow)
-            {
-                var response = await client.RequestRefreshTokenAsync(new RefreshTokenRequest
-                {
-                    Address = Config.Uri,
-                    RefreshToken = _token.RefreshToken
-                });
+            //if (_token.ExpireTime >= DateTime.UtcNow)
+            //{
+            //    var response = await client.RequestRefreshTokenAsync(new RefreshTokenRequest
+            //    {
+            //        Address = AuthenticationConfig.Uri,
+            //        RefreshToken = _token.RefreshToken
+            //    });
 
-                ReportTokenUpdateFailure(response);
-                UpdateToken(response);
-            }
+            //    ReportTokenUpdateFailure(response);
+            //    UpdateToken(response);
+            //}
 
             client.SetBearerToken(_token.AccessToken);
         }
 
         private void ReportTokenUpdateFailure(TokenResponse response)
         {
-            if (response.IsError)
+            if (!response.IsError)
             {
-                _bigBrother.Publish(new AuthenticationEvent {Message = $"Unable to get get access token from STS. Error = {response.ErrorDescription}"});
+                return;
             }
+            throw new Exception($"Unable to get access token from STS. Error = {response.ErrorDescription}");
         }
 
         /// <summary>

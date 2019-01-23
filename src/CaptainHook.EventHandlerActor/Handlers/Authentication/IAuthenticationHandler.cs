@@ -3,7 +3,7 @@
     using System.Net.Http;
     using System.Threading.Tasks;
 
-    public interface IAuthHandler
+    public interface IAuthenticationHandler
     {
         Task GetToken(HttpClient client);
     }

@@ -2,6 +2,6 @@
 {
     public interface IAuthHandlerFactory
     {
-        IAuthHandler Get(string name);
+        IAuthenticationHandler Get(string name);
     }
 }

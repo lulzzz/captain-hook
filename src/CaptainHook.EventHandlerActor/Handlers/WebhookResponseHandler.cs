@@ -17,11 +17,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
         public WebhookResponseHandler(
             IEventHandlerFactory eventHandlerFactory,
-            IAuthHandler authHandler,
+            IAuthenticationHandler authenticationHandler,
             IBigBrother bigBrother,
             HttpClient client,
             EventHandlerConfig eventHandlerConfig)
-            : base(authHandler, bigBrother, client, eventHandlerConfig.WebHookConfig)
+            : base(authenticationHandler, bigBrother, client, eventHandlerConfig.WebHookConfig)
         {
             _eventHandlerFactory = eventHandlerFactory;
             _client = client;
@@ -37,7 +37,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
             if (WebhookConfig.RequiresAuth)
             {
-                await AuthHandler.GetToken(_client);
+                await AuthenticationHandler.GetToken(_client);
             }
 
             //todo remove in v1
@@ -49,7 +49,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.IsSuccessStatusCode.ToString()));
 
             //call callback
-            var eswHandler = _eventHandlerFactory.CreateHandler($"{_eventHandlerConfig.CallbackConfig.Name}-callback");
+            var eswHandler = _eventHandlerFactory.CreateHandler($"{_eventHandlerConfig.CallbackConfig.Name}");
 
             var payload = new HttpResponseDto
             {

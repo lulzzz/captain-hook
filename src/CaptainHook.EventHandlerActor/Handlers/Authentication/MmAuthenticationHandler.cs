@@ -12,9 +12,9 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
     public class MmAuthenticationHandler : AuthenticationHandler
     {
         public MmAuthenticationHandler(
-            AuthenticationConfig config,
+            AuthenticationConfig authenticationConfig,
             IBigBrother bigBrother)
-            : base(config, bigBrother)
+            : base(authenticationConfig, bigBrother)
         { }
 
         /// <inheritdoc />
@@ -23,26 +23,26 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         /// <returns></returns>
         public override async Task GetToken(HttpClient client)
         {
-            if (string.IsNullOrEmpty(Config.ClientId))
+            if (string.IsNullOrEmpty(AuthenticationConfig.ClientId))
             {
-                throw new ArgumentNullException(nameof(Config.ClientId));
+                throw new ArgumentNullException(nameof(AuthenticationConfig.ClientId));
             }
 
-            if (string.IsNullOrEmpty(Config.ClientId))
+            if (string.IsNullOrEmpty(AuthenticationConfig.ClientId))
             {
-                throw new ArgumentNullException(nameof(Config.ClientSecret));
+                throw new ArgumentNullException(nameof(AuthenticationConfig.ClientSecret));
             }
 
-            if (string.IsNullOrEmpty(Config.ClientId))
+            if (string.IsNullOrEmpty(AuthenticationConfig.ClientId))
             {
-                throw new ArgumentNullException(nameof(Config.Uri), "Uri is not valid for token service request");
+                throw new ArgumentNullException(nameof(AuthenticationConfig.Uri), "Uri is not valid for token service request");
             }
 
             //todo get the auth handler
-            client.DefaultRequestHeaders.TryAddWithoutValidation("client_id", Config.ClientId);
-            client.DefaultRequestHeaders.TryAddWithoutValidation("client_secret", Config.ClientSecret);
+            client.DefaultRequestHeaders.TryAddWithoutValidation("client_id", AuthenticationConfig.ClientId);
+            client.DefaultRequestHeaders.TryAddWithoutValidation("client_secret", AuthenticationConfig.ClientSecret);
 
-            var authProviderResponse = await client.PostAsync(Config.Uri, new StringContent("", Encoding.UTF32, "application/json-patch+json"));
+            var authProviderResponse = await client.PostAsync(AuthenticationConfig.Uri, new StringContent("", Encoding.UTF32, "application/json-patch+json"));
 
             if (authProviderResponse.StatusCode == HttpStatusCode.Created && authProviderResponse.Content != null)
             {

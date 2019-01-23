@@ -44,7 +44,7 @@
                 var webhookList = new List<WebhookConfig>(values.Count);
                 foreach (var configurationSection in values)
                 {
-                    //var webHookConfig = config.GetSection($"webhook:{configurationSection.Key}").Get<EventHandlerConfig>();
+                    //var webHookConfig = authenticationConfig.GetSection($"webhook:{configurationSection.Key}").Get<EventHandlerConfig>();
                     var eventHandlerConfig = configurationSection.Get<EventHandlerConfig>();
                     eventHandlerList.Add(eventHandlerConfig);
 
@@ -76,7 +76,7 @@
                 builder.RegisterType<EventEventHandlerFactory>().As<IEventHandlerFactory>().SingleInstance();
                 builder.RegisterType<AuthenticationHandlerFactory>().As<IAuthHandlerFactory>().SingleInstance();
 
-                //Register each webhook config separately for injection
+                //Register each webhook authenticationConfig separately for injection
                 foreach (var setting in eventHandlerList)
                 {
                     builder.RegisterInstance(setting).Named<EventHandlerConfig>(setting.Name);
