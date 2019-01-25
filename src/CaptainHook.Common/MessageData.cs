@@ -23,7 +23,8 @@
 
         public string Type { get; }
     }
-    public class MessageDataHandleData
+
+    public class MessageDataHandle
     {
         public Guid Handle { get; set; }
 

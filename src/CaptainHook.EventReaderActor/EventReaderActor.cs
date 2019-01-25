@@ -21,7 +21,6 @@
     using Microsoft.ServiceFabric.Actors;
     using Microsoft.ServiceFabric.Actors.Client;
     using Microsoft.ServiceFabric.Actors.Runtime;
-    using Microsoft.ServiceFabric.Data;
 
     /// <remarks>
     /// This class represents an actor.
@@ -47,21 +46,16 @@
         private Timer _poolTimer;
         private MessageReceiver _receiver;
 
-        // TODO: Recycle
-        private ConditionalValue<Dictionary<Guid, string>> _messagesInHandlers;
-
-        // !!! NEW !!!
-        private readonly HashSet<int> _freeHandlers = new HashSet<int>();
         private readonly Dictionary<Guid, string> _lockTokens = new Dictionary<Guid, string>();
         private readonly Dictionary<Guid, int> _inFlightMessages = new Dictionary<Guid, int>();
+
+        private HashSet<int> _freeHandlers = new HashSet<int>();
 
 #if DEBUG
         private int _handlerCount = 1;
 #else
         private int _handlerCount = 10;
 #endif
-
-
 
         /// <summary>
         /// Initializes a new instance of EventReaderActor
@@ -83,16 +77,17 @@
             {
                 _bb.Publish(new ActorActivated(this));
 
-                var inHandlers = await StateManager.TryGetStateAsync<Dictionary<Guid, string>>(nameof(_messagesInHandlers));
-                if (inHandlers.HasValue)
+                var stateNames = await StateManager.GetStateNamesAsync();
+                foreach (var state in stateNames)
                 {
-                    _messagesInHandlers = inHandlers;
+                    var handleData = await StateManager.GetStateAsync<MessageDataHandle>(state);
+                    _lockTokens.Add(handleData.Handle, handleData.LockToken);
+                    _inFlightMessages.Add(handleData.Handle, handleData.HandlerId);
                 }
-                else
-                {
-                    _messagesInHandlers = new ConditionalValue<Dictionary<Guid, string>>(true, new Dictionary<Guid, string>());
-                    await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers.Value, (s, value) => value);
-                }
+
+                var maxUsedHandlers = _inFlightMessages.Values.OrderBy(k => k).FirstOrDefault();
+                if (maxUsedHandlers > _handlerCount) _handlerCount = maxUsedHandlers;
+                _freeHandlers = Enumerable.Range(1, _handlerCount).Except(_inFlightMessages.Values).ToHashSet();
 
                 await SetupServiceBus();
 
@@ -183,7 +178,7 @@
                 _inFlightMessages.Add(messageData.Handle, handlerId);
                 _lockTokens.Add(messageData.Handle, message.SystemProperties.LockToken);
 
-                var handleData = new MessageDataHandleData
+                var handleData = new MessageDataHandle
                 {
                     Handle = messageData.Handle,
                     HandlerId = handlerId,
