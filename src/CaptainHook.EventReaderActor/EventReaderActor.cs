@@ -1,27 +1,27 @@
-﻿namespace CaptainHook.EventReaderActor
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Common;
-    using Common.Telemetry;
-    using Eshopworld.Core;
-    using Interfaces;
-    using Microsoft.Azure.Management.Fluent;
-    using Microsoft.Azure.Management.ResourceManager.Fluent;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-    using Microsoft.Azure.ServiceBus;
-    using Microsoft.Azure.ServiceBus.Core;
-    using Microsoft.Azure.Services.AppAuthentication;
-    using Microsoft.Rest;
-    using Microsoft.ServiceFabric.Actors;
-    using Microsoft.ServiceFabric.Actors.Client;
-    using Microsoft.ServiceFabric.Actors.Runtime;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using CaptainHook.Common;
+using CaptainHook.Common.Telemetry;
+using CaptainHook.Interfaces;
+using Eshopworld.Core;
+using Microsoft.Azure.Management.Fluent;
+using Microsoft.Azure.Management.ResourceManager.Fluent;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+using Microsoft.Azure.ServiceBus;
+using Microsoft.Azure.ServiceBus.Core;
+using Microsoft.Azure.Services.AppAuthentication;
+using Microsoft.Rest;
+using Microsoft.ServiceFabric.Actors;
+using Microsoft.ServiceFabric.Actors.Client;
+using Microsoft.ServiceFabric.Actors.Runtime;
 
+namespace CaptainHook.EventReaderActor
+{
     /// <remarks>
     /// This class represents an actor.
     /// Every ActorID maps to an instance of this class.
@@ -46,10 +46,9 @@
         private Timer _poolTimer;
         private MessageReceiver _receiver;
 
-        private readonly Dictionary<Guid, string> _lockTokens = new Dictionary<Guid, string>();
-        private readonly Dictionary<Guid, int> _inFlightMessages = new Dictionary<Guid, int>();
-
-        private HashSet<int> _freeHandlers = new HashSet<int>();
+        internal readonly Dictionary<Guid, string> LockTokens = new Dictionary<Guid, string>();
+        internal readonly Dictionary<Guid, int> InFlightMessages = new Dictionary<Guid, int>();
+        internal HashSet<int> FreeHandlers = new HashSet<int>();
 
 #if DEBUG
         private int _handlerCount = 1;
@@ -77,18 +76,7 @@
             {
                 _bb.Publish(new ActorActivated(this));
 
-                var stateNames = await StateManager.GetStateNamesAsync();
-                foreach (var state in stateNames)
-                {
-                    var handleData = await StateManager.GetStateAsync<MessageDataHandle>(state);
-                    _lockTokens.Add(handleData.Handle, handleData.LockToken);
-                    _inFlightMessages.Add(handleData.Handle, handleData.HandlerId);
-                }
-
-                var maxUsedHandlers = _inFlightMessages.Values.OrderBy(k => k).FirstOrDefault();
-                if (maxUsedHandlers > _handlerCount) _handlerCount = maxUsedHandlers;
-                _freeHandlers = Enumerable.Range(1, _handlerCount).Except(_inFlightMessages.Values).ToHashSet();
-
+                await BuildInMemoryState();
                 await SetupServiceBus();
 
                 _poolTimer = new Timer(
@@ -144,6 +132,21 @@
             await azureTopic.CreateSubscriptionIfNotExists(SubscriptionName);
         }
 
+        internal async Task BuildInMemoryState()
+        {
+            var stateNames = await StateManager.GetStateNamesAsync();
+            foreach (var state in stateNames)
+            {
+                var handleData = await StateManager.GetStateAsync<MessageDataHandle>(state);
+                LockTokens.Add(handleData.Handle, handleData.LockToken);
+                InFlightMessages.Add(handleData.Handle, handleData.HandlerId);
+            }
+
+            var maxUsedHandlers = InFlightMessages.Values.OrderByDescending(k => k).FirstOrDefault();
+            if (maxUsedHandlers > _handlerCount) _handlerCount = maxUsedHandlers;
+            FreeHandlers = Enumerable.Range(1, _handlerCount).Except(InFlightMessages.Values).ToHashSet();
+        }
+
         internal void ReadEvents(object _)
         {
             lock (_gate)
@@ -165,18 +168,18 @@
             {
                 var messageData = new MessageData(Encoding.UTF8.GetString(message.Body), Id.GetStringId());
 
-                var handlerId = _freeHandlers.FirstOrDefault();
+                var handlerId = FreeHandlers.FirstOrDefault();
                 if (handlerId == 0)
                 {
                     handlerId = ++_handlerCount;
                 }
                 else
                 {
-                    _freeHandlers.Remove(handlerId);
+                    FreeHandlers.Remove(handlerId);
                 }
 
-                _inFlightMessages.Add(messageData.Handle, handlerId);
-                _lockTokens.Add(messageData.Handle, message.SystemProperties.LockToken);
+                InFlightMessages.Add(messageData.Handle, handlerId);
+                LockTokens.Add(messageData.Handle, message.SystemProperties.LockToken);
 
                 var handleData = new MessageDataHandle
                 {
@@ -194,7 +197,7 @@
 
         /// <remarks>
         /// Do nothing by design. We just need to make sure that the actor is properly activated.
-        /// </remarks>>
+        /// </remarks>
         public Task Run()
         {
             return Task.CompletedTask;
@@ -202,7 +205,7 @@
 
         public async Task CompleteMessage(Guid handle)
         {
-            await _receiver.CompleteAsync(_lockTokens[handle]);
+            await _receiver.CompleteAsync(LockTokens[handle]);
             await RemoveHandle(handle);
         }
 
@@ -215,8 +218,8 @@
 
         private async Task RemoveHandle(Guid handle)
         {
-            _lockTokens.Remove(handle);
-            _inFlightMessages.Remove(handle);
+            LockTokens.Remove(handle);
+            InFlightMessages.Remove(handle);
             await StateManager.RemoveStateAsync(handle.ToString());
         }
     }
