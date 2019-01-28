@@ -1,10 +1,10 @@
 # captain-hook
 
-![](docs/images/hook.gif)
+[![Build Status](https://eshopworld.visualstudio.com/Github%20build/_apis/build/status/captain-hook?branchName=master)](https://eshopworld.visualstudio.com/Github%20build/_build/latest?definitionId=382?branchName=master)
 
 Generic message dispatcher for webhooks using the Actor framework in Service Fabric
 
-
+![](docs/images/hook.gif)
 
 ## Using EDA
 
