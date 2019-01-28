@@ -37,6 +37,7 @@ namespace CaptainHook.Actors.Tests
 
             await actor.BuildInMemoryState();
 
+            actor.HandlerCount.Should().Be(handleData.Max(h => h.HandlerId));
             actor.FreeHandlers.Should().NotContain(handleData.Select(h => h.HandlerId));
             actor.LockTokens.Values.Should().BeEquivalentTo(handleData.Select(h => h.LockToken));
             actor.InFlightMessages.Values.Should().BeEquivalentTo(handleData.Select(h => h.HandlerId));

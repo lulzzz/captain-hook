@@ -51,9 +51,9 @@ namespace CaptainHook.EventReaderActor
         internal HashSet<int> FreeHandlers = new HashSet<int>();
 
 #if DEBUG
-        private int _handlerCount = 1;
+        internal int HandlerCount = 1;
 #else
-        private int _handlerCount = 10;
+        internal int HandlerCount = 10;
 #endif
 
         /// <summary>
@@ -143,8 +143,8 @@ namespace CaptainHook.EventReaderActor
             }
 
             var maxUsedHandlers = InFlightMessages.Values.OrderByDescending(k => k).FirstOrDefault();
-            if (maxUsedHandlers > _handlerCount) _handlerCount = maxUsedHandlers;
-            FreeHandlers = Enumerable.Range(1, _handlerCount).Except(InFlightMessages.Values).ToHashSet();
+            if (maxUsedHandlers > HandlerCount) HandlerCount = maxUsedHandlers;
+            FreeHandlers = Enumerable.Range(1, HandlerCount).Except(InFlightMessages.Values).ToHashSet();
         }
 
         internal void ReadEvents(object _)
@@ -171,7 +171,7 @@ namespace CaptainHook.EventReaderActor
                 var handlerId = FreeHandlers.FirstOrDefault();
                 if (handlerId == 0)
                 {
-                    handlerId = ++_handlerCount;
+                    handlerId = ++HandlerCount;
                 }
                 else
                 {
