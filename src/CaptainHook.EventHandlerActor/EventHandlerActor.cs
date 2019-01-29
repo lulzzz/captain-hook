@@ -78,7 +78,6 @@ namespace CaptainHook.EventHandlerActor
         public async Task CompleteMessage(Guid handle)
         {
             await Task.Yield();
-            throw new NotImplementedException("Not used - nothing above this actor will actually be called in v0");
         }
 
         private async Task InternalHandle(object _)

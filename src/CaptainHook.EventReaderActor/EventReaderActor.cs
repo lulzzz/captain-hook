@@ -142,7 +142,7 @@ namespace CaptainHook.EventReaderActor
                 InFlightMessages.Add(handleData.Handle, handleData.HandlerId);
             }
 
-            var maxUsedHandlers = InFlightMessages.Values.OrderByDescending(k => k).FirstOrDefault();
+            var maxUsedHandlers = InFlightMessages.Values.OrderByDescending(i => i).FirstOrDefault();
             if (maxUsedHandlers > HandlerCount) HandlerCount = maxUsedHandlers;
             FreeHandlers = Enumerable.Range(1, HandlerCount).Except(InFlightMessages.Values).ToHashSet();
         }
