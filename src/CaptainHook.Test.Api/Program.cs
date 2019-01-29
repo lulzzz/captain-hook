@@ -1,8 +1,7 @@
 ﻿using Microsoft.ServiceFabric.Services.Runtime;
 using System;
-using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
+using Eshopworld.Telemetry;
 
 namespace CaptainHook.Test.Api
 {
@@ -23,14 +22,12 @@ namespace CaptainHook.Test.Api
                 ServiceRuntime.RegisterServiceAsync("CaptainHook.Test.ApiType",
                     context => new Api(context)).GetAwaiter().GetResult();
 
-                ServiceEventSource.Current.ServiceTypeRegistered(Process.GetCurrentProcess().Id, typeof(Api).Name);
-
                 // Prevents this host process from terminating so services keeps running. 
                 Thread.Sleep(Timeout.Infinite);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                ServiceEventSource.Current.ServiceHostInitializationFailed(e.ToString());
+                BigBrother.Write(ex);
                 throw;
             }
         }

@@ -1,12 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ApplicationManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ApplicationTypeName="CaptainHookType" ApplicationTypeVersion="1.0.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
   <Parameters>
-    <Parameter Name="CaptainHook.Test.Api_ASPNETCORE_ENVIRONMENT" DefaultValue="" />
-    <Parameter Name="CaptainHook.Test.Api_InstanceCount" DefaultValue="-1" />
     <Parameter Name="KeyVault_Base_Uri" DefaultValue="N/A" />
     <Parameter Name="AspNetCore_Environment" DefaultValue="N/A" />
 
     <Parameter Name="CaptainHook.Api_InstanceCount" DefaultValue="-1" />
+    <Parameter Name="CaptainHook.Test.Api_InstanceCount" DefaultValue="-1" />
     <Parameter Name="MessagingDirectorActorService_PartitionCount" DefaultValue="10" />
     <Parameter Name="MessagingDirectorActorService_MinReplicaSetSize" DefaultValue="3" />
     <Parameter Name="MessagingDirectorActorService_TargetReplicaSetSize" DefaultValue="3" />
@@ -27,15 +26,15 @@
        should match the Name and Version attributes of the ServiceManifest element defined in the 
        ServiceManifest.xml file. -->
   <ServiceManifestImport>
-    <ServiceManifestRef ServiceManifestName="CaptainHook.Test.ApiPkg" ServiceManifestVersion="1.0.0" />
+    <ServiceManifestRef ServiceManifestName="CaptainHook.ApiPkg" ServiceManifestVersion="1.0.0" />
     <ConfigOverrides />
     <EnvironmentOverrides CodePackageRef="code">
-      <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[CaptainHook.Test.Api_ASPNETCORE_ENVIRONMENT]" />
+      <EnvironmentVariable Name="KEYVAULT_BASE_URI" Value="[KeyVault_Base_Uri]" />
+      <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
     </EnvironmentOverrides>
   </ServiceManifestImport>
-
   <ServiceManifestImport>
-    <ServiceManifestRef ServiceManifestName="CaptainHook.ApiPkg" ServiceManifestVersion="1.0.0" />
+    <ServiceManifestRef ServiceManifestName="CaptainHook.Test.ApiPkg" ServiceManifestVersion="1.0.0" />
     <ConfigOverrides />
     <EnvironmentOverrides CodePackageRef="code">
       <EnvironmentVariable Name="KEYVAULT_BASE_URI" Value="[KeyVault_Base_Uri]" />
@@ -74,14 +73,13 @@
     </EnvironmentOverrides>
   </ServiceManifestImport>
   <DefaultServices>
-    <Service Name="CaptainHook.Test.Api" ServicePackageActivationMode="ExclusiveProcess">
-      <StatelessService ServiceTypeName="CaptainHook.Test.ApiType" InstanceCount="[CaptainHook.Test.Api_InstanceCount]">
+    <Service Name="CaptainHook.Api" ServicePackageActivationMode="ExclusiveProcess">
+      <StatelessService ServiceTypeName="CaptainHook.ApiType" InstanceCount="[CaptainHook.Api_InstanceCount]">
         <SingletonPartition />
       </StatelessService>
     </Service>
-
-    <Service Name="CaptainHook.Api" ServicePackageActivationMode="ExclusiveProcess">
-      <StatelessService ServiceTypeName="CaptainHook.ApiType" InstanceCount="[CaptainHook.Api_InstanceCount]">
+    <Service Name="CaptainHook.Test.Api" ServicePackageActivationMode="ExclusiveProcess">
+      <StatelessService ServiceTypeName="CaptainHook.Test.ApiType" InstanceCount="[CaptainHook.Test.Api_InstanceCount]">
         <SingletonPartition />
       </StatelessService>
     </Service>

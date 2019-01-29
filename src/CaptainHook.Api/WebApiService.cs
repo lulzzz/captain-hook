@@ -32,8 +32,6 @@ namespace CaptainHook.Api
                 new ServiceInstanceListener(serviceContext =>
                     new KestrelCommunicationListener(serviceContext, "ServiceEndpoint", (url, listener) =>
                     {
-                        ServiceEventSource.Current.ServiceMessage(serviceContext, $"Starting Kestrel on {url}");
-
                         return new WebHostBuilder()
                                     .UseKestrel()
                                     .ConfigureServices(

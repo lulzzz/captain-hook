@@ -25,7 +25,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{6C9D563B
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Actors.Tests", "Tests\CaptainHook.Actors.Tests\CaptainHook.Actors.Tests.csproj", "{6DFF2BCE-35E9-4535-996A-8E3F21530EAD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaptainHook.Test.Api", "CaptainHook.Test.Api\CaptainHook.Test.Api.csproj", "{895674D4-21E7-441D-98D5-3AB4BA2AFF69}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Test.Api", "CaptainHook.Test.Api\CaptainHook.Test.Api.csproj", "{895674D4-21E7-441D-98D5-3AB4BA2AFF69}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -113,6 +113,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{6DFF2BCE-35E9-4535-996A-8E3F21530EAD} = {6C9D563B-5E8D-49AB-A827-CE98F735567B}
+		{895674D4-21E7-441D-98D5-3AB4BA2AFF69} = {6C9D563B-5E8D-49AB-A827-CE98F735567B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {839C8B27-7C12-42F3-A1E3-85EB0F130282}

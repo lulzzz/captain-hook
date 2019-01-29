@@ -28,8 +28,6 @@ namespace CaptainHook.Api
                     ServiceRuntime.RegisterServiceAsync("CaptainHook.ApiType",
                         context => new WebApiService(context)).GetAwaiter().GetResult();
 
-                    ServiceEventSource.Current.ServiceTypeRegistered(Process.GetCurrentProcess().Id, typeof(WebApiService).Name);
-
                     // Prevents this host process from terminating so services keeps running. 
                     Thread.Sleep(Timeout.Infinite);
                 }
