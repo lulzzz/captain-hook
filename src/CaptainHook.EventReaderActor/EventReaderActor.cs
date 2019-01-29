@@ -1,4 +1,6 @@
-﻿namespace CaptainHook.EventReaderActor
+﻿using CaptainHook.Common.Configuration;
+
+namespace CaptainHook.EventReaderActor
 {
     using System;
     using System.Collections.Generic;
@@ -6,7 +8,6 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Common;
     using Common.Telemetry;
     using Eshopworld.Core;
     using Interfaces;

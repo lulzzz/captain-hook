@@ -1,41 +1,43 @@
 ﻿using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using CaptainHook.Common;
+using CaptainHook.Common.Authentication;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
-using Eshopworld.Core;
 using Eshopworld.Tests.Core;
-using Moq;
 using Newtonsoft.Json;
 using RichardSzalay.MockHttp;
 using Xunit;
 
-namespace CaptainHook.UnitTests.Authentication
+namespace CaptainHook.Tests.Authentication
 {
-    public class AuthenticationHandlerTests
+    public class MmAuthenticationHandlerTests
     {
-        [IsLayer1]
+        [IsLayer0]
         [Theory]
         [InlineData("6015CF7142BA060F5026BE9CC442C12ED7F0D5AECCBAA0678DEEBC51C6A1B282")]
         public async Task AuthorisationTokenSuccessTests(string expectedAccessToken)
         {
-            var expectedResponse = JsonConvert.SerializeObject(new AuthToken
+            var expectedResponse = JsonConvert.SerializeObject(new OAuthAuthenticationToken
             {
                 AccessToken = expectedAccessToken
             });
 
-            var config = new AuthenticationConfig
+            var config = new OAuthAuthenticationConfig
             {
                 ClientId = "bob",
                 ClientSecret = "bobsecret",
-                Scopes = "bob.scope.all",
                 Uri = "http://localhost/authendpoint"
             };
 
-            var handler = new AuthenticationHandler(config, new Mock<IBigBrother>().Object);
+            var mockHttp = new MockHttpMessageHandler();
+            mockHttp.When(HttpMethod.Post, config.Uri)
+                .WithHeaders("client_id", config.ClientId)
+                .WithHeaders("client_secret", config.ClientSecret)
+                .WithContentType("application/json-patch+json", string.Empty)
+                .Respond(HttpStatusCode.Created, "application/json-patch+json", expectedResponse);
 
-            var httpMessageHandler = EventHandlerTestHelper.GetMockHandler(new StringContent(expectedResponse));
-            var httpClient = new HttpClient(httpMessageHandler.Object);
+            var handler = new MmOAuthAuthenticationHandler(config);
+            var httpClient = mockHttp.ToHttpClient();
             await handler.GetToken(httpClient);
 
             Assert.NotNull(httpClient.DefaultRequestHeaders.Authorization);

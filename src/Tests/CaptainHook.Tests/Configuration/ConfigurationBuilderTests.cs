@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CaptainHook.Common;
+using CaptainHook.Common.Configuration;
 using Eshopworld.Tests.Core;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Xunit;
 
-namespace CaptainHook.UnitTests.Configuration
+namespace CaptainHook.Tests.Configuration
 {
    public class ConfigurationBuilderTests
     {

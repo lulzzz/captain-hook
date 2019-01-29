@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
+using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
@@ -11,7 +12,7 @@ using Moq;
 using Moq.Protected;
 using Xunit;
 
-namespace CaptainHook.UnitTests.WebHooks
+namespace CaptainHook.Tests.WebHooks
 {
     public class WebhookResponseHandlerTests
     {
@@ -28,7 +29,7 @@ namespace CaptainHook.UnitTests.WebHooks
         /// <summary>
         /// 
         /// </summary>
-        private readonly Mock<IAuthenticationHandler> _mockAuthHandler;
+        private readonly Mock<IAcquireTokenHandler> _mockAuthHandler;
 
         /// <summary>
         /// 
@@ -38,7 +39,7 @@ namespace CaptainHook.UnitTests.WebHooks
         public WebhookResponseHandlerTests()
         {
             _mockHttpHandler = EventHandlerTestHelper.GetMockHandler(new StringContent("hello"));
-            _mockAuthHandler = new Mock<IAuthenticationHandler>();
+            _mockAuthHandler = new Mock<IAcquireTokenHandler>();
             var mockBigBrother = new Mock<IBigBrother>();
 
             _mockHandlerFactory = new Mock<IEventHandlerFactory>();
@@ -73,7 +74,7 @@ namespace CaptainHook.UnitTests.WebHooks
                 });
         }
 
-        [IsLayer1]
+        [IsLayer0]
         [Fact]
         public async Task ExecuteHappyPath()
         {

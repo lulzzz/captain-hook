@@ -2,12 +2,12 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common;
+using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Nasty;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace CaptainHook.EventHandlerActor.Handlers
 {
@@ -19,11 +19,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
         public WebhookResponseHandler(
             IEventHandlerFactory eventHandlerFactory,
-            IAuthenticationHandler authenticationHandler,
+            IAcquireTokenHandler acquireTokenHandler,
             IBigBrother bigBrother,
             HttpClient client,
             EventHandlerConfig eventHandlerConfig)
-            : base(authenticationHandler, bigBrother, client, eventHandlerConfig.WebHookConfig)
+            : base(acquireTokenHandler, bigBrother, client, eventHandlerConfig.WebHookConfig)
         {
             _eventHandlerFactory = eventHandlerFactory;
             _client = client;
@@ -39,7 +39,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
             if (WebhookConfig.RequiresAuth)
             {
-                await AuthenticationHandler.GetToken(_client);
+                await AcquireTokenHandler.GetToken(_client);
             }
 
             //todo remove in v1

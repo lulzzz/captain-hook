@@ -1,11 +1,12 @@
-﻿namespace CaptainHook.PoolManagerActor
+﻿using CaptainHook.Common.Configuration;
+
+namespace CaptainHook.PoolManagerActor
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Autofac;
     using Autofac.Integration.ServiceFabric;
-    using Common;
     using Eshopworld.Core;
     using Eshopworld.Telemetry;
     using Microsoft.Azure.KeyVault;
