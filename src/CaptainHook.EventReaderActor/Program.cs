@@ -22,7 +22,7 @@
         {
             try
             {
-                var kvUri = Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable);
+                var kvUri = Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable);\
 
                 var config = new ConfigurationBuilder().AddAzureKeyVault(
                     kvUri,
