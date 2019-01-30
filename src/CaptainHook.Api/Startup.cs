@@ -126,8 +126,6 @@ namespace CaptainHook.Api
                 builder.Populate(services);
                 builder.RegisterInstance(_bb).As<IBigBrother>().SingleInstance();
 
-                // add additional services or modules into container here
-
                 var container = builder.Build();
                 return new AutofacServiceProvider(container);
             }
@@ -142,8 +140,7 @@ namespace CaptainHook.Api
         /// configure asp.net pipeline
         /// </summary>
         /// <param name="app">application builder</param>
-        /// <param name="env">environment</param>
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseBigBrotherExceptionHandler();
             app.UseSwagger(o => o.RouteTemplate = "swagger/{documentName}/swagger.json");

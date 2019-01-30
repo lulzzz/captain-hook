@@ -20,7 +20,7 @@ namespace CaptainHook.Test.Api
                 // an instance of the class is created in this host process.
 
                 ServiceRuntime.RegisterServiceAsync("CaptainHook.Test.ApiType",
-                    context => new Api(context)).GetAwaiter().GetResult();
+                    context => new WebApiService(context)).GetAwaiter().GetResult();
 
                 // Prevents this host process from terminating so services keeps running. 
                 Thread.Sleep(Timeout.Infinite);

@@ -33,18 +33,19 @@ namespace CaptainHook.Api
                     new KestrelCommunicationListener(serviceContext, "ServiceEndpoint", (url, listener) =>
                     {
                         return new WebHostBuilder()
-                                    .UseKestrel()
-                                    .ConfigureServices(
-                                        services => services
-                                            .AddSingleton(serviceContext)
-                                            .AddSingleton<ITelemetryInitializer>((serviceProvider) => FabricTelemetryInitializerExtension.CreateFabricTelemetryInitializer(serviceContext))
-                                            .AddSingleton<ITelemetryModule>(new ServiceRemotingDependencyTrackingTelemetryModule())
-                                            .AddSingleton<ITelemetryModule>(new ServiceRemotingRequestTrackingTelemetryModule()))
-                                    .UseContentRoot(Directory.GetCurrentDirectory())
-                                    .UseStartup<Startup>()
-                                    .UseServiceFabricIntegration(listener, ServiceFabricIntegrationOptions.None)
-                                    .UseUrls(url)
-                                    .Build();
+                               .UseKestrel()
+                               .ConfigureServices(
+                                   services => services
+                                               .AddSingleton(serviceContext)
+                                               .AddSingleton<ITelemetryInitializer>(serviceProvider =>
+                                                   FabricTelemetryInitializerExtension.CreateFabricTelemetryInitializer(serviceContext))
+                                               .AddSingleton<ITelemetryModule>(new ServiceRemotingDependencyTrackingTelemetryModule())
+                                               .AddSingleton<ITelemetryModule>(new ServiceRemotingRequestTrackingTelemetryModule()))
+                               .UseContentRoot(Directory.GetCurrentDirectory())
+                               .UseStartup<Startup>()
+                               .UseServiceFabricIntegration(listener, ServiceFabricIntegrationOptions.None)
+                               .UseUrls(url)
+                               .Build();
                     }))
             };
         }

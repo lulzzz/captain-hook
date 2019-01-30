@@ -1,25 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Fabric;
 using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
-using Microsoft.ServiceFabric.Data;
 
 namespace CaptainHook.Test.Api
 {
     /// <summary>
     /// The FabricRuntime creates an instance of this class for each service type instance. 
     /// </summary>
-    internal sealed class Api : StatelessService
+    internal sealed class WebApiService : StatelessService
     {
-        public Api(StatelessServiceContext context)
+        public WebApiService(StatelessServiceContext context)
             : base(context)
         { }
 
