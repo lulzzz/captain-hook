@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common;
+using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Nasty;
 using CaptainHook.Common.Telemetry;
@@ -48,15 +49,22 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 }
 
                 //make a call to client identity provider
-                if (WebhookConfig.RequiresAuth)
+                if (WebhookConfig.AuthenticationConfig.Type != AuthenticationType.None)
                 {
                     await AcquireTokenHandler.GetToken(_client);
                 }
 
                 var uri = WebhookConfig.Uri;
 
-                //todo remove in v1
-                var orderCode = ModelParser.ParseOrderCode(messageData.Payload);
+                //todo remove to integration layer by v1
+                switch (messageData.Type)
+                {
+                    case "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
+                    case "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent":
+                        var orderCode = ModelParser.ParseOrderCode(messageData.Payload);
+                        uri = $"{WebhookConfig.Uri}/{orderCode}"; //todo remove to integration layer by v1
+                        break;
+                }
 
                 var innerPayload = messageData.Payload;
                 if (!string.IsNullOrWhiteSpace(WebhookConfig.ModelToParse))
@@ -69,19 +77,14 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     innerPayload = messageData.CallbackPayload;
                 }
 
-                //todo remove in v1
-                switch (messageData.Type)
+                void TelemetryEvent(string msg)
                 {
-                    case "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
-                    case "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent":
-                        uri = $"{WebhookConfig.Uri}/{orderCode}"; //todo remove in v1
-                        break;
+                    BigBrother.Publish(new HttpClientFailure(messageData.Handle, messageData.Type, messageData.Payload, msg));
                 }
-
-                var response = await _client.PostAsJsonReliability(uri, innerPayload, messageData, BigBrother);
+                
+                var response = await _client.ExecuteAsJsonReliably(WebhookConfig.Verb, uri, innerPayload, TelemetryEvent);
 
                 BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.IsSuccessStatusCode.ToString()));
-
             }
             catch (Exception e)
             {

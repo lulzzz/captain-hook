@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common;
+using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Nasty;
 using CaptainHook.Common.Telemetry;
@@ -37,7 +38,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 throw new Exception("injected wrong implementation");
             }
 
-            if (WebhookConfig.RequiresAuth)
+            if (WebhookConfig.AuthenticationConfig.Type != AuthenticationType.None)
             {
                 await AcquireTokenHandler.GetToken(_client);
             }
@@ -46,7 +47,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
             var innerPayload = ModelParser.GetInnerPayload(messageData.Payload, _eventHandlerConfig.WebHookConfig.ModelToParse);
             var orderCode = ModelParser.ParseOrderCode(messageData.Payload);
 
-            var response = await _client.PostAsJsonReliability(WebhookConfig.Uri, innerPayload, messageData, BigBrother);
+            void TelemetryEvent(string msg)
+            {
+                BigBrother.Publish(new HttpClientFailure(messageData.Handle, messageData.Type, messageData.Payload, msg));
+            }
+
+            var response = await _client.ExecuteAsJsonReliably(WebhookConfig.Verb, WebhookConfig.Uri, innerPayload, TelemetryEvent);
 
             BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.IsSuccessStatusCode.ToString()));
 

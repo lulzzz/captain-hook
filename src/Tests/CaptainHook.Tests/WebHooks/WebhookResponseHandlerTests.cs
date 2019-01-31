@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
+using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
@@ -51,7 +52,9 @@ namespace CaptainHook.Tests.WebHooks
                     new WebhookConfig
                     {
                         Uri = "http://localhost/callback",
-                        Name = "CallbackConfig"
+                        Name = "CallbackConfig",
+                        AuthenticationConfig = new OAuthAuthenticationConfig(),
+                        Verb = "POST"
                     }));
 
             _webhookResponseHandler = new WebhookResponseHandler(
@@ -64,12 +67,14 @@ namespace CaptainHook.Tests.WebHooks
                     WebHookConfig = new WebhookConfig
                     {
                         Uri = "http://localhost/webhook",
-                        ModelToParse = "TransportModel"
+                        ModelToParse = "TransportModel",
+                        Verb = "Get"
                     },
                     CallbackConfig = new WebhookConfig
                     {
                         Name = "PutOrderConfirmationEvent",
-                        Uri = "http://localhost/callback"
+                        Uri = "http://localhost/callback",
+                        Verb = "POST"
                     }
                 });
         }
@@ -86,7 +91,7 @@ namespace CaptainHook.Tests.WebHooks
 
             await _webhookResponseHandler.Call(messageData);
 
-            _mockAuthHandler.Verify(e => e.GetToken(It.IsAny<HttpClient>()), Times.Exactly(2));
+            _mockAuthHandler.Verify(e => e.GetToken(It.IsAny<HttpClient>()), Times.Exactly(1));
             _mockHttpHandler.Protected().Verify(
                 "SendAsync",
                 Times.AtMostOnce(),

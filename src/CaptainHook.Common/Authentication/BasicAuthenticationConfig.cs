@@ -5,6 +5,11 @@
     /// </summary>
     public class BasicAuthenticationConfig : AuthenticationConfig
     {
+        public BasicAuthenticationConfig()
+        {
+            Type = AuthenticationType.Basic;
+        }
+
         /// <summary>
         /// Username for basic auth
         /// </summary>

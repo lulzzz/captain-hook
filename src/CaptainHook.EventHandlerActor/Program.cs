@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Integration.ServiceFabric;
+using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
@@ -44,16 +45,59 @@ namespace CaptainHook.EventHandlerActor
                 var webhookList = new List<WebhookConfig>(values.Count);
                 foreach (var configurationSection in values)
                 {
+                    //temp work around until config comes in through the API
                     var eventHandlerConfig = configurationSection.Get<EventHandlerConfig>();
                     eventHandlerList.Add(eventHandlerConfig);
 
                     if (eventHandlerConfig.WebHookConfig != null)
                     {
+                        if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type == AuthenticationType.Basic)
+                        {
+                            var basicAuthenticationConfig = new BasicAuthenticationConfig
+                            {
+                                Username = configurationSection["webhookconfig:authenticationconfig:username"],
+                                Password = configurationSection["webhookconfig:authenticationconfig:password"]
+                            };
+                            eventHandlerConfig.WebHookConfig.AuthenticationConfig = basicAuthenticationConfig;
+                        }
+
+                        if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type == AuthenticationType.OAuth)
+                        {
+                            eventHandlerConfig.WebHookConfig.AuthenticationConfig = ParseOAuthAuthenticationConfig(configurationSection.GetSection("webhookconfig:authenticationconfig"));
+                        }
+
+                        if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type == AuthenticationType.Custom)
+                        {
+                            eventHandlerConfig.WebHookConfig.AuthenticationConfig = ParseOAuthAuthenticationConfig(configurationSection.GetSection("webhookconfig:authenticationconfig"));
+                            eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type = AuthenticationType.Custom;
+                        }
+
                         webhookList.Add(eventHandlerConfig.WebHookConfig);
                     }
 
                     if (eventHandlerConfig.CallBackEnabled)
                     {
+                        if (eventHandlerConfig.CallbackConfig.AuthenticationConfig.Type == AuthenticationType.Basic)
+                        {
+                            var basicAuthenticationConfig = new BasicAuthenticationConfig
+                            {
+                                Username = configurationSection["webhookconfig:authenticationconfig:username"],
+                                Password = configurationSection["webhookconfig:authenticationconfig:password"]
+                            };
+                            eventHandlerConfig.CallbackConfig.AuthenticationConfig = basicAuthenticationConfig;
+                        }
+
+                        if (eventHandlerConfig.CallbackConfig.AuthenticationConfig.Type == AuthenticationType.OAuth)
+                        {
+                            eventHandlerConfig.CallbackConfig.AuthenticationConfig = ParseOAuthAuthenticationConfig(configurationSection.GetSection("callbackconfig:authenticationconfig"));
+                        }
+
+                        if (eventHandlerConfig.CallbackConfig.AuthenticationConfig.Type == AuthenticationType.Custom)
+                        {
+                            eventHandlerConfig.CallbackConfig.AuthenticationConfig = ParseOAuthAuthenticationConfig(configurationSection.GetSection("callbackconfig:authenticationconfig"));
+                            eventHandlerConfig.CallbackConfig.AuthenticationConfig.Type = AuthenticationType.Custom;
+                        }
+
                         webhookList.Add(eventHandlerConfig.CallbackConfig);
                     }
                 }
@@ -100,6 +144,37 @@ namespace CaptainHook.EventHandlerActor
                 BigBrother.Write(e);
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Hack to parse out the config types, won't be needed after api configuration
+        /// </summary>
+        /// <param name="configurationSection"></param>
+        /// <returns></returns>
+        private static OAuthAuthenticationConfig ParseOAuthAuthenticationConfig(IConfiguration configurationSection)
+        {
+            var oauthAuthenticationConfig = new OAuthAuthenticationConfig
+            {
+                ClientId = configurationSection["clientid"],
+                ClientSecret = configurationSection["clientsecret"],
+                Uri = configurationSection["uri"],
+                Scopes = configurationSection["scopes"].Split(" ")
+            };
+
+            var refresh = configurationSection["refresh"];
+            if (string.IsNullOrWhiteSpace(refresh))
+            {
+                oauthAuthenticationConfig.RefreshBeforeInSeconds = 10;
+            }
+            else
+            {
+                if (int.TryParse(refresh, out var refreshValue))
+                {
+                    oauthAuthenticationConfig.RefreshBeforeInSeconds = refreshValue;
+                }
+            }
+
+            return oauthAuthenticationConfig;
         }
     }
 }

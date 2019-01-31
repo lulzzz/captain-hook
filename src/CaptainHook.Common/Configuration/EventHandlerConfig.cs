@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CaptainHook.Common.Authentication;
 
 namespace CaptainHook.Common.Configuration
@@ -8,11 +9,12 @@ namespace CaptainHook.Common.Configuration
     /// </summary>
     public class WebhookConfig
     {
-        public bool RequiresAuth { get; set; } = true;
+        public WebhookConfig()
+        {
+            AuthenticationConfig = new AuthenticationConfig();
+        }
 
         public AuthenticationConfig AuthenticationConfig { get; set; }
-
-        public AuthenticationType AuthenticationType { get; set; }
 
         public string Uri { get; set; }
 
@@ -21,6 +23,10 @@ namespace CaptainHook.Common.Configuration
         //todo implement this on the calls to the webhook to select http verb
         public string Verb { get; set; }
 
+        /// <summary>
+        /// //todo remove this in v1
+        /// </summary>
+        [Obsolete]
         public string ModelToParse { get; set; }
     }
 
