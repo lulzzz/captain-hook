@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
 using CaptainHook.Common;
-using CaptainHook.Common.Nasty;
-using CaptainHook.Common.Telemetry;
 using CaptainHook.EventHandlerActor.Handlers;
 using CaptainHook.Interfaces;
 using Eshopworld.Core;
-using Eshopworld.Telemetry;
 using Microsoft.ServiceFabric.Actors;
-using Microsoft.ServiceFabric.Actors.Client;
 using Microsoft.ServiceFabric.Actors.Runtime;
 
 namespace CaptainHook.EventHandlerActor
@@ -75,7 +71,7 @@ namespace CaptainHook.EventHandlerActor
         /// <remarks>
         /// Not used in this case, because we are hard-coding all handling logic in this Actor, so there's no need to handle completion in higher actors.
         /// </remarks>>
-        public async Task CompleteMessage(Guid handle)
+        public async Task CompleteDispatch(string baseUri)
         {
             await Task.Yield();
         }

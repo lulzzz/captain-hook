@@ -49,7 +49,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
             var eswHandler = _handlerFactory.CreateHandler("esw", "esw");
 
-            var payload = new HttpResponseDto
+            var payload = new DispatchHttpResponse
             {
                 Content = await response.Content.ReadAsStringAsync(),
                 StatusCode = (int) response.StatusCode

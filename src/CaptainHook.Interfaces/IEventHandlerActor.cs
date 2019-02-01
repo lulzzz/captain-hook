@@ -13,6 +13,6 @@ namespace CaptainHook.Interfaces
     {
         Task HandleMessage(MessageData messageData);
 
-        Task CompleteMessage(Guid handle);
+        Task CompleteDispatch(string baseUri);
     }
 }

@@ -3,7 +3,7 @@
     /// <summary>
     /// Really temp dto
     /// </summary>
-    public class HttpResponseDto
+    public class DispatchHttpResponse
     {
         public int StatusCode { get; set; }
 

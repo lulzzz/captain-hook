@@ -178,6 +178,7 @@ namespace CaptainHook.EventReaderActor
                     FreeHandlers.Remove(handlerId);
                 }
 
+                messageData.HandlerId = handlerId;
                 InFlightMessages.Add(messageData.Handle, handlerId);
                 LockTokens.Add(messageData.Handle, message.SystemProperties.LockToken);
 
@@ -189,7 +190,7 @@ namespace CaptainHook.EventReaderActor
                 };
 
                 StateManager.AddStateAsync(handleData.Handle.ToString(), handleData).Wait();
-                ActorProxy.Create<IEventHandlerActor>(new ActorId($"{Id.GetStringId()}-{handlerId}")).HandleMessage(new MessageData(Encoding.UTF8.GetString(message.Body), Id.GetStringId())).Wait();
+                ActorProxy.Create<IEventHandlerActor>(new ActorId(messageData.EventHandlerActorId)).HandleMessage(messageData).Wait();
             }
 
             _readingEvents = false;

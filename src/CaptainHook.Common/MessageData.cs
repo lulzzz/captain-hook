@@ -22,6 +22,8 @@
         public string Payload { get; }
 
         public string Type { get; }
+
+        public string EventHandlerActorId => $"{Type}-{HandlerId}";
     }
 
     public class MessageDataHandle

@@ -7,6 +7,6 @@
     {
         Task Call<TRequest>(TRequest request);
 
-        Task<HttpResponseDto> Call<TRequest, TResponse>(TRequest request);
+        Task<DispatchHttpResponse> Call<TRequest, TResponse>(TRequest request);
     }
 }

@@ -32,7 +32,7 @@
         private readonly IBigBrother _bigBrother;
         private ConditionalValue<HashSet<int>> _free; // free pool resources
         private ConditionalValue<Dictionary<Guid, MessageData>> _busy; // busy pool resources
-        private int HandlerCount = NumberOfStartingHandlers;
+        internal int HandlerCount = NumberOfStartingHandlers;
         
         /// <summary>
         /// Initializes a new instance of PoolManagerActor
@@ -74,7 +74,7 @@
             }
         }
 
-        public async Task<Guid> QueueWork(MessageData messageData)
+        public async Task QueueWork(MessageData messageData)
         {
             try
             {
@@ -95,8 +95,6 @@
                 await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => value);
 
                 await ActorProxy.Create<IEventHandlerActor>(new ActorId($"{Id}-{messageData.HandlerId}")).HandleMessage(messageData);
-
-                return messageData.Handle;
             }
             catch (Exception e)
             {
@@ -109,14 +107,14 @@
         {
             try
             {
-                var msgHook = _busy.Value[handle];
+                var messageData = _busy.Value[handle];
                 _busy.Value.Remove(handle);
-                _free.Value.Add(msgHook.HandlerId);
+                _free.Value.Add(messageData.HandlerId);
 
                 await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => value);
                 await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => value);
 
-                await ActorProxy.Create<IEventReaderActor>(new ActorId(msgHook.Type)).CompleteMessage(handle);
+                await ActorProxy.Create<IEventHandlerActor>(new ActorId(messageData.EventHandlerActorId)).CompleteDispatch(Id.GetStringId());
             }
             catch (Exception e)
             {

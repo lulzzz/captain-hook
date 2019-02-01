@@ -60,7 +60,7 @@
         /// <typeparam name="TResponse"></typeparam>
         /// <param name="request"></param>
         /// <returns></returns>
-        public virtual async Task<HttpResponseDto> Call<TRequest, TResponse>(TRequest request)
+        public virtual async Task<DispatchHttpResponse> Call<TRequest, TResponse>(TRequest request)
         {
             if (!(request is MessageData data))
             {
@@ -77,7 +77,7 @@
 
             BigBrother.Publish(new WebhookEvent(data.Handle, data.Type, data.Payload, response.IsSuccessStatusCode.ToString()));
 
-            var dto = new HttpResponseDto
+            var dto = new DispatchHttpResponse
             {
                 Content = await response.Content.ReadAsStringAsync(),
                 StatusCode = (int)response.StatusCode
