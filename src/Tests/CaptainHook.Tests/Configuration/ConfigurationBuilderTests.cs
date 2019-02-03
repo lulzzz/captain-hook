@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using CaptainHook.Common.Configuration;
 using Eshopworld.Tests.Core;
 using Microsoft.Azure.KeyVault;
@@ -15,7 +14,7 @@ namespace CaptainHook.Tests.Configuration
     {
         [IsLayer1]
         [Fact(Skip = "Work in progress needs infra and refactor")]
-        public async Task BuildConfigurationHappyPath()
+        public void BuildConfigurationHappyPath()
         {
             var kvUri = "https://dg-test.vault.azure.net/";
 
