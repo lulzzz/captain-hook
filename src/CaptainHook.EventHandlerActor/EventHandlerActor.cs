@@ -52,6 +52,7 @@ namespace CaptainHook.EventHandlerActor
         /// </summary>
         protected override async Task OnActivateAsync()
         {
+            _bigBrother.Publish(new ActorActivated(this));
             if ((await StateManager.TryGetStateAsync<MessageData>(nameof(EventHandlerActor))).HasValue)
             {
                 // There's a message to handle, but we're not sure if it was fully handled or not, so we are going to handle it anyways
@@ -63,6 +64,12 @@ namespace CaptainHook.EventHandlerActor
                     TimeSpan.FromMilliseconds(100),
                     TimeSpan.MaxValue);
             }
+        }
+
+        protected override Task OnDeactivateAsync()
+        {
+            _bigBrother.Publish(new ActorDeactivated(this));
+            return base.OnDeactivateAsync();
         }
 
         public async Task Handle(Guid handle, string payload, string type)

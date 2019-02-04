@@ -109,6 +109,7 @@ namespace CaptainHook.EventReaderActor
 
         protected override Task OnDeactivateAsync()
         {
+            _bigBrother.Publish(new ActorDeactivated(this));
             _poolTimer?.Dispose();
             return base.OnDeactivateAsync();
         }
