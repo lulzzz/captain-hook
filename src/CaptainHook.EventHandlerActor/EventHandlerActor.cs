@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using CaptainHook.Common;
-using CaptainHook.Common.Nasty;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.EventHandlerActor.Handlers;
 using CaptainHook.Interfaces;
@@ -101,23 +100,23 @@ namespace CaptainHook.EventHandlerActor
 
         private async Task InternalHandle(object _)
         {
-            UnregisterTimer(_handleTimer);
-
-            var messageData = await StateManager.TryGetStateAsync<MessageData>(nameof(EventHandlerActor));
-            if (!messageData.HasValue)
-            {
-               _bigBrother.Publish(new WebhookEvent("message was empty") );
-                return;
-            }
-
             try
             {
-                var (brandType, eventType)  = ModelParser.ParseBrandAndEventType(messageData.Value);
+                UnregisterTimer(_handleTimer);
 
-                var handler = _eventHandlerFactory.CreateHandler($"{brandType}-{eventType}", eventType);
+                var messageData = await StateManager.TryGetStateAsync<MessageData>(nameof(EventHandlerActor));
+                if (!messageData.HasValue)
+                {
+                    _bigBrother.Publish(new WebhookEvent("message was empty"));
+                    return;
+                }
+
+                var eventType = messageData.Value.Type;
+
+                var handler = _eventHandlerFactory.CreateHandler(eventType);
 
                 await handler.Call(messageData.Value);
-                
+
                 await StateManager.RemoveStateAsync(nameof(EventHandlerActor));
                 await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).CompleteWork(messageData.Value.Handle);
             }

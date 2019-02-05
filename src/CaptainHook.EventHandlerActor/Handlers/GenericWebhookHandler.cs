@@ -61,7 +61,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 {
                     case "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
                     case "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent":
-                        var orderCode = ModelParser.ParseOrderCode(messageData.Payload);
+                        var orderCode = ModelParser.ParsePayloadProperty("OrderCode", messageData.Payload);
                         uri = $"{WebhookConfig.Uri}/{orderCode}"; //todo remove to integration layer by v1
                         break;
                 }
@@ -83,10 +83,10 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 {
                     BigBrother.Publish(new HttpClientFailure(messageData.Handle, messageData.Type, messageData.Payload, msg));
                 }
-                
-                var response = await _client.ExecuteAsJsonReliably(WebhookConfig.Verb, uri, innerPayload, TelemetryEvent);
 
-                BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.IsSuccessStatusCode.ToString()));
+                var response = await _client.ExecuteAsJsonReliably(WebhookConfig.Verb, uri, innerPayload, TelemetryEvent);
+                
+                BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, $"Response status code {response.StatusCode}"));
             }
             catch (Exception e)
             {
