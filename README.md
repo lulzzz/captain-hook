@@ -27,3 +27,4 @@ Per authorisation for internal services, OAuth2 scopes are used to control acces
 ## Future Work
 * HA for EDA.
 * Domain Event Versioning.
+* Tenant Namespacing
