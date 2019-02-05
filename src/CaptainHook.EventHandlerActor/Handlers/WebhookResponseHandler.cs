@@ -42,7 +42,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             {
                 await AcquireTokenHandler.GetToken(_client);
             }
-            
+
             //todo remove in v1
             var innerPayload = ModelParser.GetInnerPayload(messageData.Payload, _eventHandlerConfig.WebHookConfig.ModelToParse);
             var orderCode = ModelParser.ParsePayloadProperty("OrderCode", messageData.Payload);
@@ -69,7 +69,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.CallbackPayload));
 
             //call callback
-            var eswHandler = _eventHandlerFactory.CreateHandler($"{_eventHandlerConfig.CallbackConfig.Name}");
+            var eswHandler = _eventHandlerFactory.CreateWebhookHandler(_eventHandlerConfig.CallbackConfig.Name);
 
             await eswHandler.Call(messageData);
         }

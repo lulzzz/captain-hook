@@ -113,7 +113,7 @@ namespace CaptainHook.EventHandlerActor
 
                 var eventType = messageData.Value.Type;
 
-                var handler = _eventHandlerFactory.CreateHandler(eventType);
+                var handler = _eventHandlerFactory.CreateEventHandler(eventType);
 
                 await handler.Call(messageData.Value);
 

@@ -7,6 +7,13 @@
         /// </summary>
         /// <param name="fullEventName"></param>
         /// <returns></returns>
-        IHandler CreateHandler(string fullEventName);
+        IHandler CreateEventHandler(string fullEventName);
+
+        /// <summary>
+        /// Used only for getting the callback handler
+        /// </summary>
+        /// <param name="webHookName"></param>
+        /// <returns></returns>
+        IHandler CreateWebhookHandler(string webHookName);
     }
 }

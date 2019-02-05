@@ -65,7 +65,7 @@ namespace CaptainHook.Tests.WebHooks
             var mockBigBrother = new Mock<IBigBrother>();
 
             var mockHandlerFactory = new Mock<IEventHandlerFactory>();
-            mockHandlerFactory.Setup(s => s.CreateHandler(config.CallbackConfig.Name)).Returns(
+            mockHandlerFactory.Setup(s => s.CreateEventHandler(config.CallbackConfig.Name)).Returns(
                 new GenericWebhookHandler(
                     mockAuthHandler.Object,
                     mockBigBrother.Object,
@@ -82,7 +82,7 @@ namespace CaptainHook.Tests.WebHooks
             await webhookResponseHandler.Call(messageData);
 
             mockAuthHandler.Verify(e => e.GetToken(It.IsAny<HttpClient>()), Times.Exactly(2));
-            mockHandlerFactory.Verify(e => e.CreateHandler(It.IsAny<string>()), Times.AtMostOnce);
+            mockHandlerFactory.Verify(e => e.CreateEventHandler(It.IsAny<string>()), Times.AtMostOnce);
 
             Assert.Equal(1, mockHttpHandler.GetMatchCount(mockWebHookRequestWithCallback));
             Assert.Equal(1, mockHttpHandler.GetMatchCount(mockWebHookRequest));
