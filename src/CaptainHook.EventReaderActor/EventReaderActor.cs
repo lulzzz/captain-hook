@@ -48,7 +48,7 @@ namespace CaptainHook.EventReaderActor
         private Timer _poolTimer;
         private MessageReceiver _receiver;
         private IActorReminder _reminder;
-        private const string ReminderName = "Wake up";
+        private const string WakeUpReminderName = "Wake up";
 
         private ConditionalValue<Dictionary<Guid, string>> _messagesInHandlers;
 
@@ -91,6 +91,13 @@ namespace CaptainHook.EventReaderActor
                     ReceiveMode.PeekLock,
                     new RetryExponential(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), 3),
                     BatchSize);
+
+                _reminder = await this.RegisterReminderAsync(
+                    WakeUpReminderName,
+                    null,
+                    TimeSpan.FromMilliseconds(100),
+                    TimeSpan.FromMilliseconds(100));
+
             }
             catch (Exception e)
             {
@@ -104,7 +111,7 @@ namespace CaptainHook.EventReaderActor
         protected override Task OnDeactivateAsync()
         {
             _bigBrother.Publish(new ActorDeactivated(this));
-            
+
             _poolTimer?.Dispose();
             return base.OnDeactivateAsync();
         }
@@ -164,19 +171,9 @@ namespace CaptainHook.EventReaderActor
         /// <remarks>
         /// Do nothing by design. We just need to make sure that the actor is properly activated.
         /// </remarks>>
-        public async Task Run()
+        public Task Run()
         {
-            _reminder = await this.RegisterReminderAsync(
-                ReminderName,
-                null,
-                TimeSpan.FromMilliseconds(100),
-                TimeSpan.FromMilliseconds(100));
-
-            //_poolTimer = new Timer(
-            //    ReadEvents,
-            //    null,
-            //    TimeSpan.FromMilliseconds(500),
-            //    TimeSpan.FromMilliseconds(500));
+            return Task.CompletedTask;
         }
 
         public async Task CompleteMessage(Guid handle)
@@ -197,7 +194,8 @@ namespace CaptainHook.EventReaderActor
 
         public Task ReceiveReminderAsync(string reminderName, byte[] state, TimeSpan dueTime, TimeSpan period)
         {
-            if (reminderName.Equals(ReminderName, StringComparison.OrdinalIgnoreCase))
+            
+            if (reminderName.Equals(WakeUpReminderName, StringComparison.OrdinalIgnoreCase))
             {
                 ReadEvents();
             }
