@@ -47,7 +47,7 @@ namespace CaptainHook.EventReaderActor
         private volatile bool _readingEvents;
         private Timer _poolTimer;
         private MessageReceiver _receiver;
-        private IActorReminder _reminder;
+        private IActorReminder _wakeupReminder;
         private const string WakeUpReminderName = "Wake up";
 
         private ConditionalValue<Dictionary<Guid, string>> _messagesInHandlers;
@@ -92,7 +92,7 @@ namespace CaptainHook.EventReaderActor
                     new RetryExponential(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), 3),
                     BatchSize);
 
-                _reminder = await this.RegisterReminderAsync(
+                _wakeupReminder = await this.RegisterReminderAsync(
                     WakeUpReminderName,
                     null,
                     TimeSpan.FromMilliseconds(100),
@@ -111,6 +111,7 @@ namespace CaptainHook.EventReaderActor
         protected override Task OnDeactivateAsync()
         {
             _bigBrother.Publish(new ActorDeactivated(this));
+            UnregisterReminderAsync(_wakeupReminder);
 
             _poolTimer?.Dispose();
             return base.OnDeactivateAsync();
@@ -194,7 +195,6 @@ namespace CaptainHook.EventReaderActor
 
         public Task ReceiveReminderAsync(string reminderName, byte[] state, TimeSpan dueTime, TimeSpan period)
         {
-            
             if (reminderName.Equals(WakeUpReminderName, StringComparison.OrdinalIgnoreCase))
             {
                 ReadEvents();
