@@ -1,12 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetLatestRuntimePatch>True</TargetLatestRuntimePatch>
+
+    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+    <LangVersion>latest</LangVersion>
+    <DebugType>Full</DebugType>
+
     <IsServiceFabricServiceProject>True</IsServiceFabricServiceProject>
-    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
+    <ServerGarbageCollection>True</ServerGarbageCollection>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\$(AssemblyName).xml</DocumentationFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Version>1.0$(DOTTED_BUILD_BUILDNUMBER)</Version>
+    <Platforms>x64</Platforms>
+    <Platform>x64</Platform>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
