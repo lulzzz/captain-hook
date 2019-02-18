@@ -61,14 +61,14 @@ namespace CaptainHook.EventHandlerActor
                             eventHandlerConfig.WebHookConfig.AuthenticationConfig = basicAuthenticationConfig;
                         }
 
-                        if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type == AuthenticationType.OAuth)
+                        if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type == AuthenticationType.OIDC)
                         {
-                            eventHandlerConfig.WebHookConfig.AuthenticationConfig = ParseOAuthAuthenticationConfig(configurationSection.GetSection("webhookconfig:authenticationconfig"));
+                            eventHandlerConfig.WebHookConfig.AuthenticationConfig = ParseOidcAuthenticationConfig(configurationSection.GetSection("webhookconfig:authenticationconfig"));
                         }
 
                         if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type == AuthenticationType.Custom)
                         {
-                            eventHandlerConfig.WebHookConfig.AuthenticationConfig = ParseOAuthAuthenticationConfig(configurationSection.GetSection("webhookconfig:authenticationconfig"));
+                            eventHandlerConfig.WebHookConfig.AuthenticationConfig = ParseOidcAuthenticationConfig(configurationSection.GetSection("webhookconfig:authenticationconfig"));
                             eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type = AuthenticationType.Custom;
                         }
 
@@ -87,14 +87,14 @@ namespace CaptainHook.EventHandlerActor
                             eventHandlerConfig.CallbackConfig.AuthenticationConfig = basicAuthenticationConfig;
                         }
 
-                        if (eventHandlerConfig.CallbackConfig.AuthenticationConfig.Type == AuthenticationType.OAuth)
+                        if (eventHandlerConfig.CallbackConfig.AuthenticationConfig.Type == AuthenticationType.OIDC)
                         {
-                            eventHandlerConfig.CallbackConfig.AuthenticationConfig = ParseOAuthAuthenticationConfig(configurationSection.GetSection("callbackconfig:authenticationconfig"));
+                            eventHandlerConfig.CallbackConfig.AuthenticationConfig = ParseOidcAuthenticationConfig(configurationSection.GetSection("callbackconfig:authenticationconfig"));
                         }
 
                         if (eventHandlerConfig.CallbackConfig.AuthenticationConfig.Type == AuthenticationType.Custom)
                         {
-                            eventHandlerConfig.CallbackConfig.AuthenticationConfig = ParseOAuthAuthenticationConfig(configurationSection.GetSection("callbackconfig:authenticationconfig"));
+                            eventHandlerConfig.CallbackConfig.AuthenticationConfig = ParseOidcAuthenticationConfig(configurationSection.GetSection("callbackconfig:authenticationconfig"));
                             eventHandlerConfig.CallbackConfig.AuthenticationConfig.Type = AuthenticationType.Custom;
                         }
 
@@ -151,9 +151,9 @@ namespace CaptainHook.EventHandlerActor
         /// </summary>
         /// <param name="configurationSection"></param>
         /// <returns></returns>
-        private static OAuthAuthenticationConfig ParseOAuthAuthenticationConfig(IConfiguration configurationSection)
+        private static OidcAuthenticationConfig ParseOidcAuthenticationConfig(IConfiguration configurationSection)
         {
-            var oauthAuthenticationConfig = new OAuthAuthenticationConfig
+            var oauthAuthenticationConfig = new OidcAuthenticationConfig
             {
                 ClientId = configurationSection["clientid"],
                 ClientSecret = configurationSection["clientsecret"],

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CaptainHook.Common.Authentication;
 
 namespace CaptainHook.Common.Configuration
@@ -12,6 +11,7 @@ namespace CaptainHook.Common.Configuration
         public WebhookConfig()
         {
             AuthenticationConfig = new AuthenticationConfig();
+            WebhookRequestRules = new List<WebhookRequestRule>();
         }
 
         public AuthenticationConfig AuthenticationConfig { get; set; }
@@ -21,13 +21,9 @@ namespace CaptainHook.Common.Configuration
         public string Name { get; set; }
 
         //todo implement this on the calls to the webhook to select http verb
-        public string Verb { get; set; }
+        public string HttpVerb { get; set; }
 
-        /// <summary>
-        /// //todo remove this in v1
-        /// </summary>
-        [Obsolete]
-        public string ModelToParse { get; set; }
+        public List<WebhookRequestRule> WebhookRequestRules { get; set; }
     }
 
     /// <summary>
@@ -39,8 +35,6 @@ namespace CaptainHook.Common.Configuration
 
         public WebhookConfig CallbackConfig { get; set; }
 
-        public List<EventParser> EventParsers { get; set; }
-
         public string Name { get; set; }
 
         public string Type { get; set; }
@@ -48,22 +42,14 @@ namespace CaptainHook.Common.Configuration
         public bool CallBackEnabled => CallbackConfig != null;
     }
 
-    /// <summary>
-    /// Action for the event parser to be preformed on the webhook request or on the callback request
-    /// </summary>
-    public enum ActionPreformedOn
+    public class WebhookRequestRule
     {
-        Webhook = 1,
-        Callback = 2,
-        Message = 3
-    }
-
-    public class EventParser
-    {
-        /// <summary>
-        ///  Whether to preform the action on the webhook or the callback
-        /// </summary>
-        public ActionPreformedOn ActionPreformedOn { get; set; }
+        public WebhookRequestRule()
+        {
+            Routes = new List<WebhookConfigRoute>();
+            Source = new ParserLocation();
+            Destination = new ParserLocation();
+        }
 
         /// <summary>
         /// ie from payload, header, etc etc
@@ -74,24 +60,86 @@ namespace CaptainHook.Common.Configuration
         /// ie uri, body, header
         /// </summary>
         public ParserLocation Destination { get; set; }
-
+        
         /// <summary>
-        /// Name for reference
+        /// Routes used for webhook rule types
         /// </summary>
-        public string Name { get; set; }
+        public List<WebhookConfigRoute> Routes { get; set; }
+    }
+
+    public class WebhookConfigRoute : WebhookConfig
+    {
+        /// <summary>
+        /// A selector that is used in the payload to determine where the request should be routed to in the config
+        /// </summary>
+        public string Selector { get; set; }
     }
 
     public class ParserLocation
     {
-        public string Name { get; set; }
+        /// <summary>
+        /// Path for the parameter to query from or to be placed
+        /// ie: path in the message both or if it's a value in the http header
+        /// </summary>
+        public string Path { get; set; }
 
-        public QueryLocation QueryLocation { get; set; }
+        /// <summary>
+        /// The location of the parsed parameter or the location it should go
+        /// </summary>
+        public Location Location { get; set; } = Location.Body;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public RuleAction RuleAction { get; set; } = RuleAction.Add;
+
+        /// <summary>
+        /// The data type of the property
+        /// </summary>
+        public DataType Type { get; set; } = DataType.Property;
     }
 
-    public enum QueryLocation
+    public enum DataType
     {
+        Property = 1,
+        HttpContent = 2,
+        HttpStatusCode = 3,
+        Model = 4,
+        String = 5
+    }
+
+    public enum RuleAction
+    {
+        Replace = 1,
+        Add = 2,
+        Route = 3
+    }
+
+    public enum Location
+    {
+        /// <summary>
+        /// Mostly used to add something to the URI of the request
+        /// </summary>
         Uri = 1,
+
+        /// <summary>
+        /// The request payload body. Can come from or be attached to
+        /// </summary>
         Body = 2,
+
+        /// <summary>
+        /// 
+        /// </summary>
         Header = 3,
+
+        /// <summary>
+        /// Special case to get the status code of the webhook request and add it to the call back body
+        /// </summary>
+        HttpStatusCode = 4,
+
+        /// <summary>
+        /// Special case to get the status code of the webhook request and add it to the call back body
+        /// </summary>
+        HttpContent = 5,
     }
 }

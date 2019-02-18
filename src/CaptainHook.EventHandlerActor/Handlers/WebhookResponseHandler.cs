@@ -1,14 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
-using CaptainHook.Common.Nasty;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
-using Newtonsoft.Json;
 
 namespace CaptainHook.EventHandlerActor.Handlers
 {
@@ -21,17 +20,18 @@ namespace CaptainHook.EventHandlerActor.Handlers
         public WebhookResponseHandler(
             IEventHandlerFactory eventHandlerFactory,
             IAcquireTokenHandler acquireTokenHandler,
+            IRequestBuilder requestBuilder,
             IBigBrother bigBrother,
             HttpClient client,
             EventHandlerConfig eventHandlerConfig)
-            : base(acquireTokenHandler, bigBrother, client, eventHandlerConfig.WebHookConfig)
+            : base(acquireTokenHandler, requestBuilder, bigBrother, client, eventHandlerConfig.WebHookConfig)
         {
             _eventHandlerFactory = eventHandlerFactory;
             _client = client;
             _eventHandlerConfig = eventHandlerConfig;
         }
 
-        public override async Task Call<TRequest>(TRequest request)
+        public override async Task Call<TRequest>(TRequest request, IDictionary<string, object> metadata = null)
         {
             if (!(request is MessageData messageData))
             {
@@ -43,35 +43,37 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 await AcquireTokenHandler.GetToken(_client);
             }
 
-            //todo remove in v1
-            var innerPayload = ModelParser.GetInnerPayload(messageData.Payload, _eventHandlerConfig.WebHookConfig.ModelToParse);
-            var orderCode = ModelParser.ParsePayloadProperty("OrderCode", messageData.Payload);
+            var uri = RequestBuilder.BuildUri(WebhookConfig, messageData.Payload);
+            var payload = RequestBuilder.BuildPayload(WebhookConfig, messageData.Payload, metadata);
 
             void TelemetryEvent(string msg)
             {
                 BigBrother.Publish(new HttpClientFailure(messageData.Handle, messageData.Type, messageData.Payload, msg));
             }
 
-            var response = await _client.ExecuteAsJsonReliably(WebhookConfig.Verb, WebhookConfig.Uri, innerPayload, TelemetryEvent);
+            var response = await _client.ExecuteAsJsonReliably(WebhookConfig.HttpVerb, uri, payload, TelemetryEvent);
 
             BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.IsSuccessStatusCode.ToString()));
 
-            //todo remove this such that the raw payload is what is sent back from the webhook to the callback
-            var payload = new HttpResponseDto
+            if (metadata == null)
             {
-                OrderCode = orderCode,
-                Content = await response.Content.ReadAsStringAsync(),
-                StatusCode = (int)response.StatusCode
-            };
-            messageData.OrderCode = orderCode;
-            messageData.CallbackPayload = JsonConvert.SerializeObject(payload);
+                metadata = new Dictionary<string, object>();
+            }
+            else
+            {
+                metadata.Clear();
+            }
 
-            BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.CallbackPayload));
+            var content = await response.Content.ReadAsStringAsync();
+            metadata.Add("HttpStatusCode", (int)response.StatusCode);
+            metadata.Add("HttpResponseContent", content);
+
+            BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, content));
 
             //call callback
             var eswHandler = _eventHandlerFactory.CreateWebhookHandler(_eventHandlerConfig.CallbackConfig.Name);
 
-            await eswHandler.Call(messageData);
+            await eswHandler.Call(messageData, metadata);
         }
     }
 }

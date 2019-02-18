@@ -1,49 +1,79 @@
-﻿namespace CaptainHook.Common.Nasty
-{
-    using System;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+﻿using CaptainHook.Common.Configuration;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
-    /// <summary>
-    /// todo nuke this in V1
-    /// </summary>
+namespace CaptainHook.Common.Nasty
+{
     public static class ModelParser
     {
-        public static Guid ParsePayloadProperty(string name, string payload, JObject jObject = null)
-        {
-            if (jObject == null)
-            {
-                jObject = JObject.Parse(payload);
-            }
-
-            var orderCode = jObject.SelectToken(name).Value<string>();
-            if (Guid.TryParse(orderCode, out var result))
-            {
-                return result;
-            }
-
-            throw new FormatException($"cannot parse order code in payload {orderCode}");
-        }
-        
         /// <summary>
+        /// 
         /// </summary>
+        /// <param name="name"></param>
         /// <param name="payload"></param>
-        /// <param name="dtoName"></param>
         /// <param name="jObject"></param>
         /// <returns></returns>
-        public static string GetInnerPayload(string payload, string dtoName, JObject jObject = null)
+        public static string ParsePayloadPropertyAsString(string name, object payload, JToken jObject = null)
         {
             if (jObject == null)
             {
-                jObject = JObject.Parse(payload);
+                jObject = GetJObject(payload);
             }
 
-            var innerPayload = jObject.SelectToken(dtoName).ToString(Formatting.None);
-            if (innerPayload != null)
+            var value = jObject.SelectToken(name);
+
+            if (value == null)
             {
-                return innerPayload;
+                return null;
             }
-            throw new FormatException($"cannot parse order to get the request dto {payload}");
+
+            return value.Type == JTokenType.Object ? value.ToString(Formatting.None) : value.Value<string>();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="location"></param>
+        /// <param name="sourcePayload"></param>
+        /// <param name="destinationType"></param>
+        /// <param name="jObject"></param>
+        /// <returns></returns>
+        public static JToken ParsePayloadProperty(ParserLocation location, object sourcePayload, DataType destinationType, JToken jObject = null)
+        {
+            if (jObject == null)
+            {
+                jObject = GetJObject(sourcePayload);
+            }
+
+            return destinationType == DataType.String ? 
+                ParsePayloadPropertyAsString(location.Path, sourcePayload) : 
+                jObject.SelectToken(location.Path);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="payload"></param>
+        /// <param name="destinationType"></param>
+        /// <returns></returns>
+        public static JToken GetJObject(object payload, DataType destinationType = DataType.Model)
+        {
+            if (destinationType == DataType.String)
+            {
+                return payload as string;
+            }
+
+            if (payload is string payloadAsString)
+            {
+                return JObject.Parse(payloadAsString);
+            }
+
+            if (payload is int payloadAsInt)
+            {
+                return new JValue(payloadAsInt);
+            }
+
+            return new JObject();
         }
     }
 }
