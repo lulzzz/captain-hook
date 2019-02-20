@@ -10,6 +10,7 @@
 
     <OutputType>Exe</OutputType>
     <IsServiceFabricServiceProject>True</IsServiceFabricServiceProject>
+    <ServerGarbageCollection>True</ServerGarbageCollection>
     <UpdateServiceFabricManifestEnabled>True</UpdateServiceFabricManifestEnabled>
     <ServicePackagePath>PackageRoot</ServicePackagePath>
     <ServicePackagePrefix>$(MSBuildProjectName)</ServicePackagePrefix>

@@ -19,6 +19,16 @@ Project("{A07B5EB6-E848-4116-A8D0-A826331D98C6}") = "CaptainHook.Fabric", "Capta
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.PoolManagerActor", "CaptainHook.PoolManagerActor\CaptainHook.PoolManagerActor.csproj", "{4035A243-CDC8-4A50-B759-CA51810454FD}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Api", "CaptainHook.Api\CaptainHook.Api.csproj", "{EF7F5F71-486F-4212-A391-27ABA2DACF74}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{6C9D563B-5E8D-49AB-A827-CE98F735567B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Actors.Tests", "Tests\CaptainHook.Actors.Tests\CaptainHook.Actors.Tests.csproj", "{6DFF2BCE-35E9-4535-996A-8E3F21530EAD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Test.Api", "CaptainHook.Test.Api\CaptainHook.Test.Api.csproj", "{895674D4-21E7-441D-98D5-3AB4BA2AFF69}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.WatchdogActor", "CaptainHook.WatchdogActor\CaptainHook.WatchdogActor.csproj", "{CA6703EE-D066-4703-93A4-2CDFA736B8D3}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C2A4301F-0F3A-4880-A8A6-C9D110FFFD69}"
 	ProjectSection(SolutionItems) = preProject
 		codecoverage.runsettings = codecoverage.runsettings
@@ -84,6 +94,32 @@ Global
 		{4035A243-CDC8-4A50-B759-CA51810454FD}.Release|Any CPU.ActiveCfg = Release|x64
 		{4035A243-CDC8-4A50-B759-CA51810454FD}.Release|x64.ActiveCfg = Release|x64
 		{4035A243-CDC8-4A50-B759-CA51810454FD}.Release|x64.Build.0 = Release|x64
+		{EF7F5F71-486F-4212-A391-27ABA2DACF74}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{EF7F5F71-486F-4212-A391-27ABA2DACF74}.Debug|x64.ActiveCfg = Debug|x64
+		{EF7F5F71-486F-4212-A391-27ABA2DACF74}.Debug|x64.Build.0 = Debug|x64
+		{EF7F5F71-486F-4212-A391-27ABA2DACF74}.Release|Any CPU.ActiveCfg = Release|x64
+		{EF7F5F71-486F-4212-A391-27ABA2DACF74}.Release|x64.ActiveCfg = Release|x64
+		{EF7F5F71-486F-4212-A391-27ABA2DACF74}.Release|x64.Build.0 = Release|x64
+		{6DFF2BCE-35E9-4535-996A-8E3F21530EAD}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{6DFF2BCE-35E9-4535-996A-8E3F21530EAD}.Debug|x64.ActiveCfg = Debug|x64
+		{6DFF2BCE-35E9-4535-996A-8E3F21530EAD}.Debug|x64.Build.0 = Debug|x64
+		{6DFF2BCE-35E9-4535-996A-8E3F21530EAD}.Release|Any CPU.ActiveCfg = Release|x64
+		{6DFF2BCE-35E9-4535-996A-8E3F21530EAD}.Release|x64.ActiveCfg = Release|x64
+		{6DFF2BCE-35E9-4535-996A-8E3F21530EAD}.Release|x64.Build.0 = Release|x64
+		{895674D4-21E7-441D-98D5-3AB4BA2AFF69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{895674D4-21E7-441D-98D5-3AB4BA2AFF69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{895674D4-21E7-441D-98D5-3AB4BA2AFF69}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{895674D4-21E7-441D-98D5-3AB4BA2AFF69}.Debug|x64.Build.0 = Debug|Any CPU
+		{895674D4-21E7-441D-98D5-3AB4BA2AFF69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{895674D4-21E7-441D-98D5-3AB4BA2AFF69}.Release|Any CPU.Build.0 = Release|Any CPU
+		{895674D4-21E7-441D-98D5-3AB4BA2AFF69}.Release|x64.ActiveCfg = Release|Any CPU
+		{895674D4-21E7-441D-98D5-3AB4BA2AFF69}.Release|x64.Build.0 = Release|Any CPU
+		{CA6703EE-D066-4703-93A4-2CDFA736B8D3}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{CA6703EE-D066-4703-93A4-2CDFA736B8D3}.Debug|x64.ActiveCfg = Debug|x64
+		{CA6703EE-D066-4703-93A4-2CDFA736B8D3}.Debug|x64.Build.0 = Debug|x64
+		{CA6703EE-D066-4703-93A4-2CDFA736B8D3}.Release|Any CPU.ActiveCfg = Release|x64
+		{CA6703EE-D066-4703-93A4-2CDFA736B8D3}.Release|x64.ActiveCfg = Release|x64
+		{CA6703EE-D066-4703-93A4-2CDFA736B8D3}.Release|x64.Build.0 = Release|x64
 		{A8BA8475-6198-4CB2-9D5B-C70356D9135B}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{A8BA8475-6198-4CB2-9D5B-C70356D9135B}.Debug|x64.ActiveCfg = Debug|x64
 		{A8BA8475-6198-4CB2-9D5B-C70356D9135B}.Debug|x64.Build.0 = Debug|x64
@@ -93,6 +129,10 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6DFF2BCE-35E9-4535-996A-8E3F21530EAD} = {6C9D563B-5E8D-49AB-A827-CE98F735567B}
+		{895674D4-21E7-441D-98D5-3AB4BA2AFF69} = {6C9D563B-5E8D-49AB-A827-CE98F735567B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {839C8B27-7C12-42F3-A1E3-85EB0F130282}

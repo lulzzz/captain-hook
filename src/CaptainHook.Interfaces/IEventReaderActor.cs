@@ -1,9 +1,9 @@
-﻿namespace CaptainHook.Interfaces
-{
-    using System;
-    using System.Threading.Tasks;
-    using Microsoft.ServiceFabric.Actors;
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.ServiceFabric.Actors;
 
+namespace CaptainHook.Interfaces
+{
     /// <summary>
     /// This interface defines the methods exposed by an actor.
     /// Clients use this interface to interact with the actor that implements it.
@@ -13,5 +13,7 @@
         Task Run();
 
         Task CompleteMessage(Guid handle);
+
+        Task FailMessage(Guid handle);
     }
 }

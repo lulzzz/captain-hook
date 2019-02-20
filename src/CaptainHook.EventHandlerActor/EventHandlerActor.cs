@@ -73,13 +73,6 @@ namespace CaptainHook.EventHandlerActor
 
         public async Task Handle(Guid handle, string payload, string type)
         {
-            var messageData = new MessageData
-            {
-                Handle = handle,
-                Payload = payload,
-                Type = type
-            };
-
             await StateManager.AddOrUpdateStateAsync(nameof(EventHandlerActor), messageData, (s, pair) => pair);
 
             _handleTimer = RegisterTimer(
@@ -92,10 +85,9 @@ namespace CaptainHook.EventHandlerActor
         /// <remarks>
         /// Not used in this case, because we are hard-coding all handling logic in this Actor, so there's no need to handle completion in higher actors.
         /// </remarks>>
-        public async Task CompleteHandle(Guid handle)
+        public async Task CompleteDispatch(string baseUri)
         {
             await Task.Yield();
-            throw new NotImplementedException("Not used - nothing above this actor will actually be called in v0");
         }
 
         private async Task InternalHandle(object _)

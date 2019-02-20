@@ -1,29 +1,28 @@
-﻿using CaptainHook.Common.Configuration;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using CaptainHook.Common;
+using CaptainHook.Common.Telemetry;
+using CaptainHook.Interfaces;
+using Eshopworld.Core;
+using Microsoft.Azure.Management.Fluent;
+using Microsoft.Azure.Management.ResourceManager.Fluent;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+using Microsoft.Azure.ServiceBus;
+using Microsoft.Azure.ServiceBus.Core;
+using Microsoft.Azure.Services.AppAuthentication;
+using Microsoft.Rest;
+using Microsoft.ServiceFabric.Actors;
+using Microsoft.ServiceFabric.Actors.Client;
+using Microsoft.ServiceFabric.Actors.Runtime;
+using Microsoft.ServiceFabric.Data;
 
 namespace CaptainHook.EventReaderActor
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Common.Telemetry;
-    using Eshopworld.Core;
-    using Interfaces;
-    using Microsoft.Azure.Management.Fluent;
-    using Microsoft.Azure.Management.ResourceManager.Fluent;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-    using Microsoft.Azure.ServiceBus;
-    using Microsoft.Azure.ServiceBus.Core;
-    using Microsoft.Azure.Services.AppAuthentication;
-    using Microsoft.Rest;
-    using Microsoft.ServiceFabric.Actors;
-    using Microsoft.ServiceFabric.Actors.Client;
-    using Microsoft.ServiceFabric.Actors.Runtime;
-    using Microsoft.ServiceFabric.Data;
-
     /// <remarks>
     /// This class represents an actor.
     /// Every ActorID maps to an instance of this class.
@@ -50,7 +49,15 @@ namespace CaptainHook.EventReaderActor
         private IActorReminder _wakeupReminder;
         private const string WakeUpReminderName = "Wake up";
 
-        private ConditionalValue<Dictionary<Guid, string>> _messagesInHandlers;
+        internal readonly Dictionary<Guid, string> LockTokens = new Dictionary<Guid, string>();
+        internal readonly Dictionary<Guid, int> InFlightMessages = new Dictionary<Guid, int>();
+        internal HashSet<int> FreeHandlers = new HashSet<int>();
+
+#if DEBUG
+        internal int HandlerCount = 1;
+#else
+        internal int HandlerCount = 10;
+#endif
 
         /// <summary>
         /// Initializes a new instance of EventReaderActor
@@ -72,18 +79,14 @@ namespace CaptainHook.EventReaderActor
             {
                 _bigBrother.Publish(new ActorActivated(this));
 
-                var inHandlers = await StateManager.TryGetStateAsync<Dictionary<Guid, string>>(nameof(_messagesInHandlers));
-                if (inHandlers.HasValue)
-                {
-                    _messagesInHandlers = inHandlers;
-                }
-                else
-                {
-                    _messagesInHandlers = new ConditionalValue<Dictionary<Guid, string>>(true, new Dictionary<Guid, string>());
-                    await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers.Value, (s, value) => value);
-                }
-
+                await BuildInMemoryState();
                 await SetupServiceBus();
+
+                _poolTimer = new Timer(
+                    ReadEvents,
+                    null,
+                    TimeSpan.FromMilliseconds(500),
+                    TimeSpan.FromMilliseconds(500));
 
                 _receiver = new MessageReceiver(
                     _settings.ServiceBusConnectionString,
@@ -140,7 +143,22 @@ namespace CaptainHook.EventReaderActor
             await azureTopic.CreateSubscriptionIfNotExists(SubscriptionName);
         }
 
-        internal async void ReadEvents(object _)
+        internal async Task BuildInMemoryState()
+        {
+            var stateNames = await StateManager.GetStateNamesAsync();
+            foreach (var state in stateNames)
+            {
+                var handleData = await StateManager.GetStateAsync<MessageDataHandle>(state);
+                LockTokens.Add(handleData.Handle, handleData.LockToken);
+                InFlightMessages.Add(handleData.Handle, handleData.HandlerId);
+            }
+
+            var maxUsedHandlers = InFlightMessages.Values.OrderByDescending(i => i).FirstOrDefault();
+            if (maxUsedHandlers > HandlerCount) HandlerCount = maxUsedHandlers;
+            FreeHandlers = Enumerable.Range(1, HandlerCount).Except(InFlightMessages.Values).ToHashSet();
+        }
+
+        internal void ReadEvents(object _)
         {
             lock (_gate)
             {
@@ -159,11 +177,31 @@ namespace CaptainHook.EventReaderActor
 
             foreach (var message in messages)
             {
-                await _receiver.RenewLockAsync(message);
+                var messageData = new MessageData(Encoding.UTF8.GetString(message.Body), Id.GetStringId());
 
-                var handle = await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).DoWork(Encoding.UTF8.GetString(message.Body), Id.GetStringId());
-                _messagesInHandlers.Value.Add(handle, message.SystemProperties.LockToken);
-                await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers.Value, (s, value) => value);
+                var handlerId = FreeHandlers.FirstOrDefault();
+                if (handlerId == 0)
+                {
+                    handlerId = ++HandlerCount;
+                }
+                else
+                {
+                    FreeHandlers.Remove(handlerId);
+                }
+
+                messageData.HandlerId = handlerId;
+                InFlightMessages.Add(messageData.Handle, handlerId);
+                LockTokens.Add(messageData.Handle, message.SystemProperties.LockToken);
+
+                var handleData = new MessageDataHandle
+                {
+                    Handle = messageData.Handle,
+                    HandlerId = handlerId,
+                    LockToken = message.SystemProperties.LockToken
+                };
+
+                StateManager.AddStateAsync(handleData.Handle.ToString(), handleData).Wait();
+                ActorProxy.Create<IEventHandlerActor>(new ActorId(messageData.EventHandlerActorId)).HandleMessage(messageData).Wait();
             }
 
             _readingEvents = false;
@@ -183,20 +221,17 @@ namespace CaptainHook.EventReaderActor
 
         public async Task CompleteMessage(Guid handle)
         {
-            //todo NOT HANDLING FAULTS YET - BE CAREFUL HERE!
-            try
-            {
-                await _receiver.CompleteAsync(_messagesInHandlers.Value[handle]);
-                _messagesInHandlers.Value.Remove(handle);
-                await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers.Value, (s, value) => value);
-            }
-            catch (Exception e)
-            {
-                _bigBrother.Publish(e.ToExceptionEvent());
-                throw;
-            }
+            await _receiver.CompleteAsync(LockTokens[handle]);
+            await RemoveHandle(handle);
         }
 
+        public async Task FailMessage(Guid handle)
+        {
+            // TODO: do stuff
+
+            await RemoveHandle(handle);
+        }
+        
         public Task ReceiveReminderAsync(string reminderName, byte[] state, TimeSpan dueTime, TimeSpan period)
         {
             if (reminderName.Equals(WakeUpReminderName, StringComparison.OrdinalIgnoreCase))
@@ -205,6 +240,13 @@ namespace CaptainHook.EventReaderActor
             }
 
             return Task.CompletedTask;
+        }
+
+        private async Task RemoveHandle(Guid handle)
+        {
+            LockTokens.Remove(handle);
+            InFlightMessages.Remove(handle);
+            await StateManager.RemoveStateAsync(handle.ToString());
         }
     }
 }
