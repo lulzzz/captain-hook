@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
+using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.Interfaces;
 using Eshopworld.Core;
@@ -19,7 +20,6 @@ using Microsoft.Rest;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Client;
 using Microsoft.ServiceFabric.Actors.Runtime;
-using Microsoft.ServiceFabric.Data;
 
 namespace CaptainHook.EventReaderActor
 {
@@ -85,7 +85,7 @@ namespace CaptainHook.EventReaderActor
                 _poolTimer = new Timer(
                     ReadEvents,
                     null,
-                    TimeSpan.FromMilliseconds(500),
+                    TimeSpan.FromMilliseconds(1000),
                     TimeSpan.FromMilliseconds(500));
 
                 _receiver = new MessageReceiver(
@@ -94,11 +94,6 @@ namespace CaptainHook.EventReaderActor
                     ReceiveMode.PeekLock,
                     new RetryExponential(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), 3),
                     BatchSize);
-
-                _poolTimer = new Timer(ReadEvents,
-                    null,
-                    TimeSpan.FromMilliseconds(1000),
-                    TimeSpan.FromMilliseconds(100));
             }
             catch (Exception e)
             {
@@ -141,6 +136,16 @@ namespace CaptainHook.EventReaderActor
 
             var azureTopic = await sbNamespace.CreateTopicIfNotExists(TypeExtensions.GetEntityName(Id.GetStringId()));
             await azureTopic.CreateSubscriptionIfNotExists(SubscriptionName);
+        }
+
+        public Task ReceiveReminderAsync(string reminderName, byte[] state, TimeSpan dueTime, TimeSpan period)
+        {
+            if (reminderName.Equals(WakeUpReminderName, StringComparison.OrdinalIgnoreCase))
+            {
+                ReadEvents(null);
+            }
+
+            return Task.CompletedTask;
         }
 
         internal async Task BuildInMemoryState()
@@ -230,16 +235,6 @@ namespace CaptainHook.EventReaderActor
             // TODO: do stuff
 
             await RemoveHandle(handle);
-        }
-        
-        public Task ReceiveReminderAsync(string reminderName, byte[] state, TimeSpan dueTime, TimeSpan period)
-        {
-            if (reminderName.Equals(WakeUpReminderName, StringComparison.OrdinalIgnoreCase))
-            {
-                ReadEvents(null);
-            }
-
-            return Task.CompletedTask;
         }
 
         private async Task RemoveHandle(Guid handle)

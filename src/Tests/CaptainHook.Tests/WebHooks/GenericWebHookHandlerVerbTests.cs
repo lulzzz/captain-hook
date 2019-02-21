@@ -37,7 +37,7 @@ namespace CaptainHook.Tests.WebHooks
                 mockHttp.ToHttpClient(),
                 config);
 
-            await genericWebhookHandler.Call(new MessageData { Payload = payload });
+            await genericWebhookHandler.Call(new MessageData(payload, "TestType"));
             Assert.Equal(1, mockHttp.GetMatchCount(request));
         }
 
@@ -57,7 +57,7 @@ namespace CaptainHook.Tests.WebHooks
                 mockHttp.ToHttpClient(),
                 config);
 
-            await genericWebhookHandler.Call(new MessageData { Payload = payload });
+            await genericWebhookHandler.Call(new MessageData(payload, "TestType"));
             Assert.Equal(1, mockHttp.GetMatchCount(request));
         }
 

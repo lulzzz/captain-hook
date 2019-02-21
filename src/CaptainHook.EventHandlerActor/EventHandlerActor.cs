@@ -71,7 +71,7 @@ namespace CaptainHook.EventHandlerActor
             return base.OnDeactivateAsync();
         }
 
-        public async Task Handle(Guid handle, string payload, string type)
+        public async Task HandleMessage(MessageData messageData)
         {
             await StateManager.AddOrUpdateStateAsync(nameof(EventHandlerActor), messageData, (s, pair) => pair);
 

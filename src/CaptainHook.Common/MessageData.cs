@@ -1,7 +1,6 @@
 ﻿namespace CaptainHook.Common
 {
     using System;
-    using JetBrains.Annotations;
 
     public class MessageData
     {
