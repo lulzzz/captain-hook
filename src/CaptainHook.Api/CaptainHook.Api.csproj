@@ -55,6 +55,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CaptainHook.Common\CaptainHook.Common.csproj" />
+    <ProjectReference Include="..\CaptainHook.MessagingDirector\CaptainHook.MessagingDirector.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Update="appsettings.CI.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
