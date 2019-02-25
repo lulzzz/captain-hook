@@ -1,14 +1,15 @@
-﻿using System;
+﻿using System.Fabric;
 using System.Net;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Interfaces;
+using Eshopworld.Core;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.ServiceFabric.Actors;
-using Microsoft.ServiceFabric.Actors.Client;
 
 namespace CaptainHook.Api.Controllers
 {
+    /// <inheritdoc />
     /// <summary>
     /// The Webhook configuration
     /// </summary>
@@ -16,21 +17,19 @@ namespace CaptainHook.Api.Controllers
     [Route("api/v{version:apiVersion}/[controller]")]
     [Produces("application/json")]
     [Authorize]
-    public class WebHookController : Controller
+    public class WebhookController : CaptainHookControllerBase
     {
-        private readonly IMessagingDirector _messagingDirectorActor;
-
         /// <summary>
         /// 
         /// </summary>
-        public WebHookController()
+        public WebhookController(
+            IHostingEnvironment hostingEnvironment,
+            IBigBrother bigBrother,
+            StatelessServiceContext sfContext) : base(hostingEnvironment, bigBrother, sfContext)
         {
-            var serviceUri = new Uri("fabric:/CaptainHook/MessagingDirectorActor");
-            _messagingDirectorActor = ActorProxy.Create<IMessagingDirector>(new ActorId(0), serviceUri);
         }
 
         //todo get paginated list
-
         /// <summary>
         /// Get a webhook configuration
         /// </summary>
@@ -41,7 +40,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         public IActionResult Get(string name)
         {
-            return Ok(_messagingDirectorActor.ReadWebhook(name));
+            return Ok(GetActorRef<IMessagingDirector>("MessageDirector").ReadWebhook(name));
         }
 
         /// <summary>
@@ -55,8 +54,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         public IActionResult Post(WebhookConfig config)
         {
-            config = _messagingDirectorActor.CreateWebhook(config);
-            return Ok(config);
+            return Ok(GetActorRef<IMessagingDirector>("MessageDirector").CreateWebhook(config));
         }
 
         /// <summary>
@@ -70,8 +68,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         public IActionResult Put(WebhookConfig config)
         {
-            config = _messagingDirectorActor.UpdateWebhook(config);
-            return Ok(config);
+            return Ok(GetActorRef<IMessagingDirector>("MessageDirector").UpdateWebhook(config));
         }
 
         /// <summary>
@@ -84,7 +81,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         public IActionResult Delete(string name)
         {
-            _messagingDirectorActor.DeleteWebhook(name);
+            GetActorRef<IMessagingDirector>("MessageDirector").DeleteWebhook(name);
             return NoContent();
         }
     }

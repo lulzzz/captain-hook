@@ -1,4 +1,6 @@
-﻿namespace CaptainHook.MessagingDirector
+﻿using CaptainHook.Common.Configuration;
+
+namespace CaptainHook.MessagingDirector
 {
     using System.Threading.Tasks;
     using Interfaces;
@@ -50,6 +52,26 @@
             {
                 await ActorProxy.Create<IEventReaderActor>(new ActorId(type)).Run();
             }
+        }
+
+        public WebhookConfig ReadWebhook(string name)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public WebhookConfig CreateWebhook(WebhookConfig config)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public WebhookConfig UpdateWebhook(WebhookConfig config)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void DeleteWebhook(string name)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }
