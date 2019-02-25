@@ -1,4 +1,7 @@
-﻿using CaptainHook.Common.Configuration;
+﻿using System.Threading;
+using CaptainHook.Common.Configuration;
+using CaptainHook.Common.Telemetry;
+using Eshopworld.Core;
 
 namespace CaptainHook.MessagingDirector
 {
@@ -19,49 +22,84 @@ namespace CaptainHook.MessagingDirector
     [StatePersistence(StatePersistence.Persisted)]
     public class MessagingDirector : Actor, IMessagingDirector
     {
-        private const string MessageTypesKey = "MessageTypes";
+        private readonly IBigBrother _bigBrother;
 
         /// <summary>
         /// Initializes a new instance of <see cref="MessagingDirector"/>.
         /// </summary>
         /// <param name="actorService">The <see cref="ActorService"/> that will host this actor instance.</param>
         /// <param name="actorId">The <see cref="ActorId"/> for this actor instance.</param>
-        public MessagingDirector(ActorService actorService, ActorId actorId)
+        /// <param name="bigBrother"></param>
+        public MessagingDirector(
+            ActorService actorService,
+            ActorId actorId,
+            IBigBrother bigBrother)
             : base(actorService, actorId)
         {
+            this._bigBrother = bigBrother;
         }
 
-        /// <inheritdoc />
-        protected override async Task OnActivateAsync()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        protected override Task OnActivateAsync()
         {
-            await StateManager.TryAddStateAsync(MessageTypesKey,
-                new[]
-                {
-                    "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent",
-                    "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent",
-                    "nike.snkrs.core.events.productrefreshevent",
-                    "nike.snkrs.core.events.productupdatedevent"
-                });
+            _bigBrother.Publish(new ActorActivated(this));
+            return base.OnActivateAsync();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        protected override Task OnDeactivateAsync()
+        {
+            _bigBrother.Publish(new ActorDeactivated(this));
+            return base.OnDeactivateAsync();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public async Task Run()
         {
-            var types = await StateManager.TryGetStateAsync<string[]>(MessageTypesKey);
-
-            foreach (var type in types.Value)
+            foreach (var type in await this.StateManager.GetStateNamesAsync(CancellationToken.None))
             {
                 await ActorProxy.Create<IEventReaderActor>(new ActorId(type)).Run();
             }
         }
 
-        public WebhookConfig ReadWebhook(string name)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public async Task<WebhookConfig> ReadWebhookAsync(string name)
         {
-            throw new System.NotImplementedException();
+            var conditionalValue = await StateManager.TryGetStateAsync<WebhookConfig>(name, CancellationToken.None);
+            return conditionalValue.Value;
         }
 
-        public WebhookConfig CreateWebhook(WebhookConfig config)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        public async Task<WebhookConfig> CreateWebhookAsync(WebhookConfig config)
         {
-            throw new System.NotImplementedException();
+            var result = await StateManager.TryAddStateAsync(config.Type, config, CancellationToken.None);
+
+            if (!result)
+            {
+                return await this.StateManager.GetStateAsync<WebhookConfig>(config.Type, CancellationToken.None);
+            }
+
+            this._bigBrother.Publish(new WebHookCreated(config.Type));
+            await ActorProxy.Create<IEventReaderActor>(new ActorId(config.Type)).Run();
+
+            return await StateManager.GetStateAsync<WebhookConfig>(config.Type, CancellationToken.None);
         }
 
         public WebhookConfig UpdateWebhook(WebhookConfig config)

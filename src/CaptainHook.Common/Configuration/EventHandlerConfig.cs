@@ -20,24 +20,14 @@ namespace CaptainHook.Common.Configuration
 
         public string Name { get; set; }
 
+        public string Type { get; set; }
+
         //todo implement this on the calls to the webhook to select http verb
         public HttpVerb HttpVerb { get; set; }
 
         public List<WebhookRequestRule> WebhookRequestRules { get; set; }
-    }
-
-    /// <summary>
-    /// Event handler config contains both details for the webhook call as well as any domain events and callback
-    /// </summary>
-    public class EventHandlerConfig
-    {
-        public WebhookConfig WebHookConfig { get; set; }
-
+        
         public WebhookConfig CallbackConfig { get; set; }
-
-        public string Name { get; set; }
-
-        public string Type { get; set; }
 
         public bool CallBackEnabled => CallbackConfig != null;
     }

@@ -21,13 +21,13 @@ namespace CaptainHook.Interfaces
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        WebhookConfig ReadWebhook(string name);
+        Task<WebhookConfig> ReadWebhookAsync(string name);
 
         /// <summary>
         /// Create a new webhook
         /// </summary>
         /// <param name="config"></param>
-        WebhookConfig CreateWebhook(WebhookConfig config);
+        Task<WebhookConfig> CreateWebhookAsync(WebhookConfig config);
 
         /// <summary>
         /// Update an existing webhook

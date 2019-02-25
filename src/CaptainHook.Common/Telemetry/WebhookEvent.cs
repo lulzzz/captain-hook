@@ -1,14 +1,14 @@
-﻿namespace CaptainHook.Common.Telemetry
-{
-    using System;
-    using Eshopworld.Core;
+﻿using System;
+using Eshopworld.Core;
 
+namespace CaptainHook.Common.Telemetry
+{
     public class WebhookEvent : TelemetryEvent
     {
         public WebhookEvent(string payload, string state = "failure")
         {
-            this.Payload = payload;
-            this.State = state;
+            Payload = payload;
+            State = state;
         }
 
         public WebhookEvent(Guid handle, string type, string payload, string state = "success")
@@ -25,5 +25,25 @@
         public string Payload { get; set; }
 
         public string State { get; set; }
+    }
+
+    public class WebHookCreated : TelemetryEvent
+    {
+        public WebHookCreated(string name)
+        {
+            Name = name;
+        }
+
+        public string Name { get; set; }
+    }
+
+    public class WebHookDeleted : TelemetryEvent
+    {
+
+    }
+
+    public class WebHookUpdated : TelemetryEvent
+    {
+
     }
 }
