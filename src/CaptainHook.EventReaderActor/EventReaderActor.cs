@@ -77,7 +77,7 @@ namespace CaptainHook.EventReaderActor
         {
             try
             {
-                _bigBrother.Publish(new ActorActivated(this));
+                _bigBrother.Publish(new ActorActivatedEvent(this));
 
                 await BuildInMemoryState();
                 await SetupServiceBus();
@@ -106,7 +106,7 @@ namespace CaptainHook.EventReaderActor
 
         protected override Task OnDeactivateAsync()
         {
-            _bigBrother.Publish(new ActorDeactivated(this));
+            _bigBrother.Publish(new ActorDeactivatedEvent(this));
             UnregisterReminderAsync(_wakeupReminder);
 
             _poolTimer?.Dispose();

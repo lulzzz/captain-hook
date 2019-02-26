@@ -17,9 +17,6 @@ namespace CaptainHook.Common.Configuration
         public AuthenticationConfig AuthenticationConfig { get; set; }
 
         public string Uri { get; set; }
-
-        public string Name { get; set; }
-
         public string Type { get; set; }
 
         //todo implement this on the calls to the webhook to select http verb

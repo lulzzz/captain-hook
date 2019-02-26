@@ -11,20 +11,17 @@ namespace CaptainHook.EventHandlerActor.Handlers
     {
         private readonly IIndex<string, HttpClient> _httpClients;
         private readonly IBigBrother _bigBrother;
-        private readonly IIndex<string, EventHandlerConfig> _eventHandlerConfig;
         private readonly IIndex<string, WebhookConfig> _webHookConfig;
         private readonly IAuthHandlerFactory _authHandlerFactory;
 
         public EventHandlerFactory(
             IIndex<string, HttpClient> httpClients,
             IBigBrother bigBrother,
-            IIndex<string, EventHandlerConfig> eventHandlerConfig,
             IIndex<string, WebhookConfig> webHookConfig,
             IAuthHandlerFactory authHandlerFactory)
         {
             _httpClients = httpClients;
             _bigBrother = bigBrother;
-            _eventHandlerConfig = eventHandlerConfig;
             _authHandlerFactory = authHandlerFactory;
             _webHookConfig = webHookConfig;
         }
@@ -35,31 +32,31 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// </summary>
         /// <param name="eventType"></param>
         /// <returns></returns>
-        public IHandler CreateEventHandler(string eventType)
+        public IHandler CreateWebhookWithCallbackHandler(string eventType)
         {
-            if (!_eventHandlerConfig.TryGetValue(eventType.ToLower(), out var eventHandlerConfig))
+            if (!_webHookConfig.TryGetValue(eventType.ToLower(), out var webhookConfig))
             {
                 throw new Exception("Boom, handler eventType not found cannot process the message");
             }
 
             var authHandler = _authHandlerFactory.Get($"{eventType}-webhook");
-            if (eventHandlerConfig.CallBackEnabled)
+            if (webhookConfig.CallBackEnabled)
             {
                 return new WebhookResponseHandler(
                     this,
                     authHandler,
                     new RequestBuilder(),
                     _bigBrother,
-                    _httpClients[eventHandlerConfig.WebHookConfig.Name.ToLower()],
-                    eventHandlerConfig);
+                    _httpClients[webhookConfig.Type.ToLower()],
+                    webhookConfig);
             }
 
             return new GenericWebhookHandler(
                 authHandler,
                 new RequestBuilder(),
                 _bigBrother,
-                _httpClients[eventHandlerConfig.WebHookConfig.Name.ToLower()],
-                eventHandlerConfig.WebHookConfig);
+                _httpClients[webhookConfig.Type.ToLower()],
+                webhookConfig);
         }
 
         /// <summary>

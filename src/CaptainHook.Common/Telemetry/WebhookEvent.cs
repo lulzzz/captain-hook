@@ -27,9 +27,9 @@ namespace CaptainHook.Common.Telemetry
         public string State { get; set; }
     }
 
-    public class WebHookCreated : TelemetryEvent
+    public class WebHookCreatedEvent : TelemetryEvent
     {
-        public WebHookCreated(string name)
+        public WebHookCreatedEvent(string name)
         {
             Name = name;
         }

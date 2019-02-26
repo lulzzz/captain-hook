@@ -41,6 +41,6 @@ namespace CaptainHook.Interfaces
         /// /todo need to think about authorisation
         /// </summary>
         /// <param name="name">Name given to the webhook</param>
-        void DeleteWebhook(string name);
+        Task DeleteWebhookAsync(string name);
     }
 }

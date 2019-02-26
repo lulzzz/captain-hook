@@ -51,7 +51,7 @@ namespace CaptainHook.EventHandlerActor
         /// </summary>
         protected override async Task OnActivateAsync()
         {
-            _bigBrother.Publish(new ActorActivated(this));
+            _bigBrother.Publish(new ActorActivatedEvent(this));
             if ((await StateManager.TryGetStateAsync<MessageData>(nameof(EventHandlerActor))).HasValue)
             {
                 // There's a message to handle, but we're not sure if it was fully handled or not, so we are going to handle it anyways
@@ -67,7 +67,7 @@ namespace CaptainHook.EventHandlerActor
 
         protected override Task OnDeactivateAsync()
         {
-            _bigBrother.Publish(new ActorDeactivated(this));
+            _bigBrother.Publish(new ActorDeactivatedEvent(this));
             return base.OnDeactivateAsync();
         }
 
@@ -103,7 +103,7 @@ namespace CaptainHook.EventHandlerActor
                     return;
                 }
 
-                var handler = _eventHandlerFactory.CreateEventHandler(messageData.Value.Type);
+                var handler = _eventHandlerFactory.CreateWebhookWithCallbackHandler(messageData.Value.Type);
                 await handler.Call(messageData.Value);
 
                 await StateManager.RemoveStateAsync(nameof(EventHandlerActor));

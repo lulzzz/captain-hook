@@ -55,7 +55,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         public IActionResult Post(WebhookConfig config)
         {
-            return Ok(GetActorRef<IMessagingDirector>(Actors.MessageDirector).CreateWebhook(config));
+            return Ok(GetActorRef<IMessagingDirector>(Actors.MessageDirector).CreateWebhookAsync(config));
         }
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         public IActionResult Delete(string name)
         {
-            GetActorRef<IMessagingDirector>(Actors.MessageDirector).DeleteWebhook(name);
+            GetActorRef<IMessagingDirector>(Actors.MessageDirector).DeleteWebhookAsync(name);
             return NoContent();
         }
     }

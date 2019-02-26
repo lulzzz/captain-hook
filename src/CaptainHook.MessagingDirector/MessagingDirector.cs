@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System;
+using System.Text;
+using System.Threading;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry;
 using Eshopworld.Core;
@@ -45,7 +47,7 @@ namespace CaptainHook.MessagingDirector
         /// <returns></returns>
         protected override Task OnActivateAsync()
         {
-            _bigBrother.Publish(new ActorActivated(this));
+            _bigBrother.Publish(new ActorActivatedEvent(this));
             return base.OnActivateAsync();
         }
 
@@ -55,7 +57,7 @@ namespace CaptainHook.MessagingDirector
         /// <returns></returns>
         protected override Task OnDeactivateAsync()
         {
-            _bigBrother.Publish(new ActorDeactivated(this));
+            _bigBrother.Publish(new ActorDeactivatedEvent(this));
             return base.OnDeactivateAsync();
         }
 
@@ -93,10 +95,11 @@ namespace CaptainHook.MessagingDirector
 
             if (!result)
             {
-                return await this.StateManager.GetStateAsync<WebhookConfig>(config.Type, CancellationToken.None);
+                _bigBrother.Publish(new ActorStateEvent(config.Type, "Cannot create new Webhook. Webhook with the same name has already been created"));
+                throw new Exception("Cannot create new Webhook. Webhook with the same name has already been created");
             }
 
-            this._bigBrother.Publish(new WebHookCreated(config.Type));
+            _bigBrother.Publish(new WebHookCreatedEvent(config.Type));
             await ActorProxy.Create<IEventReaderActor>(new ActorId(config.Type)).Run();
 
             return await StateManager.GetStateAsync<WebhookConfig>(config.Type, CancellationToken.None);
@@ -107,9 +110,29 @@ namespace CaptainHook.MessagingDirector
             throw new System.NotImplementedException();
         }
 
-        public void DeleteWebhook(string name)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public async Task DeleteWebhookAsync(string type)
         {
-            throw new System.NotImplementedException();
+            var result = await StateManager.TryGetStateAsync<WebhookConfig>(type, CancellationToken.None);
+
+            if (result.HasValue)
+            {
+                _bigBrother.Publish(new ActorDeletedEvent(type, "Deleting actor based on api request"));
+
+                var actorId = new ActorId(type);
+                //todo if we move message state into the fabric then we have to consider that we might need to delete any state the actor has when we delete it.
+                //todo will we have to clean up any start for any other actor in the chain
+
+                //todo clean up naming here should be in naming class
+                var actorProxy = ActorServiceProxy.Create(new Uri("fabric:/CaptainHook/EventReaderActor"), actorId);
+                await actorProxy.DeleteActorAsync(actorId, CancellationToken.None);
+            }
+
+            throw new Exception("actor not found");
         }
     }
 }

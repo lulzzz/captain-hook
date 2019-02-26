@@ -41,7 +41,7 @@ namespace CaptainHook.Tests.Authentication
                 {
                     configurationName, new WebhookConfig
                     {
-                        Name = configurationName,
+                        Type = configurationName,
                         AuthenticationConfig = authenticationConfig
                     }
                 }
@@ -70,7 +70,7 @@ namespace CaptainHook.Tests.Authentication
                 {
                     configurationName, new WebhookConfig
                     {
-                        Name = configurationName,
+                        Type = configurationName,
                         AuthenticationConfig = authenticationConfig
                     }
                 }

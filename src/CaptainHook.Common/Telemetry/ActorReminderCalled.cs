@@ -2,7 +2,7 @@
 
 namespace CaptainHook.Common.Telemetry
 {
-    public class ActorReminderCalled : ActorActivated
+    public class ActorReminderCalled : ActorActivatedEvent
     {
         public ActorReminderCalled(ActorBase actor, string reminderName) : base(actor)
         {

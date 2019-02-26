@@ -25,7 +25,7 @@ namespace CaptainHook.Tests.WebHooks
         [IsLayer0]
         [Theory]
         [MemberData(nameof(WebHookCallData))]
-        public async Task CheckWebhookCall(EventHandlerConfig config, MessageData messageData, string expectedUri, string expectedContent)
+        public async Task CheckWebhookCall(WebhookConfig config, MessageData messageData, string expectedUri, string expectedContent)
         {
             var mockHttpHandler = new MockHttpMessageHandler();
             var mockWebHookRequestWithCallback = mockHttpHandler.When(HttpMethod.Post, expectedUri)
@@ -38,7 +38,7 @@ namespace CaptainHook.Tests.WebHooks
             var mockBigBrother = new Mock<IBigBrother>();
 
             var mockHandlerFactory = new Mock<IEventHandlerFactory>();
-            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(config.CallbackConfig.Name)).Returns(
+            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(config.CallbackConfig.Type)).Returns(
                 new GenericWebhookHandler(
                     mockAuthHandler.Object,
                     new RequestBuilder(),
@@ -67,7 +67,7 @@ namespace CaptainHook.Tests.WebHooks
         [IsLayer0]
         [Theory]
         [MemberData(nameof(CallbackCallData))]
-        public async Task CheckCallbackCall(EventHandlerConfig config, MessageData messageData, string expectedWebHookUri, string expectedCallbackUri, string expectedContent)
+        public async Task CheckCallbackCall(WebhookConfig config, MessageData messageData, string expectedWebHookUri, string expectedCallbackUri, string expectedContent)
         {
             var mockHttpHandler = new MockHttpMessageHandler();
             mockHttpHandler.When(HttpMethod.Post, expectedWebHookUri)
@@ -83,7 +83,7 @@ namespace CaptainHook.Tests.WebHooks
             var mockBigBrother = new Mock<IBigBrother>();
 
             var mockHandlerFactory = new Mock<IEventHandlerFactory>();
-            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(config.CallbackConfig.Name)).Returns(
+            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(config.CallbackConfig.Type)).Returns(
                 new GenericWebhookHandler(
                     mockAuthHandler.Object,
                     new RequestBuilder(),
@@ -114,7 +114,7 @@ namespace CaptainHook.Tests.WebHooks
         [IsLayer0]
         [Theory]
         [MemberData(nameof(MultiRouteCallData))]
-        public async Task CheckMultiRouteSelection(EventHandlerConfig config, MessageData messageData, string expectedWebHookUri, string expectedContent)
+        public async Task CheckMultiRouteSelection(WebhookConfig config, MessageData messageData, string expectedWebHookUri, string expectedContent)
         {
             var mockHttpHandler = new MockHttpMessageHandler();
             var multiRouteCall = mockHttpHandler.When(HttpMethod.Post, expectedWebHookUri)
@@ -127,7 +127,7 @@ namespace CaptainHook.Tests.WebHooks
             var mockBigBrother = new Mock<IBigBrother>();
 
             var mockHandlerFactory = new Mock<IEventHandlerFactory>();
-            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(config.CallbackConfig.Name)).Returns(
+            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(config.CallbackConfig.Type)).Returns(
                 new GenericWebhookHandler(
                     mockAuthHandler.Object,
                     new RequestBuilder(),
@@ -194,24 +194,19 @@ namespace CaptainHook.Tests.WebHooks
                 }
             };
 
-        private static EventHandlerConfig EventHandlerConfigWithSingleRoute => new EventHandlerConfig
+        private static WebhookConfig EventHandlerConfigWithSingleRoute => new WebhookConfig
         {
-            Name = "Event 1",
-            Type = "blahblah",
-            WebHookConfig = new WebhookConfig
+            HttpVerb = HttpVerb.Post,
+            Uri = "https://blah.blah.eshopworld.com",
+            AuthenticationConfig = new OidcAuthenticationConfig
             {
-                Name = "Webhook1",
-                HttpVerb = HttpVerb.Post,
-                Uri = "https://blah.blah.eshopworld.com",
-                AuthenticationConfig = new OidcAuthenticationConfig
-                {
-                    Type = AuthenticationType.OIDC,
-                    Uri = "https://blah-blah.sts.eshopworld.com",
-                    ClientId = "ClientId",
-                    ClientSecret = "ClientSecret",
-                    Scopes = new[] { "scope1", "scope2" }
-                },
-                WebhookRequestRules = new List<WebhookRequestRule>
+                Type = AuthenticationType.OIDC,
+                Uri = "https://blah-blah.sts.eshopworld.com",
+                ClientId = "ClientId",
+                ClientSecret = "ClientSecret",
+                Scopes = new[] { "scope1", "scope2" }
+            },
+            WebhookRequestRules = new List<WebhookRequestRule>
                 {
                     new WebhookRequestRule
                     {
@@ -237,11 +232,9 @@ namespace CaptainHook.Tests.WebHooks
                             Type = DataType.String
                         }
                     }
-                }
-            },
+                },
             CallbackConfig = new WebhookConfig
             {
-                Name = "PutOrderConfirmationEvent",
                 HttpVerb = HttpVerb.Put,
                 Uri = "https://callback.eshopworld.com",
                 AuthenticationConfig = new AuthenticationConfig
@@ -289,24 +282,19 @@ namespace CaptainHook.Tests.WebHooks
             }
         };
 
-        private static EventHandlerConfig EventHandlerConfigWithGoodMultiRoute => new EventHandlerConfig
+        private static WebhookConfig EventHandlerConfigWithGoodMultiRoute => new WebhookConfig
         {
-            Name = "Event 1",
-            Type = "blahblah",
-            WebHookConfig = new WebhookConfig
+            HttpVerb = HttpVerb.Post,
+            Uri = "https://blah.blah.eshopworld.com",
+            AuthenticationConfig = new OidcAuthenticationConfig
             {
-                Name = "Webhook1",
-                HttpVerb = HttpVerb.Post,
-                Uri = "https://blah.blah.eshopworld.com",
-                AuthenticationConfig = new OidcAuthenticationConfig
-                {
-                    Type = AuthenticationType.OIDC,
-                    Uri = "https://blah-blah.sts.eshopworld.com",
-                    ClientId = "ClientId",
-                    ClientSecret = "ClientSecret",
-                    Scopes = new[] { "scope1", "scope2" }
-                },
-                WebhookRequestRules = new List<WebhookRequestRule>
+                Type = AuthenticationType.OIDC,
+                Uri = "https://blah-blah.sts.eshopworld.com",
+                ClientId = "ClientId",
+                ClientSecret = "ClientSecret",
+                Scopes = new[] { "scope1", "scope2" }
+            },
+            WebhookRequestRules = new List<WebhookRequestRule>
                 {
                     new WebhookRequestRule
                     {
@@ -356,11 +344,10 @@ namespace CaptainHook.Tests.WebHooks
                             Type = DataType.Model
                         }
                     }
-                }
             },
             CallbackConfig = new WebhookConfig
             {
-                Name = "PutOrderConfirmationEvent",
+                Type = "PutOrderConfirmationEvent",
                 HttpVerb = HttpVerb.Post,
                 Uri = "https://callback.eshopworld.com",
                 AuthenticationConfig = new AuthenticationConfig
@@ -407,78 +394,73 @@ namespace CaptainHook.Tests.WebHooks
             }
         };
 
-        private static EventHandlerConfig EventHandlerConfigWithBadMultiRoute => new EventHandlerConfig
+        private static WebhookConfig EventHandlerConfigWithBadMultiRoute => new WebhookConfig
         {
-            Name = "Event 1",
-            Type = "blahblah",
-            WebHookConfig = new WebhookConfig
+            Type = "Webhook1",
+            HttpVerb = HttpVerb.Post,
+            Uri = "https://blah.blah.eshopworld.com",
+            AuthenticationConfig = new OidcAuthenticationConfig
             {
-                Name = "Webhook1",
-                HttpVerb = HttpVerb.Post,
-                Uri = "https://blah.blah.eshopworld.com",
-                AuthenticationConfig = new OidcAuthenticationConfig
+                Type = AuthenticationType.OIDC,
+                Uri = "https://blah-blah.sts.eshopworld.com",
+                ClientId = "ClientId",
+                ClientSecret = "ClientSecret",
+                Scopes = new[] { "scope1", "scope2" }
+            },
+            WebhookRequestRules = new List<WebhookRequestRule>
+            {
+                new WebhookRequestRule
                 {
-                    Type = AuthenticationType.OIDC,
-                    Uri = "https://blah-blah.sts.eshopworld.com",
-                    ClientId = "ClientId",
-                    ClientSecret = "ClientSecret",
-                    Scopes = new[] { "scope1", "scope2" }
-                },
-                WebhookRequestRules = new List<WebhookRequestRule>
-                {
-                    new WebhookRequestRule
+                    Source = new ParserLocation
                     {
-                        Source = new ParserLocation
-                        {
-                            Path = "OrderCode"
-                        },
-                        Destination = new ParserLocation
-                        {
-                            Location = Location.Uri
-                        }
+                        Path = "OrderCode"
                     },
-                    new WebhookRequestRule
+                    Destination = new ParserLocation
                     {
-                        Source = new ParserLocation
+                        Location = Location.Uri
+                    }
+                },
+                new WebhookRequestRule
+                {
+                    Source = new ParserLocation
+                    {
+                        Path = "BrandType"
+                    },
+                    Destination = new ParserLocation
+                    {
+                        RuleAction = RuleAction.Route
+                    },
+                    Routes = new List<WebhookConfigRoute>
+                    {
+                        new WebhookConfigRoute
                         {
-                            Path = "BrandType"
-                        },
-                        Destination = new ParserLocation
-                        {
-                            RuleAction = RuleAction.Route
-                        },
-                        Routes = new List<WebhookConfigRoute>
-                        {
-                            new WebhookConfigRoute
+                            Uri = "https://blah.blah.multiroute.eshopworld.com",
+                            HttpVerb = HttpVerb.Post,
+                            Selector = "Bad",
+                            AuthenticationConfig = new AuthenticationConfig
                             {
-                                Uri = "https://blah.blah.multiroute.eshopworld.com",
-                                HttpVerb = HttpVerb.Post,
-                                Selector = "Bad",
-                                AuthenticationConfig = new AuthenticationConfig
-                                {
-                                    Type = AuthenticationType.None
-                                }
+                                Type = AuthenticationType.None
                             }
                         }
-                    },
-                    new WebhookRequestRule
+                    }
+                },
+                new WebhookRequestRule
+                {
+                    Source = new ParserLocation
                     {
-                        Source = new ParserLocation
-                        {
-                            Path = "TransportModel",
-                            Type = DataType.Model
-                        },
-                        Destination = new ParserLocation
-                        {
-                            Path = "TransportModel",
-                            Type = DataType.Model
-                        }
+                        Path = "TransportModel",
+                        Type = DataType.Model
+                    },
+                    Destination = new ParserLocation
+                    {
+                        Path = "TransportModel",
+                        Type = DataType.Model
                     }
                 }
             },
             CallbackConfig = new WebhookConfig
             {
-                Name = "PutOrderConfirmationEvent",
+                Type = "PutOrderConfirmationEvent",
                 HttpVerb = HttpVerb.Post,
                 Uri = "https://callback.eshopworld.com",
                 AuthenticationConfig = new AuthenticationConfig

@@ -14,7 +14,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
     public class WebhookResponseHandler : GenericWebhookHandler
     {
         private readonly HttpClient _client;
-        private readonly EventHandlerConfig _eventHandlerConfig;
+        private readonly WebhookConfig _webhookConfig;
         private readonly IEventHandlerFactory _eventHandlerFactory;
 
         public WebhookResponseHandler(
@@ -23,12 +23,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
             IRequestBuilder requestBuilder,
             IBigBrother bigBrother,
             HttpClient client,
-            EventHandlerConfig eventHandlerConfig)
-            : base(acquireTokenHandler, requestBuilder, bigBrother, client, eventHandlerConfig.WebHookConfig)
+            WebhookConfig webhookConfig)
+            : base(acquireTokenHandler, requestBuilder, bigBrother, client, webhookConfig)
         {
             _eventHandlerFactory = eventHandlerFactory;
             _client = client;
-            _eventHandlerConfig = eventHandlerConfig;
+            _webhookConfig = webhookConfig;
         }
 
         public override async Task Call<TRequest>(TRequest request, IDictionary<string, object> metadata = null)
@@ -71,7 +71,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, content));
 
             //call callback
-            var eswHandler = _eventHandlerFactory.CreateWebhookHandler(_eventHandlerConfig.CallbackConfig.Name);
+            var eswHandler = _eventHandlerFactory.CreateWebhookHandler(_webhookConfig.CallbackConfig.Type);
 
             await eswHandler.Call(messageData, metadata);
         }
