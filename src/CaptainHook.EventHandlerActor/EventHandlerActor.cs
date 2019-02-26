@@ -65,21 +65,24 @@ namespace CaptainHook.EventHandlerActor
             }
         }
 
+        /// <summary>
+        /// On deactivating actor call and shutdown the actor.
+        /// </summary>
+        /// <returns></returns>
         protected override Task OnDeactivateAsync()
         {
             _bigBrother.Publish(new ActorDeactivatedEvent(this));
             return base.OnDeactivateAsync();
         }
 
+        /// <summary>
+        /// Here we're just adding the message to the actors work load and returning. We don't want to block the whole chain of actors
+        /// </summary>
+        /// <param name="messageData"></param>
+        /// <returns></returns>
         public async Task HandleMessage(MessageData messageData)
         {
             await StateManager.AddOrUpdateStateAsync(nameof(EventHandlerActor), messageData, (s, pair) => pair);
-
-            _handleTimer = RegisterTimer(
-                InternalHandle,
-                null,
-                TimeSpan.FromMilliseconds(100),
-                TimeSpan.MaxValue);
         }
 
         /// <remarks>
@@ -90,6 +93,11 @@ namespace CaptainHook.EventHandlerActor
             await Task.Yield();
         }
 
+        /// <summary>
+        /// The messages are actually processed in here and we need to allow the timer to calls this so that the call to this actor is decoupled from the calling of this actor downstream
+        /// </summary>
+        /// <param name="_"></param>
+        /// <returns></returns>
         private async Task InternalHandle(object _)
         {
             try
@@ -107,6 +115,8 @@ namespace CaptainHook.EventHandlerActor
                 await handler.Call(messageData.Value);
 
                 await StateManager.RemoveStateAsync(nameof(EventHandlerActor));
+
+                //todo clean up this so type is based on 
                 await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).CompleteWork(messageData.Value.Handle);
             }
             catch (Exception e)

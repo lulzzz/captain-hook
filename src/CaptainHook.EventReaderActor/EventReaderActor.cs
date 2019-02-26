@@ -80,14 +80,16 @@ namespace CaptainHook.EventReaderActor
                 _bigBrother.Publish(new ActorActivatedEvent(this));
 
                 await BuildInMemoryState();
-                await SetupServiceBus();
+                await SetupServiceBus();    
 
+                //todo refactor into reliable service
                 _poolTimer = new Timer(
                     ReadEvents,
                     null,
                     TimeSpan.FromMilliseconds(1000),
                     TimeSpan.FromMilliseconds(500));
 
+                //uses the actor name which is the the domain event type to subscribe to the correct topic
                 _receiver = new MessageReceiver(
                     _settings.ServiceBusConnectionString,
                     EntityNameHelper.FormatSubscriptionPath(TypeExtensions.GetEntityName(Id.GetStringId()), SubscriptionName),
@@ -217,6 +219,7 @@ namespace CaptainHook.EventReaderActor
         /// </remarks>>
         public async Task Run()
         {
+            //todo refactor out and put into a reliable service
             _wakeupReminder = await this.RegisterReminderAsync(
                 WakeUpReminderName,
                 null,

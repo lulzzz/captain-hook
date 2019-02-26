@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using System.Threading;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry;

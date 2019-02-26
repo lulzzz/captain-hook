@@ -1,7 +1,8 @@
-﻿namespace CaptainHook.Common
-{
-    using System;
+﻿using System;
+using CaptainHook.Common.Configuration;
 
+namespace CaptainHook.Common
+{
     public class MessageData
     {
         // ReSharper disable once UnusedMember.Local - Use by the data contract serializers
@@ -23,6 +24,11 @@
         public string Type { get; }
 
         public string EventHandlerActorId => $"{Type}-{HandlerId}";
+
+        /// <summary>
+        /// //todo trying something with the config to process the message is added to the message so any availabe handler and dispatcher can process it.
+        /// </summary>
+        public WebhookConfig WebhookConfig { get; set; }
     }
 
     public class MessageDataHandle
