@@ -1,7 +1,9 @@
-﻿namespace CaptainHook.EventHandlerActor.Handlers.Authentication
+﻿using CaptainHook.Common.Authentication;
+
+namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 {
     public interface IAuthHandlerFactory
     {
-        IAcquireTokenHandler Get(string name);
+        IAcquireTokenHandler Get(AuthenticationConfig authenticationConfig);
     }
 }

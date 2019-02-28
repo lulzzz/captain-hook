@@ -111,7 +111,7 @@ namespace CaptainHook.EventHandlerActor
                     return;
                 }
 
-                var handler = _eventHandlerFactory.CreateWebhookWithCallbackHandler(messageData.Value.Type);
+                var handler = _eventHandlerFactory.CreateWebhookWithCallbackHandler(messageData.Value.Type, );
                 await handler.Call(messageData.Value);
 
                 await StateManager.RemoveStateAsync(nameof(EventHandlerActor));

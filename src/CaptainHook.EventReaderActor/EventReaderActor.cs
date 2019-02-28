@@ -235,7 +235,7 @@ namespace CaptainHook.EventReaderActor
 
         public async Task FailMessage(Guid handle)
         {
-            // TODO: do stuff
+            // TODO: do stuff but do nothing for now, the service bus will move the msg to deadletter
 
             await RemoveHandle(handle);
         }

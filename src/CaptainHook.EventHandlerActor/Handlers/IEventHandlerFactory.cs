@@ -1,19 +1,22 @@
-﻿namespace CaptainHook.EventHandlerActor.Handlers
+﻿using CaptainHook.Common.Configuration;
+
+namespace CaptainHook.EventHandlerActor.Handlers
 {
     public interface IEventHandlerFactory
     {
         /// <summary>
         /// Create the custom handler such that we get a mapping from the webhook to the handler selected
         /// </summary>
-        /// <param name="fullEventName"></param>
+        /// <param name="eventType"></param>
+        /// <param name="webhookConfig"></param>
         /// <returns></returns>
-        IHandler CreateWebhookWithCallbackHandler(string fullEventName);
+        IHandler CreateWebhookWithCallbackHandler(string eventType, WebhookConfig webhookConfig);
 
         /// <summary>
         /// Used only for getting the callback handler
         /// </summary>
-        /// <param name="webHookName"></param>
+        /// <param name="webhookConfig"></param>
         /// <returns></returns>
-        IHandler CreateWebhookHandler(string webHookName);
+        IHandler CreateWebhookHandler(WebhookConfig webhookConfig);
     }
 }

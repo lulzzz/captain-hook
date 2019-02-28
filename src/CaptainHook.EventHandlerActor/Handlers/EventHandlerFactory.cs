@@ -11,35 +11,32 @@ namespace CaptainHook.EventHandlerActor.Handlers
     {
         private readonly IIndex<string, HttpClient> _httpClients;
         private readonly IBigBrother _bigBrother;
-        private readonly IIndex<string, WebhookConfig> _webHookConfig;
         private readonly IAuthHandlerFactory _authHandlerFactory;
 
         public EventHandlerFactory(
             IIndex<string, HttpClient> httpClients,
             IBigBrother bigBrother,
-            IIndex<string, WebhookConfig> webHookConfig,
             IAuthHandlerFactory authHandlerFactory)
         {
             _httpClients = httpClients;
             _bigBrother = bigBrother;
             _authHandlerFactory = authHandlerFactory;
-            _webHookConfig = webHookConfig;
         }
 
-        /// <inheritdoc />
         /// <summary>
         /// Create the custom handler such that we get a mapping from the webhook to the handler selected
         /// </summary>
         /// <param name="eventType"></param>
+        /// <param name="webhookConfig"></param>
         /// <returns></returns>
-        public IHandler CreateWebhookWithCallbackHandler(string eventType)
+        public IHandler CreateWebhookWithCallbackHandler(string eventType, WebhookConfig webhookConfig)
         {
-            if (!_webHookConfig.TryGetValue(eventType.ToLower(), out var webhookConfig))
+            if (webhookConfig == null)
             {
-                throw new Exception("Boom, handler eventType not found cannot process the message");
+                throw new ArgumentNullException(nameof(webhookConfig), "Cannot be null");
             }
 
-            var authHandler = _authHandlerFactory.Get($"{eventType}-webhook");
+            var authHandler = _authHandlerFactory.Get(webhookConfig.AuthenticationConfig);
             if (webhookConfig.CallBackEnabled)
             {
                 return new WebhookResponseHandler(
@@ -63,22 +60,22 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// Creates a single fire and forget webhook handler
         /// Need this here for now to select the handler for the callback
         /// </summary>
-        /// <param name="webHookName"></param>
+        /// <param name="webhookConfig"></param>
         /// <returns></returns>
-        public IHandler CreateWebhookHandler(string webHookName)
+        public IHandler CreateWebhookHandler(WebhookConfig webhookConfig)
         {
-            if (!_webHookConfig.TryGetValue(webHookName.ToLower(), out var webhookConfig))
+            if (webhookConfig == null)
             {
-                throw new Exception("Boom, handler webhook not found cannot process the message");
+                throw new ArgumentNullException(nameof(webhookConfig), "Cannot be null");
             }
 
-            var authHandler = _authHandlerFactory.Get(webHookName);
+            var authHandler = _authHandlerFactory.Get(webhookConfig.AuthenticationConfig);
 
             return new GenericWebhookHandler(
                 authHandler,
                 new RequestBuilder(),
                 _bigBrother,
-                _httpClients[webHookName.ToLower()],
+                _httpClients[webhookConfig.Type.ToLower()],
                 webhookConfig);
         }
     }
