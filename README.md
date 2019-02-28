@@ -29,7 +29,7 @@ Per authorisation for internal services, OAuth2 scopes are used to control acces
 
 ## Things to note
 
-1. Integrations tests should be asserted on Azure Data Explorer Events rather than flows in which require a synchronous response from report endpoints. Given the async flow, the data will arrive eventually but perhaps not as quickly as an integration test might need.
+1. Integrations tests should be asserted on Azure Data Explorer Events rather than flows in which require a synchronous response from remote endpoints. Given the async flow, the data will arrive eventually but perhaps not as quickly as an integration test might need. Data will populate in the Kusto Cluster within a number of seconds after the event is fired, integration tests should assert on this. Assert retries with Polly.Net should be implemented to insure that insertions assert on data that has been delivered to the Kusto Cluster.
 
 1. We ensure that message processing are guaranteed. This is important to note that this guarantee exists only after the message has been published to the topic. As such when you "Publish" to the topic this is a synchronous call in BigBrother such that if an exception is thrown while trying to connect to the ServiceBus Topic we will rethrow that exception back up to the caller. Here you will need to handle this, with perhaps, a retry mechanim but at least logging it to Application Insights.
 
