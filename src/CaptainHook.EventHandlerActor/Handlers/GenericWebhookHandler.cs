@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common;
@@ -61,14 +62,14 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 var uri = RequestBuilder.BuildUri(WebhookConfig, messageData.Payload);
                 var payload = this.RequestBuilder.BuildPayload(this.WebhookConfig, messageData.Payload, metadata);
 
-                void TelemetryEvent(string msg)
+                void TelemetryEvent(HttpStatusCode httpStatusCode, string msg)
                 {
-                    BigBrother.Publish(new HttpClientFailure(messageData.Handle, messageData.Type, payload, msg));
+                    BigBrother.Publish(new HttpClientFailure(messageData.Handle, messageData.Type, payload, httpStatusCode, msg));
                 }
 
                 var response = await _client.ExecuteAsJsonReliably(WebhookConfig.HttpVerb, uri, payload, TelemetryEvent);
                 
-                BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, $"Response status code {response.StatusCode}"));
+                BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, string.Empty, response.StatusCode, string.Empty));
             }
             catch (Exception e)
             {

@@ -1,21 +1,18 @@
 ﻿using System;
+using System.Net;
 using Eshopworld.Core;
 
 namespace CaptainHook.Common.Telemetry
 {
     public class WebhookEvent : TelemetryEvent
     {
-        public WebhookEvent(string payload, string state = "failure")
-        {
-            Payload = payload;
-            State = state;
-        }
-
-        public WebhookEvent(Guid handle, string type, string payload, string state = "success")
+        public WebhookEvent(Guid handle, string type, string payload, HttpStatusCode httpStatusCode, string message = null)
         {
             Handle = handle;
             Payload = payload;
             Type = type;
+            HttpStatusCode = httpStatusCode;
+            Message = message;
         }
 
         public Guid Handle { get; set; }
@@ -24,7 +21,10 @@ namespace CaptainHook.Common.Telemetry
 
         public string Payload { get; set; }
 
-        public string State { get; set; }
+        public HttpStatusCode HttpStatusCode { get; set; }
+
+        public string Message { get; set; }
+
     }
 
     public class WebHookCreatedEvent : TelemetryEvent

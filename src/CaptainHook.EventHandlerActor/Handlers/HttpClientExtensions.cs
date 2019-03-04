@@ -30,7 +30,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             HttpVerb httpVerb,
             string uri,
             string payload,
-            Action<string> telemetryRequest,
+            Action<HttpStatusCode, string> telemetryRequest,
             string contentType = "application/json",
             CancellationToken token = default)
         {
@@ -67,7 +67,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         this HttpClient client,
         string uri,
         string payload,
-        Action<string> telemetryRequest,
+        Action<HttpStatusCode, string> telemetryRequest,
         string contentType = "application/json",
         CancellationToken token = default)
         {
@@ -90,7 +90,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             this HttpClient client,
             string uri,
             string payload,
-            Action<string> telemetryRequest,
+            Action<HttpStatusCode, string> telemetryRequest,
             string contentType = "application/json",
             CancellationToken token = default)
         {
@@ -113,7 +113,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             this HttpClient client,
             string uri,
             string payload,
-            Action<string> telemetryRequest,
+            Action<HttpStatusCode, string> telemetryRequest,
             string contentType = "application/json",
             CancellationToken token = default)
         {
@@ -134,7 +134,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         public static async Task<HttpResponseMessage> GetAsJsonReliably(
             this HttpClient client,
             string uri,
-            Action<string> telemetryRequest,
+            Action<HttpStatusCode, string> telemetryRequest,
             string contentType = "application/json",
             CancellationToken token = default)
         {
@@ -151,7 +151,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <returns></returns>
         private static async Task<HttpResponseMessage> RetryRequest(
             Func<Task<HttpResponseMessage>> makeTheCall,
-            Action<string> report)
+            Action<HttpStatusCode, string> report)
         {
             var response = await Policy.HandleResult<HttpResponseMessage>(
                     message =>
@@ -165,7 +165,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
                 }, (result, timeSpan, retryCount, context) =>
                 {
-                    report($"retry count {retryCount} of {context.Count}");
+                    report(result.Result.StatusCode, $"retry count {retryCount} of {context.Count}");
+
                 }).ExecuteAsync(makeTheCall.Invoke);
 
             return response;

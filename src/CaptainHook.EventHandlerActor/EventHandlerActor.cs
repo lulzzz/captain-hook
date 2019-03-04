@@ -107,7 +107,7 @@ namespace CaptainHook.EventHandlerActor
                 var messageData = await StateManager.TryGetStateAsync<MessageData>(nameof(EventHandlerActor));
                 if (!messageData.HasValue)
                 {
-                    _bigBrother.Publish(new WebhookEvent("message was empty"));
+                    _bigBrother.Publish(new Exception("message was empty"));
                     return;
                 }
 

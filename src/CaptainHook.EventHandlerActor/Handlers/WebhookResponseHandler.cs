@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common;
@@ -46,14 +47,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
             var uri = RequestBuilder.BuildUri(WebhookConfig, messageData.Payload);
             var payload = RequestBuilder.BuildPayload(WebhookConfig, messageData.Payload, metadata);
 
-            void TelemetryEvent(string msg)
+            void TelemetryEvent(HttpStatusCode httpStatusCode, string msg)
             {
-                BigBrother.Publish(new HttpClientFailure(messageData.Handle, messageData.Type, messageData.Payload, msg));
+                BigBrother.Publish(new HttpClientFailure(messageData.Handle, messageData.Type, messageData.Payload, httpStatusCode, msg));
             }
 
             var response = await _client.ExecuteAsJsonReliably(WebhookConfig.HttpVerb, uri, payload, TelemetryEvent);
-
-            BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.IsSuccessStatusCode.ToString()));
 
             if (metadata == null)
             {
@@ -68,7 +67,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             metadata.Add("HttpStatusCode", (int)response.StatusCode);
             metadata.Add("HttpResponseContent", content);
 
-            BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, content));
+            BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.StatusCode, content));
 
             //call callback
             var eswHandler = _eventHandlerFactory.CreateWebhookHandler(_webhookConfig.CallbackConfig.Type);
