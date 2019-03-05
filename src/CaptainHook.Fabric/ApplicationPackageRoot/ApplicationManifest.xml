@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ApplicationManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ApplicationTypeName="CaptainHookV0Type" ApplicationTypeVersion="1.0.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
   <Parameters>
+    <Parameter Name="CaptainHook.EventReader_MinReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="CaptainHook.EventReader_PartitionCount" DefaultValue="1" />
+    <Parameter Name="CaptainHook.EventReader_TargetReplicaSetSize" DefaultValue="3" />
     <Parameter Name="KeyVault_Base_Uri" DefaultValue="N/A" />
     <Parameter Name="AspNetCore_Environment" DefaultValue="N/A" />
 
@@ -25,6 +28,10 @@
   <!-- Import the ServiceManifest from the ServicePackage. The ServiceManifestName and ServiceManifestVersion 
        should match the Name and Version attributes of the ServiceManifest element defined in the 
        ServiceManifest.xml file. -->
+  <ServiceManifestImport>
+    <ServiceManifestRef ServiceManifestName="CaptainHook.EventReaderPkg" ServiceManifestVersion="1.0.0" />
+    <ConfigOverrides />
+  </ServiceManifestImport>
   <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="CaptainHook.WatchdogActorPkg" ServiceManifestVersion="1.0.0" />
   </ServiceManifestImport>
@@ -76,6 +83,11 @@
     </EnvironmentOverrides>
   </ServiceManifestImport>
   <DefaultServices>
+    <Service Name="CaptainHook.EventReader" ServicePackageActivationMode="ExclusiveProcess">
+      <StatefulService ServiceTypeName="CaptainHook.EventReaderType" TargetReplicaSetSize="[CaptainHook.EventReader_TargetReplicaSetSize]" MinReplicaSetSize="[CaptainHook.EventReader_MinReplicaSetSize]">
+        <UniformInt64Partition PartitionCount="[CaptainHook.EventReader_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
+      </StatefulService>
+    </Service>
     <Service Name="CaptainHook.Api" ServicePackageActivationMode="ExclusiveProcess">
       <StatelessService ServiceTypeName="CaptainHook.ApiType" InstanceCount="[CaptainHook.Api_InstanceCount]">
         <SingletonPartition />

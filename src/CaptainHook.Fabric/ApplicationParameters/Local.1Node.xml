@@ -4,6 +4,9 @@
     <Parameter Name="KeyVault_Base_Uri" Value="https://esw-tooling-ci-we.vault.azure.net/" />
     <Parameter Name="AspNetCore_Environment" Value="CI" />
 
+    <Parameter Name="CaptainHook.EventReader_PartitionCount" Value="1" />
+    <Parameter Name="CaptainHook.EventReader_MinReplicaSetSize" Value="1" />
+    <Parameter Name="CaptainHook.EventReader_TargetReplicaSetSize" Value="1" />
     <Parameter Name="MessagingDirectorActorService_PartitionCount" Value="1" />
     <Parameter Name="MessagingDirectorActorService_TargetReplicaSetSize" Value="1" />
     <Parameter Name="MessagingDirectorActorService_MinReplicaSetSize" Value="1" />
