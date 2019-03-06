@@ -4,6 +4,12 @@ using System.Fabric;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Azure.Management.Fluent;
+using Microsoft.Azure.Management.ResourceManager.Fluent;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+using Microsoft.Azure.Services.AppAuthentication;
+using Microsoft.Rest;
 using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
@@ -15,6 +21,15 @@ namespace CaptainHook.EventReader
     /// </summary>
     internal sealed class EventReader : StatefulService
     {
+
+        private string _serviceBusNamespace;
+
+        private string _serviceBusSubscriptionId;
+
+        private string _serviceBusTopicName;
+
+        private const string SubscriptionName = "captain-hook";
+
         public EventReader(StatefulServiceContext context)
             : base(context)
         { }
@@ -63,6 +78,31 @@ namespace CaptainHook.EventReader
 
                 await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
             }
+        }
+
+        private async Task Startup()
+        {
+            var token = new AzureServiceTokenProvider().GetAccessTokenAsync("https://management.core.windows.net/", string.Empty).Result;
+            var tokenCredentials = new TokenCredentials(token);
+
+            var client = RestClient.Configure()
+                .WithEnvironment(AzureEnvironment.AzureGlobalCloud)
+                .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
+                .WithCredentials(new AzureCredentials(tokenCredentials, tokenCredentials, string.Empty, AzureEnvironment.AzureGlobalCloud))
+                .Build();
+
+            var sbNamespace = Azure.Authenticate(client, string.Empty)
+                .WithSubscription(_serviceBusSubscriptionId)
+                .ServiceBusNamespaces.List()
+                .SingleOrDefault(n => n.Name == _serviceBusNamespace);
+
+            if (sbNamespace == null)
+            {
+                throw new InvalidOperationException($"Couldn't find the service bus namespace {_serviceBusNamespace} in the subscription with ID {_serviceBusSubscriptionId}");
+            }
+
+            var azureTopic = await sbNamespace.CreateTopicIfNotExists(_serviceBusTopicName);
+            await azureTopic.CreateSubscriptionIfNotExists(SubscriptionName);
         }
     }
 }

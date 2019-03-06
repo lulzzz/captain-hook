@@ -9,7 +9,7 @@ using Microsoft.ServiceFabric.Services.Runtime;
 
 namespace CaptainHook.EventReader
 {
-    [EventSource(Name = "MyCompany-CaptainHook.Fabric-CaptainHook.EventReader")]
+    [EventSource(Name = "CaptainHook.EventReader")]
     internal sealed class ServiceEventSource : EventSource
     {
         public static readonly ServiceEventSource Current = new ServiceEventSource();
