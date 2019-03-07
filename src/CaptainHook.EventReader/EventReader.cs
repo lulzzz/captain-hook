@@ -12,23 +12,33 @@ using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Rest;
 using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
+using Microsoft.ServiceFabric.Services.Remoting;
 using Microsoft.ServiceFabric.Services.Runtime;
 
 namespace CaptainHook.EventReader
 {
+    public class TopicConfig
+    {
+        public string ServiceBusNamespace;
+
+        public string ServiceBusSubscriptionId;
+
+        public string ServiceBusTopicName;
+
+        public string SubscriptionName = "captain-hook";
+    }
+
+    public interface IEventReader : IService
+    {
+        void Configure(TopicConfig topicConfig);
+    }
+
     /// <summary>
     /// An instance of this class is created for each service replica by the Service Fabric runtime.
     /// </summary>
-    internal sealed class EventReader : StatefulService
+    internal sealed class EventReader : StatefulService, IEventReader
     {
-
-        private string _serviceBusNamespace;
-
-        private string _serviceBusSubscriptionId;
-
-        private string _serviceBusTopicName;
-
-        private const string SubscriptionName = "captain-hook";
+        private TopicConfig _config;
 
         public EventReader(StatefulServiceContext context)
             : base(context)
@@ -53,9 +63,8 @@ namespace CaptainHook.EventReader
         /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service replica.</param>
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
-            // TODO: Replace the following sample code with your own logic 
-            //       or remove this RunAsync override if it's not needed in your service.
-
+            await Startup(_config);
+            
             var myDictionary = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, long>>("myDictionary");
 
             while (true)
@@ -78,9 +87,10 @@ namespace CaptainHook.EventReader
 
                 await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
             }
+            // ReSharper disable once FunctionNeverReturns
         }
 
-        private async Task Startup()
+        private static async Task Startup(TopicConfig config)
         {
             var token = new AzureServiceTokenProvider().GetAccessTokenAsync("https://management.core.windows.net/", string.Empty).Result;
             var tokenCredentials = new TokenCredentials(token);
@@ -92,17 +102,47 @@ namespace CaptainHook.EventReader
                 .Build();
 
             var sbNamespace = Azure.Authenticate(client, string.Empty)
-                .WithSubscription(_serviceBusSubscriptionId)
+                .WithSubscription(config.ServiceBusSubscriptionId)
                 .ServiceBusNamespaces.List()
-                .SingleOrDefault(n => n.Name == _serviceBusNamespace);
+                .SingleOrDefault(n => n.Name == config.ServiceBusNamespace);
 
             if (sbNamespace == null)
             {
-                throw new InvalidOperationException($"Couldn't find the service bus namespace {_serviceBusNamespace} in the subscription with ID {_serviceBusSubscriptionId}");
+                throw new InvalidOperationException($"Couldn't find the service bus namespace {config.ServiceBusNamespace} in the subscription with ID {config.ServiceBusSubscriptionId}");
             }
 
-            var azureTopic = await sbNamespace.CreateTopicIfNotExists(_serviceBusTopicName);
-            await azureTopic.CreateSubscriptionIfNotExists(SubscriptionName);
+            var azureTopic = await sbNamespace.CreateTopicIfNotExists(config.ServiceBusTopicName);
+            await azureTopic.CreateSubscriptionIfNotExists(config.SubscriptionName);
+        }
+
+        public void Configure(TopicConfig topicConfig)
+        {
+            if (topicConfig == null)
+            {
+                throw new ArgumentNullException(nameof(topicConfig));
+            }
+
+            if (string.IsNullOrWhiteSpace(topicConfig.ServiceBusSubscriptionId))
+            {
+                throw new ArgumentNullException(nameof(topicConfig.ServiceBusSubscriptionId));
+            }
+
+            if (string.IsNullOrWhiteSpace(topicConfig.ServiceBusNamespace))
+            {
+                throw new ArgumentNullException(nameof(topicConfig.ServiceBusNamespace));
+            }
+
+            if (string.IsNullOrWhiteSpace(topicConfig.ServiceBusTopicName))
+            {
+                throw new ArgumentNullException(nameof(topicConfig.ServiceBusTopicName));
+            }
+
+            if (string.IsNullOrWhiteSpace(topicConfig.SubscriptionName))
+            {
+                throw new ArgumentNullException(nameof(topicConfig.SubscriptionName));
+            }
+
+            _config = topicConfig;
         }
     }
 }
