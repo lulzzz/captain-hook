@@ -20,8 +20,4 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\CaptainHook.EventReaderActor\CaptainHook.EventReaderActor.csproj" />
-  </ItemGroup>
-
 </Project>

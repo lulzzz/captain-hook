@@ -6,13 +6,14 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
-using CaptainHook.Common.Telemetry;
 using CaptainHook.Common.Telemetry.Services;
+using CaptainHook.Interfaces;
 using Eshopworld.Core;
 using Microsoft.Azure.Management.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+using Microsoft.Azure.Management.Storage.Fluent.Models;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Azure.Services.AppAuthentication;
@@ -20,6 +21,7 @@ using Microsoft.Rest;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Client;
 using Microsoft.ServiceFabric.Data;
+using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting;
 using Microsoft.ServiceFabric.Services.Runtime;
@@ -29,6 +31,8 @@ namespace CaptainHook.EventReader
     public interface IEventReader : IService
     {
         void Configure(TopicConfig topicConfig);
+
+        Task CompleteMessage(Guid handle)
     }
 
     /// <summary>
@@ -43,6 +47,12 @@ namespace CaptainHook.EventReader
         private readonly Dictionary<Guid, string> _lockTokens = new Dictionary<Guid, string>();
         private readonly Dictionary<Guid, int> _inFlightMessages = new Dictionary<Guid, int>();
         private HashSet<int> _freeHandlers = new HashSet<int>();
+
+#if DEBUG
+        private int _handlerCount = 1;
+#else
+        private int _handlerCount = 10;
+#endif
 
         public EventReader(StatefulServiceContext context, IBigBrother bigBrother)
             : base(context)
@@ -113,41 +123,25 @@ namespace CaptainHook.EventReader
 
             await BuildInMemoryState();
             await SetupServiceBus();
-            
+
             while (!cancellationToken.IsCancellationRequested)
             {
-
-
-                using (var tx = this.StateManager.CreateTransaction())
-                {
-                    var result = await myDictionary.TryGetValueAsync(tx, "Counter");
-
-                    ServiceEventSource.Current.ServiceMessage(this.Context, "Current Counter Value: {0}",
-                        result.HasValue ? result.Value.ToString() : "Value does not exist.");
-
-                    await myDictionary.AddOrUpdateAsync(tx, "Counter", 0, (key, value) => ++value);
-
-                    // If an exception is thrown before calling CommitAsync, the transaction aborts, all changes are 
-                    // discarded, and nothing is saved to the secondary replicas.
-                    await tx.CommitAsync();
-                }
+                await ReadEvents(cancellationToken);
 
                 await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
             }
-
-            _bigBrother.Publish(new StatefulServiceDeactivatedEvent(this));
         }
-        
+
+        protected override Task OnCloseAsync(CancellationToken cancellationToken)
+        {
+            _bigBrother.Publish(new StatefulServiceDeactivatedEvent(this));
+
+            return base.OnCloseAsync(cancellationToken);
+        }
+
         public async Task CompleteMessage(Guid handle)
         {
             await _receiver.CompleteAsync(_lockTokens[handle]);
-            await RemoveHandle(handle);
-        }
-
-        public async Task FailMessage(Guid handle)
-        {
-            // TODO: do stuff but do nothing for now, the service bus will move the msg to deadletter
-
             await RemoveHandle(handle);
         }
 
@@ -156,7 +150,13 @@ namespace CaptainHook.EventReader
             _lockTokens.Remove(handle);
             _inFlightMessages.Remove(handle);
 
-            await StateManager.RemoveStateAsync(handle.ToString());
+            using (var tx = StateManager.CreateTransaction())
+            {
+                await StateManager.RemoveAsync(tx, handle.ToString());
+                await tx.CommitAsync();
+            }
+
+            //todo message deleted event
         }
 
 
@@ -171,8 +171,8 @@ namespace CaptainHook.EventReader
             }
 
             var maxUsedHandlers = _inFlightMessages.Values.OrderByDescending(i => i).FirstOrDefault();
-            if (maxUsedHandlers > HandlerCount) HandlerCount = maxUsedHandlers;
-            _freeHandlers = Enumerable.Range(1, HandlerCount).Except(_inFlightMessages.Values).ToHashSet();
+            if (maxUsedHandlers > _handlerCount) _handlerCount = maxUsedHandlers;
+            _freeHandlers = Enumerable.Range(1, _handlerCount).Except(_inFlightMessages.Values).ToHashSet();
         }
 
         private async Task SetupServiceBus()
@@ -207,24 +207,21 @@ namespace CaptainHook.EventReader
                 _topicConfig.BatchSize);
         }
 
-        public async Task ReadEvents()
+        public async Task ReadEvents(CancellationToken cancellationToken)
         {
             if (_receiver.IsClosedOrClosing) return;
 
-            var messages = _receiver.ReceiveAsync(_topicConfig.BatchSize, TimeSpan.FromMilliseconds(50)).Result;
-            if (messages == null)
-            {
-                return;
-            }
+            var messages = await _receiver.ReceiveAsync(_topicConfig.BatchSize, TimeSpan.FromMilliseconds(50));
+            if (messages == null) return;
 
             foreach (var message in messages)
             {
-                var messageData = new MessageData(Encoding.UTF8.GetString(message.Body), Id.GetStringId());
+                var messageData = new MessageData(Encoding.UTF8.GetString(message.Body), type);
 
                 var handlerId = _freeHandlers.FirstOrDefault();
                 if (handlerId == 0)
                 {
-                    handlerId = ++HandlerCount;
+                    handlerId = ++_handlerCount;
                 }
                 else
                 {
@@ -242,11 +239,15 @@ namespace CaptainHook.EventReader
                     LockToken = message.SystemProperties.LockToken
                 };
 
-                StateManager.AddStateAsync(handleData.Handle.ToString(), handleData).Wait();
-                ActorProxy.Create<IEventHandlerActor>(new ActorId(messageData.EventHandlerActorId)).HandleMessage(messageData).Wait();
-            }
+                var data = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, MessageDataHandle>>("handles");
+                using (var tx = StateManager.CreateTransaction())
+                {
+                    await data.AddAsync(tx, messageData.Handle, handleData, TimeSpan.FromSeconds(30), cancellationToken);
+                    await tx.CommitAsync();
+                }
 
-            _readingEvents = false;
+                await ActorProxy.Create<IEventHandlerActor>(new ActorId(messageData.EventHandlerActorId)).HandleMessage(messageData);
+            }
         }
     }
 
