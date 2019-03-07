@@ -2,6 +2,7 @@
 using System.Threading;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry;
+using CaptainHook.Common.Telemetry.Actor;
 using Eshopworld.Core;
 
 namespace CaptainHook.MessagingDirector

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -10,8 +10,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Eshopworld.Core" Version="2.0.5" />
+    <PackageReference Include="Microsoft.Azure.Management.Fluent" Version="1.19.0" />
     <PackageReference Include="Microsoft.Azure.Management.ServiceBus.Fluent" Version="1.20.0" />
+    <PackageReference Include="Microsoft.Azure.ServiceBus" Version="3.3.0" />
+    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.2.0-preview" />
+    <PackageReference Include="Microsoft.ServiceFabric" Version="6.4.638" />
     <PackageReference Include="Microsoft.ServiceFabric.Services" Version="3.3.638" />
+    <PackageReference Include="Microsoft.ServiceFabric.Services.Remoting" Version="3.3.638" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CaptainHook.Common\CaptainHook.Common.csproj" />
   </ItemGroup>
 
 </Project>

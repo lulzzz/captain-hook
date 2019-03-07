@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry;
+using CaptainHook.Common.Telemetry.Actor;
 using CaptainHook.Interfaces;
 using Eshopworld.Core;
 using Microsoft.Azure.Management.Fluent;
@@ -44,14 +45,7 @@ namespace CaptainHook.EventReaderActor
         private readonly object _gate = new object();
 
         private volatile bool _readingEvents;
-        private Timer _poolTimer;
-        private MessageReceiver _receiver;
-        private IActorReminder _wakeupReminder;
-        private const string WakeUpReminderName = "Wake up";
 
-        internal readonly Dictionary<Guid, string> LockTokens = new Dictionary<Guid, string>();
-        internal readonly Dictionary<Guid, int> InFlightMessages = new Dictionary<Guid, int>();
-        internal HashSet<int> FreeHandlers = new HashSet<int>();
 
 #if DEBUG
         internal int HandlerCount = 1;
@@ -79,23 +73,6 @@ namespace CaptainHook.EventReaderActor
             {
                 _bigBrother.Publish(new ActorActivatedEvent(this));
 
-                await BuildInMemoryState();
-                await SetupServiceBus();    
-
-                //todo refactor into reliable service
-                _poolTimer = new Timer(
-                    ReadEvents,
-                    null,
-                    TimeSpan.FromMilliseconds(1000),
-                    TimeSpan.FromMilliseconds(500));
-
-                //uses the actor name which is the the domain event type to subscribe to the correct topic
-                _receiver = new MessageReceiver(
-                    _settings.ServiceBusConnectionString,
-                    EntityNameHelper.FormatSubscriptionPath(TypeExtensions.GetEntityName(Id.GetStringId()), SubscriptionName),
-                    ReceiveMode.PeekLock,
-                    new RetryExponential(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), 3),
-                    BatchSize);
             }
             catch (Exception e)
             {
@@ -140,79 +117,7 @@ namespace CaptainHook.EventReaderActor
             await azureTopic.CreateSubscriptionIfNotExists(SubscriptionName);
         }
 
-        public Task ReceiveReminderAsync(string reminderName, byte[] state, TimeSpan dueTime, TimeSpan period)
-        {
-            if (reminderName.Equals(WakeUpReminderName, StringComparison.OrdinalIgnoreCase))
-            {
-                ReadEvents(null);
-            }
 
-            return Task.CompletedTask;
-        }
-
-        internal async Task BuildInMemoryState()
-        {
-            var stateNames = await StateManager.GetStateNamesAsync();
-            foreach (var state in stateNames)
-            {
-                var handleData = await StateManager.GetStateAsync<MessageDataHandle>(state);
-                LockTokens.Add(handleData.Handle, handleData.LockToken);
-                InFlightMessages.Add(handleData.Handle, handleData.HandlerId);
-            }
-
-            var maxUsedHandlers = InFlightMessages.Values.OrderByDescending(i => i).FirstOrDefault();
-            if (maxUsedHandlers > HandlerCount) HandlerCount = maxUsedHandlers;
-            FreeHandlers = Enumerable.Range(1, HandlerCount).Except(InFlightMessages.Values).ToHashSet();
-        }
-
-        internal void ReadEvents(object _)
-        {
-            lock (_gate)
-            {
-                if (_readingEvents) return;
-                _readingEvents = true;
-            }
-
-            if (_receiver.IsClosedOrClosing) return;
-
-            var messages = _receiver.ReceiveAsync(BatchSize, TimeSpan.FromMilliseconds(50)).Result;
-            if (messages == null)
-            {
-                _readingEvents = false;
-                return;
-            }
-
-            foreach (var message in messages)
-            {
-                var messageData = new MessageData(Encoding.UTF8.GetString(message.Body), Id.GetStringId());
-
-                var handlerId = FreeHandlers.FirstOrDefault();
-                if (handlerId == 0)
-                {
-                    handlerId = ++HandlerCount;
-                }
-                else
-                {
-                    FreeHandlers.Remove(handlerId);
-                }
-
-                messageData.HandlerId = handlerId;
-                InFlightMessages.Add(messageData.Handle, handlerId);
-                LockTokens.Add(messageData.Handle, message.SystemProperties.LockToken);
-
-                var handleData = new MessageDataHandle
-                {
-                    Handle = messageData.Handle,
-                    HandlerId = handlerId,
-                    LockToken = message.SystemProperties.LockToken
-                };
-
-                StateManager.AddStateAsync(handleData.Handle.ToString(), handleData).Wait();
-                ActorProxy.Create<IEventHandlerActor>(new ActorId(messageData.EventHandlerActorId)).HandleMessage(messageData).Wait();
-            }
-
-            _readingEvents = false;
-        }
 
         /// <remarks>
         /// Do nothing by design. We just need to make sure that the actor is properly activated.
