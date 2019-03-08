@@ -13,7 +13,6 @@ using Microsoft.Azure.Management.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-using Microsoft.Azure.Management.Storage.Fluent.Models;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Azure.Services.AppAuthentication;
@@ -32,7 +31,7 @@ namespace CaptainHook.EventReader
     {
         void Configure(TopicConfig topicConfig);
 
-        Task CompleteMessage(Guid handle)
+        Task CompleteMessage(Guid handle);
     }
 
     /// <summary>
@@ -121,7 +120,7 @@ namespace CaptainHook.EventReader
                 throw new ArgumentNullException(nameof(TopicConfig), "Topic Config not initialized");
             }
 
-            await BuildInMemoryState();
+            //await BuildInMemoryState();
             await SetupServiceBus();
 
             while (!cancellationToken.IsCancellationRequested)
@@ -160,20 +159,20 @@ namespace CaptainHook.EventReader
         }
 
 
-        internal async Task BuildInMemoryState()
-        {
-            var stateNames = await StateManager.GetStateNamesAsync();
-            foreach (var state in stateNames)
-            {
-                var handleData = await StateManager.GetStateAsync<MessageDataHandle>(state);
-                _lockTokens.Add(handleData.Handle, handleData.LockToken);
-                _inFlightMessages.Add(handleData.Handle, handleData.HandlerId);
-            }
+        //internal async Task BuildInMemoryState()
+        //{
+        //    var stateNames = await StateManager.GetStateNamesAsync();
+        //    foreach (var state in stateNames)
+        //    {
+        //        var handleData = await StateManager.GetStateAsync<MessageDataHandle>(state);
+        //        _lockTokens.Add(handleData.Handle, handleData.LockToken);
+        //        _inFlightMessages.Add(handleData.Handle, handleData.HandlerId);
+        //    }
 
-            var maxUsedHandlers = _inFlightMessages.Values.OrderByDescending(i => i).FirstOrDefault();
-            if (maxUsedHandlers > _handlerCount) _handlerCount = maxUsedHandlers;
-            _freeHandlers = Enumerable.Range(1, _handlerCount).Except(_inFlightMessages.Values).ToHashSet();
-        }
+        //    var maxUsedHandlers = _inFlightMessages.Values.OrderByDescending(i => i).FirstOrDefault();
+        //    if (maxUsedHandlers > _handlerCount) _handlerCount = maxUsedHandlers;
+        //    _freeHandlers = Enumerable.Range(1, _handlerCount).Except(_inFlightMessages.Values).ToHashSet();
+        //}
 
         private async Task SetupServiceBus()
         {
@@ -216,7 +215,7 @@ namespace CaptainHook.EventReader
 
             foreach (var message in messages)
             {
-                var messageData = new MessageData(Encoding.UTF8.GetString(message.Body), type);
+                var messageData = new MessageData(Encoding.UTF8.GetString(message.Body), Context.ServiceTypeName);
 
                 var handlerId = _freeHandlers.FirstOrDefault();
                 if (handlerId == 0)
