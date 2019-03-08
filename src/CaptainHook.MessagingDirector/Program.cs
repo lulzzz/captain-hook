@@ -1,9 +1,11 @@
-﻿namespace CaptainHook.MessagingDirector
-{
-    using Microsoft.ServiceFabric.Actors.Runtime;
-    using System.Threading;
-    using System.Threading.Tasks;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Eshopworld.Telemetry;
+using Microsoft.ServiceFabric.Actors.Runtime;
 
+namespace CaptainHook.MessagingDirector
+{
     internal static class Program
     {
         /// <summary>
@@ -11,13 +13,19 @@
         /// </summary>
         private static async Task Main()
         {
-            ActorRuntime.RegisterActorAsync<MessagingDirector>(
-                            (context, actorType) =>
-                                new MessagingDirectorService(context, actorType, (service, id) => new MessagingDirector(service, id)))
-                        .GetAwaiter()
-                        .GetResult();
+            try
+            {
+                ActorRuntime.RegisterActorAsync<MessagingDirector>((context, actorType) => new MessagingDirectorService(context, actorType, (service, id) => new MessagingDirector(service, id)))
+                            .GetAwaiter()
+                            .GetResult();
 
-            await Task.Delay(Timeout.Infinite);
+                await Task.Delay(Timeout.Infinite);
+            }
+            catch (Exception e)
+            {
+                BigBrother.Write(e);
+                throw;
+            }
         }
     }
 }
