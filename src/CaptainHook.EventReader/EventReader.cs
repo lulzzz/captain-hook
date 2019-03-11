@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
+using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry.Services;
 using CaptainHook.Interfaces;
 using Eshopworld.Core;
@@ -19,7 +20,6 @@ using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Rest;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Client;
-using Microsoft.ServiceFabric.Data;
 using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting;
@@ -29,7 +29,7 @@ namespace CaptainHook.EventReader
 {
     public interface IEventReader : IService
     {
-        void Configure(TopicConfig topicConfig);
+        void Configure(TopicConfig topicConfig, WebhookConfig webhookConfig);
 
         Task CompleteMessage(Guid handle);
     }
@@ -41,11 +41,12 @@ namespace CaptainHook.EventReader
     {
         private readonly IBigBrother _bigBrother;
         private TopicConfig _topicConfig;
+        private WebhookConfig _webhookConfig;
         private MessageReceiver _receiver;
 
         private readonly Dictionary<Guid, string> _lockTokens = new Dictionary<Guid, string>();
         private readonly Dictionary<Guid, int> _inFlightMessages = new Dictionary<Guid, int>();
-        private HashSet<int> _freeHandlers = new HashSet<int>();
+        private readonly HashSet<int> _freeHandlers = new HashSet<int>();
 
 #if DEBUG
         private int _handlerCount = 1;
@@ -71,7 +72,7 @@ namespace CaptainHook.EventReader
             return new ServiceReplicaListener[0];
         }
 
-        public void Configure(TopicConfig topicConfig)
+        public void Configure(TopicConfig topicConfig, WebhookConfig webhookConfig)
         {
             if (topicConfig == null)
             {
@@ -98,7 +99,8 @@ namespace CaptainHook.EventReader
                 throw new ArgumentNullException(nameof(topicConfig.SubscriptionName));
             }
 
-            this._topicConfig = topicConfig;
+            _topicConfig = topicConfig;
+            _webhookConfig = webhookConfig;
         }
 
         /// <summary>
@@ -158,22 +160,6 @@ namespace CaptainHook.EventReader
             //todo message deleted event
         }
 
-
-        //internal async Task BuildInMemoryState()
-        //{
-        //    var stateNames = await StateManager.GetStateNamesAsync();
-        //    foreach (var state in stateNames)
-        //    {
-        //        var handleData = await StateManager.GetStateAsync<MessageDataHandle>(state);
-        //        _lockTokens.Add(handleData.Handle, handleData.LockToken);
-        //        _inFlightMessages.Add(handleData.Handle, handleData.HandlerId);
-        //    }
-
-        //    var maxUsedHandlers = _inFlightMessages.Values.OrderByDescending(i => i).FirstOrDefault();
-        //    if (maxUsedHandlers > _handlerCount) _handlerCount = maxUsedHandlers;
-        //    _freeHandlers = Enumerable.Range(1, _handlerCount).Except(_inFlightMessages.Values).ToHashSet();
-        //}
-
         private async Task SetupServiceBus()
         {
             var token = new AzureServiceTokenProvider().GetAccessTokenAsync("https://management.core.windows.net/", string.Empty).Result;
@@ -228,6 +214,7 @@ namespace CaptainHook.EventReader
                 }
 
                 messageData.HandlerId = handlerId;
+                messageData.WebhookConfig = _webhookConfig;
                 _inFlightMessages.Add(messageData.Handle, handlerId);
                 _lockTokens.Add(messageData.Handle, message.SystemProperties.LockToken);
 
@@ -248,31 +235,5 @@ namespace CaptainHook.EventReader
                 await ActorProxy.Create<IEventHandlerActor>(new ActorId(messageData.EventHandlerActorId)).HandleMessage(messageData);
             }
         }
-    }
-
-    public class TopicConfig : IReliableState
-    {
-        public TopicConfig()
-        {
-            Name = new Uri(nameof(TopicConfig));
-        }
-
-        public TopicConfig(Uri name)
-        {
-            Name = name;
-        }
-        public int BatchSize { get; set; } = 1;
-
-        public string ServiceBusConnectionString { get; set; }
-
-        public string ServiceBusNamespace;
-
-        public string ServiceBusSubscriptionId;
-
-        public string ServiceBusTopicName;
-
-        public string SubscriptionName = "captain-hook";
-
-        public Uri Name { get; }
     }
 }

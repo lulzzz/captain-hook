@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using CaptainHook.Common;
-using CaptainHook.Common.Telemetry;
 using CaptainHook.Common.Telemetry.Actor;
 using CaptainHook.EventHandlerActor.Handlers;
 using CaptainHook.Interfaces;
@@ -112,7 +111,7 @@ namespace CaptainHook.EventHandlerActor
                     return;
                 }
 
-                var handler = _eventHandlerFactory.CreateWebhookWithCallbackHandler(messageData.Value.Type, );
+                var handler = _eventHandlerFactory.CreateWebhookWithCallbackHandler(messageData.Value.Type, messageData.Value.WebhookConfig);
                 await handler.Call(messageData.Value);
 
                 await StateManager.RemoveStateAsync(nameof(EventHandlerActor));
