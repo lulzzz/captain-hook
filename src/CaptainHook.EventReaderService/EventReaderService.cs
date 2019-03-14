@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Fabric;
 using System.Linq;
@@ -8,36 +8,19 @@ using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry.Services;
-using CaptainHook.Interfaces;
-using Eshopworld.Core;
-using Microsoft.Azure.Management.Fluent;
-using Microsoft.Azure.Management.ResourceManager.Fluent;
-using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
-using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Azure.Services.AppAuthentication;
-using Microsoft.Rest;
-using Microsoft.ServiceFabric.Actors;
-using Microsoft.ServiceFabric.Actors.Client;
 using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
-using Microsoft.ServiceFabric.Services.Remoting;
 using Microsoft.ServiceFabric.Services.Runtime;
 
-namespace CaptainHook.EventReader
+namespace CaptainHook.EventReaderService
 {
-    public interface IEventReader : IService
-    {
-        void Configure(TopicConfig topicConfig, WebhookConfig webhookConfig);
-
-        Task CompleteMessage(Guid handle);
-    }
-
     /// <summary>
     /// An instance of this class is created for each service replica by the Service Fabric runtime.
     /// </summary>
-    internal sealed class EventReader : StatefulService, IEventReader
+    internal sealed class EventReaderService : StatefulService, IEventReader
     {
         private readonly IBigBrother _bigBrother;
         private TopicConfig _topicConfig;
@@ -48,28 +31,17 @@ namespace CaptainHook.EventReader
         private readonly Dictionary<Guid, int> _inFlightMessages = new Dictionary<Guid, int>();
         private readonly HashSet<int> _freeHandlers = new HashSet<int>();
 
+
 #if DEBUG
         private int _handlerCount = 1;
 #else
         private int _handlerCount = 10;
 #endif
 
-        public EventReader(StatefulServiceContext context, IBigBrother bigBrother)
+        public EventReaderService(StatefulServiceContext context, IBigBrother bigBrother)
             : base(context)
         {
             _bigBrother = bigBrother;
-        }
-
-        /// <summary>
-        /// Optional override to create listeners (e.g., HTTP, Service Remoting, WCF, etc.) for this service replica to handle client or user requests.
-        /// </summary>
-        /// <remarks>
-        /// For more information on service communication, see https://aka.ms/servicefabricservicecommunication
-        /// </remarks>
-        /// <returns>A collection of listeners.</returns>
-        protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
-        {
-            return new ServiceReplicaListener[0];
         }
 
         public void Configure(TopicConfig topicConfig, WebhookConfig webhookConfig)
@@ -104,6 +76,18 @@ namespace CaptainHook.EventReader
         }
 
         /// <summary>
+        /// Optional override to create listeners (e.g., HTTP, Service Remoting, WCF, etc.) for this service replica to handle client or user requests.
+        /// </summary>
+        /// <remarks>
+        /// For more information on service communication, see https://aka.ms/servicefabricservicecommunication
+        /// </remarks>
+        /// <returns>A collection of listeners.</returns>
+        protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
+        {
+            return new ServiceReplicaListener[0];
+        }
+
+        /// <summary>
         /// This is the main entry point for your service replica.
         /// This method executes when this replica of your service becomes primary and has write status.
         /// </summary>
@@ -132,6 +116,7 @@ namespace CaptainHook.EventReader
                 await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
             }
         }
+
 
         protected override Task OnCloseAsync(CancellationToken cancellationToken)
         {

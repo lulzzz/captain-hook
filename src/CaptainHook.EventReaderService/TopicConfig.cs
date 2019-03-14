@@ -1,18 +1,15 @@
-﻿using System;
-using Microsoft.ServiceFabric.Data;
-
-namespace CaptainHook.EventReader
+﻿namespace CaptainHook.EventReaderService
 {
     public class TopicConfig : IReliableState
     {
         public TopicConfig()
         {
-            Name = new Uri(nameof(TopicConfig));
+            this.Name = new Uri(nameof(TopicConfig));
         }
 
         public TopicConfig(Uri name)
         {
-            Name = name;
+            this.Name = name;
         }
         public int BatchSize { get; set; } = 1;
 
