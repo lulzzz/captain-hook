@@ -4,6 +4,7 @@ using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.Common.Telemetry.Actor;
 using Eshopworld.Core;
+using Microsoft.ServiceFabric.Services.Remoting.Client;
 
 namespace CaptainHook.MessagingDirector
 {
@@ -100,7 +101,7 @@ namespace CaptainHook.MessagingDirector
             }
 
             _bigBrother.Publish(new WebHookCreatedEvent(config.Type));
-            await ActorProxy.Create<IEventReaderActor>(new ActorId(config.Type)).Run();
+            await ServiceProxy.Create<IEventReaderService>(new Uri());
 
             return await StateManager.GetStateAsync<WebhookConfig>(config.Type, CancellationToken.None);
         }

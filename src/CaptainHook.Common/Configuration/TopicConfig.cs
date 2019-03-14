@@ -1,4 +1,7 @@
-﻿namespace CaptainHook.EventReaderService
+﻿using System;
+using Microsoft.ServiceFabric.Data;
+
+namespace CaptainHook.Common.Configuration
 {
     public class TopicConfig : IReliableState
     {

@@ -8,9 +8,18 @@ using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry.Services;
+using CaptainHook.Interfaces;
+using Eshopworld.Core;
+using Microsoft.Azure.Management.Fluent;
+using Microsoft.Azure.Management.ResourceManager.Fluent;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Azure.Services.AppAuthentication;
+using Microsoft.Rest;
+using Microsoft.ServiceFabric.Actors;
+using Microsoft.ServiceFabric.Actors.Client;
 using Microsoft.ServiceFabric.Data.Collections;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
@@ -20,7 +29,7 @@ namespace CaptainHook.EventReaderService
     /// <summary>
     /// An instance of this class is created for each service replica by the Service Fabric runtime.
     /// </summary>
-    internal sealed class EventReaderService : StatefulService, IEventReader
+    internal sealed class EventReaderServiceService : StatefulService, IEventReaderService
     {
         private readonly IBigBrother _bigBrother;
         private TopicConfig _topicConfig;
@@ -38,7 +47,7 @@ namespace CaptainHook.EventReaderService
         private int _handlerCount = 10;
 #endif
 
-        public EventReaderService(StatefulServiceContext context, IBigBrother bigBrother)
+        public EventReaderServiceService(StatefulServiceContext context, IBigBrother bigBrother)
             : base(context)
         {
             _bigBrother = bigBrother;

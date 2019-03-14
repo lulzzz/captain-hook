@@ -1,11 +1,10 @@
-﻿
-using Microsoft.Azure.Management.ServiceBus.Fluent;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Azure.Management.ServiceBus.Fluent;
 
-namespace CaptainHook.EventReader
+namespace CaptainHook.EventReaderService
 {
     /// <summary>
     /// Contains extensions to the ServiceBus Fluent SDK: <see cref="Microsoft.Azure.Management.ServiceBus.Fluent"/>.
@@ -39,7 +38,7 @@ namespace CaptainHook.EventReader
         /// </summary>
         /// <param name="topic">The <see cref="ITopic"/> that we are subscribing to.</param>
         /// <param name="name">The name of the subscription we are doing on the <see cref="ITopic"/>.</param>
-        /// <returns>The <see cref="ISubscription"/> entity object that references the subscription.</returns>
+        /// <returns>The <see cref="Microsoft.Azure.Management.ResourceManager.Fluent.ISubscription"/> entity object that references the subscription.</returns>
         public static async Task<ISubscription> CreateSubscriptionIfNotExists(this ITopic topic, string name)
         {
             await topic.RefreshAsync();
