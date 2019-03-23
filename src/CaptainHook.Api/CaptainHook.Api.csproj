@@ -56,7 +56,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CaptainHook.Common\CaptainHook.Common.csproj" />
-    <ProjectReference Include="..\CaptainHook.MessagingDirector\CaptainHook.MessagingDirector.csproj" />
+    <ProjectReference Include="..\CaptainHook.Interfaces\CaptainHook.Interfaces.csproj" />
   </ItemGroup>
 
   <ItemGroup>

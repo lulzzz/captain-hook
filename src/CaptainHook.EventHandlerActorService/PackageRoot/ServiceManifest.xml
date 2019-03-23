@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ServiceManifest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="CaptainHook.EventHandlerActorPkg" Version="1.0.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
+  <ServiceTypes>
+    <StatefulServiceType ServiceTypeName="EventHandlerActorType" HasPersistedState="true">
+      <Extensions>
+        <Extension Name="__GeneratedServiceType__" GeneratedId="40d70313-de98-4e0e-a55b-afa6f8b013a0|Persisted">
+          <GeneratedNames xmlns="http://schemas.microsoft.com/2015/03/fabact-no-schema">
+            <DefaultService Name="EventHandlerActor" />
+            <ReplicatorEndpoint Name="EventHandlerActorReplicatorEndpoint" />
+            <ReplicatorConfigSection Name="EventHandlerActorReplicatorConfig" />
+            <ReplicatorSecurityConfigSection Name="EventHandlerActorReplicatorSecurityConfig" />
+            <StoreConfigSection Name="EventHandlerActorLocalStoreConfig" />
+            <ServiceEndpointV2_1 Name="EventHandlerActorEndpointV2_1" />
+          </GeneratedNames>
+        </Extension>
+      </Extensions>
+    </StatefulServiceType>
+  </ServiceTypes>
+  <CodePackage Name="Code" Version="1.0.0">
+    <EntryPoint>
+      <ExeHost>
+        <Program>CaptainHook.EventHandlerActor.exe</Program>
+      </ExeHost>
+    </EntryPoint>
+    <EnvironmentVariables>
+      <EnvironmentVariable Name="KEYVAULT_BASE_URI" Value="N/A" />
+      <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="N/A" />
+    </EnvironmentVariables>
+  </CodePackage>
+  <ConfigPackage Name="Config" Version="1.0.0" />
+  <Resources>
+    <Endpoints>
+      <Endpoint Name="CaptainHook.EventHandlerActorEndpointV2_1" />
+      <Endpoint Name="EventHandlerActorEndpointV2_1" />
+      <Endpoint Name="EventHandlerActorReplicatorEndpoint" />
+    </Endpoints>
+  </Resources>
+  <!-- The content will be generated during build -->
+</ServiceManifest>

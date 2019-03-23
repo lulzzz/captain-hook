@@ -1,20 +1,29 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Application xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="fabric:/CaptainHook" xmlns="http://schemas.microsoft.com/2011/01/fabric">
   <Parameters>
-    <Parameter Name="CaptainHook.EventReaderService_PartitionCount" Value="1" />
-    <Parameter Name="CaptainHook.EventReaderService_MinReplicaSetSize" Value="3" />
-    <Parameter Name="CaptainHook.EventReaderService_TargetReplicaSetSize" Value="3" />
-    <Parameter Name="CaptainHook.MessageDirectorService_PartitionCount" Value="1" />
-    <Parameter Name="CaptainHook.MessageDirectorService_MinReplicaSetSize" Value="3" />
-    <Parameter Name="CaptainHook.MessageDirectorService_TargetReplicaSetSize" Value="3" />
     <Parameter Name="KeyVault_Base_Uri" Value="https://esw-tooling-ci-we.vault.azure.net/" />
     <Parameter Name="AspNetCore_Environment" Value="CI" />
 
-    <Parameter Name="CaptainHook.EventReader_PartitionCount" Value="1" />
-    <Parameter Name="MessagingDirectorActorService_PartitionCount" Value="1" />
-    <Parameter Name="EndpointDispatcherActorService_PartitionCount" Value="1" />
-    <Parameter Name="EventHandlerActorService_PartitionCount" Value="1" />
-    <Parameter Name="PoolManagerActorService_PartitionCount" Value="1" />
-    <Parameter Name="EventReaderActorService_PartitionCount" Value="1" />
+    <Parameter Name="CaptainHook.EventReaderService_PartitionCount" Value="1" />
+    <Parameter Name="CaptainHook.EventReaderService_MinReplicaSetSize" Value="1" />
+    <Parameter Name="CaptainHook.EventReaderService_TargetReplicaSetSize" Value="1" />
+    <Parameter Name="CaptainHook.MessageDirectorActor_PartitionCount" Value="1" />
+    <Parameter Name="CaptainHook.MessageDirectorActor_MinReplicaSetSize" Value="1" />
+    <Parameter Name="CaptainHook.MessageDirectorActor_TargetReplicaSetSize" Value="1" />
+    <Parameter Name="CaptainHook.EventReaderService_PartitionCount" Value="1" />
+    <Parameter Name="CaptainHook.EventReaderService_MinReplicaSetSize" Value="1" />
+    <Parameter Name="CaptainHook.EventReaderService_TargetReplicaSetSize" Value="1" />
+    <Parameter Name="CaptainHook.MessagingDirectorActor_PartitionCount" Value="1" />
+    <Parameter Name="CaptainHook.MessagingDirectorActor_TargetReplicaSetSize" Value="1" />
+    <Parameter Name="CaptainHook.MessagingDirectorActor_MinReplicaSetSize" Value="1" />
+    <Parameter Name="CaptainHook.EndpointDispatcherActor_PartitionCount" Value="1" />
+    <Parameter Name="CaptainHook.EndpointDispatcherActor_TargetReplicaSetSize" Value="1" />
+    <Parameter Name="CaptainHook.EndpointDispatcherActor_MinReplicaSetSize" Value="1" />
+    <Parameter Name="CaptainHook.EventHandlerActor_PartitionCount" Value="1" />
+    <Parameter Name="CaptainHook.EventHandlerActor_TargetReplicaSetSize" Value="1" />
+    <Parameter Name="CaptainHook.EventHandlerActor_MinReplicaSetSize" Value="1" />
+    <Parameter Name="CaptainHook.PoolManagerActor_PartitionCount" Value="1" />
+    <Parameter Name="CaptainHook.PoolManagerActor_TargetReplicaSetSize" Value="1" />
+    <Parameter Name="CaptainHook.PoolManagerActor_MinReplicaSetSize" Value="1" />
   </Parameters>
 </Application>

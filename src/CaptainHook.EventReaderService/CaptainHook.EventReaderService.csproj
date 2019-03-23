@@ -16,26 +16,15 @@
     <PackageReference Include="Eshopworld.Core" Version="2.0.5" />
     <PackageReference Include="Microsoft.Azure.ServiceBus" Version="3.3.0" />
     <PackageReference Include="Microsoft.ServiceFabric.Services" Version="3.3.644" />
+    <PackageReference Include="Microsoft.Azure.Management.Fluent" Version="1.20.0" />
+    <PackageReference Include="Microsoft.Azure.Management.ResourceManager.Fluent" Version="1.20.0" />
+    <PackageReference Include="Microsoft.Azure.Management.ServiceBus.Fluent" Version="1.20.0" />
+    <PackageReference Include="Microsoft.Rest.ClientRuntime" Version="2.3.20" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CaptainHook.Common\CaptainHook.Common.csproj" />
     <ProjectReference Include="..\CaptainHook.Interfaces\CaptainHook.Interfaces.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Microsoft.Azure.Management.Fluent">
-      <HintPath>C:\Users\Merlin\.nuget\packages\microsoft.azure.management.fluent\1.20.0\lib\netstandard1.4\Microsoft.Azure.Management.Fluent.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Azure.Management.ResourceManager.Fluent">
-      <HintPath>C:\Users\Merlin\.nuget\packages\microsoft.azure.management.resourcemanager.fluent\1.20.0\lib\netstandard1.4\Microsoft.Azure.Management.ResourceManager.Fluent.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Azure.Management.ServiceBus.Fluent">
-      <HintPath>C:\Users\Merlin\.nuget\packages\microsoft.azure.management.servicebus.fluent\1.20.0\lib\netstandard1.4\Microsoft.Azure.Management.ServiceBus.Fluent.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Rest.ClientRuntime">
-      <HintPath>C:\Users\Merlin\.nuget\packages\microsoft.rest.clientruntime\2.3.11\lib\netstandard1.4\Microsoft.Rest.ClientRuntime.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>

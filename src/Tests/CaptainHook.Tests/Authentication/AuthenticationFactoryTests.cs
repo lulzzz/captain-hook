@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
-using CaptainHook.EventHandlerActor.Handlers.Authentication;
+using CaptainHook.EventHandlerActorService.Handlers.Authentication;
 using Eshopworld.Core;
 using Eshopworld.Tests.Core;
 using Moq;
