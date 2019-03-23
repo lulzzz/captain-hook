@@ -2,7 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common.Authentication;
-using CaptainHook.EventHandlerActor.Handlers.Authentication;
+using CaptainHook.EventHandlerActorService.Handlers.Authentication;
 using Eshopworld.Tests.Core;
 using Newtonsoft.Json;
 using RichardSzalay.MockHttp;

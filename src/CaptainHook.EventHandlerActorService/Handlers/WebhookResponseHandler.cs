@@ -70,7 +70,7 @@ namespace CaptainHook.EventHandlerActorService.Handlers
             BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.StatusCode, content));
 
             //call callback
-            var eswHandler = _eventHandlerFactory.CreateWebhookHandler(_webhookConfig.CallbackConfig.Type);
+            var eswHandler = _eventHandlerFactory.CreateWebhookHandler(_webhookConfig.CallbackConfig);
 
             await eswHandler.Call(messageData, metadata);
         }
