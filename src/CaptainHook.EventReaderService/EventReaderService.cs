@@ -218,21 +218,34 @@ namespace CaptainHook.EventReaderService
                 _inFlightMessages.Add(messageData.Handle, handlerId);
                 _lockTokens.Add(messageData.Handle, message.SystemProperties.LockToken);
 
-                var handleData = new MessageDataHandle
-                {
-                    Handle = messageData.Handle,
-                    HandlerId = handlerId,
-                    LockToken = message.SystemProperties.LockToken
-                };
-
-                var data = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, MessageDataHandle>>("handles");
-                using (var tx = StateManager.CreateTransaction())
-                {
-                    await data.AddAsync(tx, messageData.Handle, handleData, TimeSpan.FromSeconds(30), cancellationToken);
-                    await tx.CommitAsync();
-                }
+                await PersistMessageHandle(cancellationToken, messageData, handlerId, message);
 
                 await ActorProxy.Create<IEventHandlerActor>(new ActorId(messageData.EventHandlerActorId)).HandleMessage(messageData);
+            }
+        }
+
+        /// <summary>
+        /// Persists the handle state so that we can continue with execution in case of failure or node change and eventually retry the message or delete it
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <param name="messageData"></param>
+        /// <param name="handlerId"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        private async Task PersistMessageHandle(CancellationToken cancellationToken, MessageData messageData, int handlerId, Message message)
+        {
+            var handleData = new MessageDataHandle
+            {
+                Handle = messageData.Handle,
+                HandlerId = handlerId,
+                LockToken = message.SystemProperties.LockToken
+            };
+
+            var data = await StateManager.GetOrAddAsync<IReliableDictionary<Guid, MessageDataHandle>>("handles");
+            using (var tx = StateManager.CreateTransaction())
+            {
+                await data.AddAsync(tx, messageData.Handle, handleData, TimeSpan.FromSeconds(30), cancellationToken);
+                await tx.CommitAsync();
             }
         }
     }
