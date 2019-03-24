@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Fabric;
+using System.Fabric.Description;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common.Configuration;
@@ -7,11 +9,11 @@ using CaptainHook.Common.Telemetry.Actor;
 using CaptainHook.Interfaces;
 using Eshopworld.Core;
 using Microsoft.ServiceFabric.Actors;
-using Microsoft.ServiceFabric.Actors.Client;
 using Microsoft.ServiceFabric.Actors.Runtime;
+using Microsoft.ServiceFabric.Services.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 
-namespace CaptainHook.MessagingDirectorActor
+namespace CaptainHook.MessagingDirectorActorService
 {
     /// <remarks>
     /// This class represents an actor.
@@ -25,6 +27,7 @@ namespace CaptainHook.MessagingDirectorActor
     public class MessagingDirectorActor : Actor, IMessagingDirector
     {
         private readonly IBigBrother _bigBrother;
+        private readonly ServiceBusConfig _serviceBusConfig;
 
         /// <summary>
         /// Initializes a new instance of <see cref="MessagingDirectorActor"/>.
@@ -32,13 +35,16 @@ namespace CaptainHook.MessagingDirectorActor
         /// <param name="actorService">The <see cref="ActorService"/> that will host this actor instance.</param>
         /// <param name="actorId">The <see cref="ActorId"/> for this actor instance.</param>
         /// <param name="bigBrother"></param>
+        /// <param name="serviceBusConfig"></param>
         public MessagingDirectorActor(
             ActorService actorService,
             ActorId actorId,
-            IBigBrother bigBrother)
+            IBigBrother bigBrother,
+            ServiceBusConfig serviceBusConfig)
             : base(actorService, actorId)
         {
             this._bigBrother = bigBrother;
+            _serviceBusConfig = serviceBusConfig;
         }
 
         /// <summary>
@@ -67,9 +73,12 @@ namespace CaptainHook.MessagingDirectorActor
         /// <returns></returns>
         public async Task Run()
         {
-            foreach (var type in await this.StateManager.GetStateNamesAsync(CancellationToken.None))
+            foreach (var domainType in await this.StateManager.GetStateNamesAsync(CancellationToken.None))
             {
-                await ActorProxy.Create<IEventReaderActor>(new ActorId(type)).Run();
+                var webhookConfig = await ReadWebhookAsync(domainType);
+                var proxy = ServiceProxy.Create<IEventReaderService>(new Uri("fabric:/CaptainHook/CaptainHook.EventReaderService"), 
+                    ServicePartitionKey.Singleton);
+                proxy.Configure(_serviceBusConfig, webhookConfig);
             }
         }
 
@@ -100,7 +109,14 @@ namespace CaptainHook.MessagingDirectorActor
             }
 
             _bigBrother.Publish(new WebHookCreatedEvent(config.Type));
-            await ServiceProxy.Create<IEventReaderService>(new Uri());
+
+            using (var client = new FabricClient())
+            {
+
+            }
+
+                var proxy = ServiceProxy.Create<IEventReaderService>(new Uri("fabric:/CaptainHook/CaptainHook.EventReaderService"), ServicePartitionKey.Singleton);
+            proxy.Configure(_serviceBusConfig, config);
 
             return await StateManager.GetStateAsync<WebhookConfig>(config.Type, CancellationToken.None);
         }
@@ -114,8 +130,9 @@ namespace CaptainHook.MessagingDirectorActor
         /// 
         /// </summary>
         /// <param name="type"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task DeleteWebhookAsync(string type)
+        public async Task DeleteWebhookAsync(string type, CancellationToken cancellationToken)
         {
             var result = await StateManager.TryGetStateAsync<WebhookConfig>(type, CancellationToken.None);
 
@@ -123,13 +140,12 @@ namespace CaptainHook.MessagingDirectorActor
             {
                 _bigBrother.Publish(new ActorDeletedEvent(type, "Deleting actor based on api request"));
 
-                var actorId = new ActorId(type);
-                //todo if we move message state into the fabric then we have to consider that we might need to delete any state the actor has when we delete it.
-                //todo will we have to clean up any start for any other actor in the chain
+                using (var client = new FabricClient())
+                {
+                    await client.ServiceManager.DeleteServiceAsync(new DeleteServiceDescription(new Uri("fabric:/CaptainHook/CaptainHook.EventReaderService")), TimeSpan.FromMinutes(30), cancellationToken);
+                }
 
-                //todo clean up naming here should be in naming class
-                var actorProxy = ActorServiceProxy.Create(new Uri("fabric:/CaptainHook/EventReaderActor"), actorId);
-                await actorProxy.DeleteActorAsync(actorId, CancellationToken.None);
+                await StateManager.RemoveStateAsync(type, cancellationToken);
             }
 
             throw new Exception("actor not found");

@@ -7,7 +7,7 @@ namespace CaptainHook.Interfaces
 {
     public interface IEventReaderService : IService
     {
-        void Configure(TopicConfig topicConfig, WebhookConfig webhookConfig);
+        void Configure(ServiceBusConfig serviceBusConfig, WebhookConfig webhookConfig);
 
         Task CompleteMessage(Guid handle);
     }

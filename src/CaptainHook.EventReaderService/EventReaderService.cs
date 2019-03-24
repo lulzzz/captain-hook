@@ -31,15 +31,15 @@ namespace CaptainHook.EventReaderService
     /// </summary>
     internal sealed class EventReaderService : StatefulService, IEventReaderService
     {
+        private bool _configCalled;
         private readonly IBigBrother _bigBrother;
-        private TopicConfig _topicConfig;
+        private ServiceBusConfig _serviceBusConfig;
         private WebhookConfig _webhookConfig;
         private MessageReceiver _receiver;
 
         private readonly Dictionary<Guid, string> _lockTokens = new Dictionary<Guid, string>();
         private readonly Dictionary<Guid, int> _inFlightMessages = new Dictionary<Guid, int>();
         private readonly HashSet<int> _freeHandlers = new HashSet<int>();
-
 
 #if DEBUG
         private int _handlerCount = 1;
@@ -53,35 +53,36 @@ namespace CaptainHook.EventReaderService
             _bigBrother = bigBrother;
         }
 
-        public void Configure(TopicConfig topicConfig, WebhookConfig webhookConfig)
+        public void Configure(ServiceBusConfig serviceBusConfig, WebhookConfig webhookConfig)
         {
-            if (topicConfig == null)
+            if (serviceBusConfig == null)
             {
-                throw new ArgumentNullException(nameof(topicConfig));
+                throw new ArgumentNullException(nameof(serviceBusConfig));
             }
 
-            if (string.IsNullOrWhiteSpace(topicConfig.ServiceBusSubscriptionId))
+            if (string.IsNullOrWhiteSpace(serviceBusConfig.ServiceBusSubscriptionId))
             {
-                throw new ArgumentNullException(nameof(topicConfig.ServiceBusSubscriptionId));
+                throw new ArgumentNullException(nameof(serviceBusConfig.ServiceBusSubscriptionId));
             }
 
-            if (string.IsNullOrWhiteSpace(topicConfig.ServiceBusNamespace))
+            if (string.IsNullOrWhiteSpace(serviceBusConfig.ServiceBusNamespace))
             {
-                throw new ArgumentNullException(nameof(topicConfig.ServiceBusNamespace));
+                throw new ArgumentNullException(nameof(serviceBusConfig.ServiceBusNamespace));
             }
 
-            if (string.IsNullOrWhiteSpace(topicConfig.ServiceBusTopicName))
+            if (string.IsNullOrWhiteSpace(webhookConfig.Type))
             {
-                throw new ArgumentNullException(nameof(topicConfig.ServiceBusTopicName));
+                throw new ArgumentNullException(nameof(webhookConfig.Type));
             }
 
-            if (string.IsNullOrWhiteSpace(topicConfig.SubscriptionName))
+            if (string.IsNullOrWhiteSpace(serviceBusConfig.SubscriptionName))
             {
-                throw new ArgumentNullException(nameof(topicConfig.SubscriptionName));
+                throw new ArgumentNullException(nameof(serviceBusConfig.SubscriptionName));
             }
 
-            _topicConfig = topicConfig;
+            _serviceBusConfig = serviceBusConfig;
             _webhookConfig = webhookConfig;
+            _configCalled = true;
         }
 
         /// <summary>
@@ -104,15 +105,21 @@ namespace CaptainHook.EventReaderService
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
             _bigBrother.Publish(new StatefulServiceActivatedEvent(this));
-            var topicConfig = await this.StateManager.TryGetAsync<TopicConfig>(nameof(TopicConfig));
+
+            if (!_configCalled)
+            {
+                throw new Exception("Event Reader Service was not configured before it started");
+            }
+            
+            var topicConfig = await this.StateManager.TryGetAsync<ServiceBusConfig>(nameof(ServiceBusConfig));
 
             if (topicConfig.HasValue)
             {
-                _topicConfig = topicConfig.Value;
+                _serviceBusConfig = topicConfig.Value;
             }
             else
             {
-                throw new ArgumentNullException(nameof(TopicConfig), "Topic Config not initialized");
+                throw new ArgumentNullException(nameof(ServiceBusConfig), "Topic Config not initialized");
             }
 
             //await BuildInMemoryState();
@@ -125,7 +132,6 @@ namespace CaptainHook.EventReaderService
                 await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
             }
         }
-
 
         protected override Task OnCloseAsync(CancellationToken cancellationToken)
         {
@@ -166,31 +172,31 @@ namespace CaptainHook.EventReaderService
                 .Build();
 
             var sbNamespace = Azure.Authenticate(client, string.Empty)
-                .WithSubscription(_topicConfig.ServiceBusSubscriptionId)
+                .WithSubscription(_serviceBusConfig.ServiceBusSubscriptionId)
                 .ServiceBusNamespaces.List()
-                .SingleOrDefault(n => n.Name == _topicConfig.ServiceBusNamespace);
+                .SingleOrDefault(n => n.Name == _serviceBusConfig.ServiceBusNamespace);
 
             if (sbNamespace == null)
             {
-                throw new InvalidOperationException($"Couldn't find the service bus namespace {_topicConfig.ServiceBusNamespace} in the subscription with ID {_topicConfig.ServiceBusSubscriptionId}");
+                throw new InvalidOperationException($"Couldn't find the service bus namespace {_serviceBusConfig.ServiceBusNamespace} in the subscription with ID {_serviceBusConfig.ServiceBusSubscriptionId}");
             }
 
-            var azureTopic = await sbNamespace.CreateTopicIfNotExists(_topicConfig.ServiceBusTopicName);
-            await azureTopic.CreateSubscriptionIfNotExists(_topicConfig.SubscriptionName);
+            var azureTopic = await sbNamespace.CreateTopicIfNotExists(_webhookConfig.Type);
+            await azureTopic.CreateSubscriptionIfNotExists(_serviceBusConfig.SubscriptionName);
 
             _receiver = new MessageReceiver(
-                _topicConfig.ServiceBusConnectionString,
-                EntityNameHelper.FormatSubscriptionPath(_topicConfig.ServiceBusTopicName, _topicConfig.SubscriptionName),
+                _serviceBusConfig.ServiceBusConnectionString,
+                EntityNameHelper.FormatSubscriptionPath(_webhookConfig.Type, _serviceBusConfig.SubscriptionName),
                 ReceiveMode.PeekLock,
                 new RetryExponential(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), 3),
-                _topicConfig.BatchSize);
+                _serviceBusConfig.BatchSize);
         }
 
         public async Task ReadEvents(CancellationToken cancellationToken)
         {
             if (_receiver.IsClosedOrClosing) return;
 
-            var messages = await _receiver.ReceiveAsync(_topicConfig.BatchSize, TimeSpan.FromMilliseconds(50));
+            var messages = await _receiver.ReceiveAsync(_serviceBusConfig.BatchSize, TimeSpan.FromMilliseconds(50));
             if (messages == null) return;
 
             foreach (var message in messages)

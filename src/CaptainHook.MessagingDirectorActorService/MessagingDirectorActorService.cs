@@ -7,7 +7,7 @@ using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Client;
 using Microsoft.ServiceFabric.Actors.Runtime;
 
-namespace CaptainHook.MessagingDirectorActor
+namespace CaptainHook.MessagingDirectorActorService
 {
     internal class MessagingDirectorActorService : ActorService
     {

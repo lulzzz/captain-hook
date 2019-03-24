@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using CaptainHook.Common.Configuration;
 using Microsoft.ServiceFabric.Actors;
 
@@ -41,6 +42,7 @@ namespace CaptainHook.Interfaces
         /// /todo need to think about authorisation
         /// </summary>
         /// <param name="name">Name given to the webhook</param>
-        Task DeleteWebhookAsync(string name);
+        /// <param name="cancellationToken"></param>
+        Task DeleteWebhookAsync(string name, CancellationToken cancellationToken);
     }
 }

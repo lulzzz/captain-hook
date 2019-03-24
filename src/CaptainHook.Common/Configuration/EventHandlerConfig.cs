@@ -16,7 +16,14 @@ namespace CaptainHook.Common.Configuration
 
         public AuthenticationConfig AuthenticationConfig { get; set; }
 
+        /// <summary>
+        /// Destination URI for this webhook
+        /// </summary>
         public string Uri { get; set; }
+
+        /// <summary>
+        /// The DomainType to which this webhook is registered
+        /// </summary>
         public string Type { get; set; }
 
         //todo implement this on the calls to the webhook to select http verb
@@ -24,6 +31,9 @@ namespace CaptainHook.Common.Configuration
 
         public List<WebhookRequestRule> WebhookRequestRules { get; set; }
         
+        /// <summary>
+        /// A possible callback if any is supplied. This is temporary until EDA is everywhere.
+        /// </summary>
         public WebhookConfig CallbackConfig { get; set; }
 
         public bool CallBackEnabled => CallbackConfig != null;

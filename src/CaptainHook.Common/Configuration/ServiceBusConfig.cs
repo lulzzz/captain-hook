@@ -3,14 +3,14 @@ using Microsoft.ServiceFabric.Data;
 
 namespace CaptainHook.Common.Configuration
 {
-    public class TopicConfig : IReliableState
+    public class ServiceBusConfig : IReliableState
     {
-        public TopicConfig()
+        public ServiceBusConfig()
         {
-            this.Name = new Uri(nameof(TopicConfig));
+            this.Name = new Uri(nameof(ServiceBusConfig));
         }
 
-        public TopicConfig(Uri name)
+        public ServiceBusConfig(Uri name)
         {
             this.Name = name;
         }
@@ -21,8 +21,6 @@ namespace CaptainHook.Common.Configuration
         public string ServiceBusNamespace;
 
         public string ServiceBusSubscriptionId;
-
-        public string ServiceBusTopicName;
 
         public string SubscriptionName = "captain-hook";
 

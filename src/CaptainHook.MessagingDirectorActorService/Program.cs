@@ -6,7 +6,7 @@ using Autofac.Integration.ServiceFabric;
 using Eshopworld.Core;
 using Eshopworld.Telemetry;
 
-namespace CaptainHook.MessagingDirectorActor
+namespace CaptainHook.MessagingDirectorActorService
 {
     internal static class Program
     {

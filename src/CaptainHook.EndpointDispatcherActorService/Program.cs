@@ -3,6 +3,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Integration.ServiceFabric;
+using Eshopworld.Core;
+using Eshopworld.Telemetry;
 
 namespace CaptainHook.EndpointDispatcherActorService
 {
@@ -18,6 +20,7 @@ namespace CaptainHook.EndpointDispatcherActorService
                 var builder = new ContainerBuilder();
                 builder.RegisterServiceFabricSupport();
 
+                builder.RegisterType<BigBrother>().As<IBigBrother>();
                 builder.RegisterActor<EndpointDispatcherActor>();
 
                 using (builder.Build())
