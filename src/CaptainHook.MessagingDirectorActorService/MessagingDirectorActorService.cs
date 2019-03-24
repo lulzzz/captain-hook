@@ -19,8 +19,9 @@ namespace CaptainHook.MessagingDirectorActorService
         {
             await base.RunAsync(cancellationToken);
 
+            //always us id 0 so that we have just a single MD managing all the event readers
             var proxy = ActorProxy.Create<IMessagingDirector>(new ActorId(0));
-            await proxy.Run();
+            await proxy.Run(cancellationToken);
         }
     }
 }

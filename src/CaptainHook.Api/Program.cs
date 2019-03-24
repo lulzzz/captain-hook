@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading;
 using Eshopworld.Telemetry;
 using Eshopworld.Web;

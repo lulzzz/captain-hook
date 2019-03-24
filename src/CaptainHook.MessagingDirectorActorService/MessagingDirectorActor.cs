@@ -29,11 +29,12 @@ namespace CaptainHook.MessagingDirectorActorService
         private readonly IBigBrother _bigBrother;
         private readonly ServiceBusConfig _serviceBusConfig;
 
+        /// <inheritdoc />
         /// <summary>
-        /// Initializes a new instance of <see cref="MessagingDirectorActor"/>.
+        /// Initializes a new instance of <see cref="T:CaptainHook.MessagingDirectorActorService.MessagingDirectorActor" />.
         /// </summary>
-        /// <param name="actorService">The <see cref="ActorService"/> that will host this actor instance.</param>
-        /// <param name="actorId">The <see cref="ActorId"/> for this actor instance.</param>
+        /// <param name="actorService">The <see cref="T:Microsoft.ServiceFabric.Actors.Runtime.ActorService" /> that will host this actor instance.</param>
+        /// <param name="actorId">The <see cref="T:Microsoft.ServiceFabric.Actors.ActorId" /> for this actor instance.</param>
         /// <param name="bigBrother"></param>
         /// <param name="serviceBusConfig"></param>
         public MessagingDirectorActor(
@@ -71,11 +72,11 @@ namespace CaptainHook.MessagingDirectorActorService
         /// 
         /// </summary>
         /// <returns></returns>
-        public async Task Run()
+        public async Task Run(CancellationToken cancellationToken)
         {
-            foreach (var domainType in await this.StateManager.GetStateNamesAsync(CancellationToken.None))
+            foreach (var domainType in await this.StateManager.GetStateNamesAsync(cancellationToken))
             {
-                var webhookConfig = await ReadWebhookAsync(domainType);
+                var webhookConfig = await ReadWebhook(domainType, cancellationToken);
                 var proxy = ServiceProxy.Create<IEventReaderService>(new Uri("fabric:/CaptainHook/CaptainHook.EventReaderService"), 
                     ServicePartitionKey.Singleton);
                 proxy.Configure(_serviceBusConfig, webhookConfig);
@@ -86,21 +87,23 @@ namespace CaptainHook.MessagingDirectorActorService
         /// 
         /// </summary>
         /// <param name="name"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<WebhookConfig> ReadWebhookAsync(string name)
+        public async Task<WebhookConfig> ReadWebhook(string name, CancellationToken cancellationToken)
         {
-            var conditionalValue = await StateManager.TryGetStateAsync<WebhookConfig>(name, CancellationToken.None);
+            var conditionalValue = await StateManager.TryGetStateAsync<WebhookConfig>(name, cancellationToken);
             return conditionalValue.Value;
         }
 
+        /// <inheritdoc />
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="config"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<WebhookConfig> CreateWebhookAsync(WebhookConfig config)
+        public async Task<WebhookConfig> CreateWebhook(WebhookConfig config, CancellationToken cancellationToken)
         {
-            var result = await StateManager.TryAddStateAsync(config.Type, config, CancellationToken.None);
+            var result = await StateManager.TryAddStateAsync(config.Type, config, cancellationToken);
 
             if (!result)
             {
@@ -110,31 +113,32 @@ namespace CaptainHook.MessagingDirectorActorService
 
             _bigBrother.Publish(new WebHookCreatedEvent(config.Type));
 
+            //todo spin up a new client
             using (var client = new FabricClient())
             {
 
             }
 
-                var proxy = ServiceProxy.Create<IEventReaderService>(new Uri("fabric:/CaptainHook/CaptainHook.EventReaderService"), ServicePartitionKey.Singleton);
+            var proxy = ServiceProxy.Create<IEventReaderService>(new Uri("fabric:/CaptainHook/CaptainHook.EventReaderService"), ServicePartitionKey.Singleton);
             proxy.Configure(_serviceBusConfig, config);
 
-            return await StateManager.GetStateAsync<WebhookConfig>(config.Type, CancellationToken.None);
+            return await StateManager.GetStateAsync<WebhookConfig>(config.Type, cancellationToken);
         }
 
-        public WebhookConfig UpdateWebhook(WebhookConfig config)
+        public WebhookConfig UpdateWebhook(WebhookConfig config, CancellationToken cancellationToken)
         {
             throw new System.NotImplementedException();
         }
 
+        /// <inheritdoc />
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="type"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task DeleteWebhookAsync(string type, CancellationToken cancellationToken)
+        public async Task DeleteWebhook(string type, CancellationToken cancellationToken)
         {
-            var result = await StateManager.TryGetStateAsync<WebhookConfig>(type, CancellationToken.None);
+            var result = await StateManager.TryGetStateAsync<WebhookConfig>(type, cancellationToken);
 
             if (result.HasValue)
             {
