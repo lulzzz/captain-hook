@@ -3,7 +3,7 @@
   <ServiceTypes>
     <StatefulServiceType ServiceTypeName="EndpointDispatcherActorServiceType" HasPersistedState="true">
       <Extensions>
-        <Extension Name="__GeneratedServiceType__" GeneratedId="ef465768-6f49-45f5-83dc-a8e05d309825|Persisted">
+        <Extension Name="__GeneratedServiceType__" GeneratedId="de554261-b88b-4973-ad8e-445ffab080ad|Persisted">
           <GeneratedNames xmlns="http://schemas.microsoft.com/2015/03/fabact-no-schema">
             <DefaultService Name="EndpointDispatcherActorService" />
             <ReplicatorEndpoint Name="EndpointDispatcherActorServiceReplicatorEndpoint" />
