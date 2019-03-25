@@ -42,7 +42,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CaptainHook.Api\CaptainHook.Api.csproj" />
+    <ProjectReference Include="..\CaptainHook.EndpointDispatcherActorService\CaptainHook.EndpointDispatcherActorService.csproj" />
+    <ProjectReference Include="..\CaptainHook.EventHandlerActorService\CaptainHook.EventHandlerActorService.csproj" />
     <ProjectReference Include="..\CaptainHook.EventReaderService\CaptainHook.EventReaderService.csproj" />
+    <ProjectReference Include="..\CaptainHook.PoolManagerActorService\CaptainHook.PoolManagerActorService.csproj" />
+    <ProjectReference Include="..\Tests\CaptainHook.Test.Api\CaptainHook.Test.Api.csproj" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
   <PropertyGroup>

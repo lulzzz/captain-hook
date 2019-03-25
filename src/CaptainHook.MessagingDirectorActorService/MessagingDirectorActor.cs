@@ -8,6 +8,7 @@ using CaptainHook.Common.Telemetry;
 using CaptainHook.Common.Telemetry.Actor;
 using CaptainHook.Interfaces;
 using Eshopworld.Core;
+using Eshopworld.Telemetry;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Runtime;
 using Microsoft.ServiceFabric.Services.Client;
@@ -49,6 +50,11 @@ namespace CaptainHook.MessagingDirectorActorService
         }
 
         /// <summary>
+        /// Generates the Event Reader Name from the Actor
+        /// </summary>
+        public string EventReaderServiceName => $"{ApplicationName}/CaptainHook.EventReaderService";
+
+        /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
@@ -56,6 +62,8 @@ namespace CaptainHook.MessagingDirectorActorService
         {
             _bigBrother.Publish(new ActorActivatedEvent(this));
             return base.OnActivateAsync();
+
+            //todo check that every reader is running and if not start it.
         }
 
         /// <summary>
@@ -77,7 +85,7 @@ namespace CaptainHook.MessagingDirectorActorService
             foreach (var domainType in await this.StateManager.GetStateNamesAsync(cancellationToken))
             {
                 var webhookConfig = await ReadWebhook(domainType, cancellationToken);
-                var proxy = ServiceProxy.Create<IEventReaderService>(new Uri("fabric:/CaptainHook/CaptainHook.EventReaderService"), 
+                var proxy = ServiceProxy.Create<IEventReaderService>(new Uri(EventReaderServiceName),
                     ServicePartitionKey.Singleton);
                 proxy.Configure(_serviceBusConfig, webhookConfig);
             }
@@ -103,29 +111,62 @@ namespace CaptainHook.MessagingDirectorActorService
         /// <returns></returns>
         public async Task<WebhookConfig> CreateWebhook(WebhookConfig config, CancellationToken cancellationToken)
         {
-            var result = await StateManager.TryAddStateAsync(config.Type, config, cancellationToken);
-
-            if (!result)
+            try
             {
-                _bigBrother.Publish(new ActorStateEvent(config.Type, "Cannot create new Webhook. Webhook with the same name has already been created"));
-                throw new Exception("Cannot create new Webhook. Webhook with the same name has already been created");
+                var result = await StateManager.TryAddStateAsync(config.Type, config, cancellationToken);
+
+                if (!result)
+                {
+                    //_bigBrother.Publish(new ActorStateEvent(config.Type, "Cannot create new Webhook. Webhook with the same name has already been created"));
+                    throw new Exception("Cannot create new Webhook. Webhook with the same name has already been created");
+                }
+
+                //todo do I need perms to this this here. Under what process isolation does this run as. Whats the perf hit to create a new reader each time.
+                using (var client = new FabricClient())
+                {
+                    await client.ServiceManager.CreateServiceAsync(GetServiceDefinition(config.Type), TimeSpan.FromSeconds(30), cancellationToken);
+                }
+
+                result = await StateManager.TryAddStateAsync(config.Type, config, cancellationToken);
+                if (!result)
+                {
+                    throw new Exception($"Was not able to persist the state of a new webhook - {config.Type}");
+                }
+                
+                //todo how to send config information to the reliable service at startup rather than after.
+                var proxy = ServiceProxy.Create<IEventReaderService>(new Uri(EventReaderServiceName), ServicePartitionKey.Singleton);
+                proxy.Configure(_serviceBusConfig, config);
+
+                _bigBrother.Publish(new WebHookCreatedEvent(config.Type));
+                return await StateManager.GetStateAsync<WebhookConfig>(config.Type, cancellationToken);
             }
-
-            _bigBrother.Publish(new WebHookCreatedEvent(config.Type));
-
-            //todo spin up a new client
-            using (var client = new FabricClient())
+            catch (Exception e)
             {
-
+                BigBrother.Write(e.ToExceptionEvent());
+                throw;
             }
-
-            var proxy = ServiceProxy.Create<IEventReaderService>(new Uri("fabric:/CaptainHook/CaptainHook.EventReaderService"), ServicePartitionKey.Singleton);
-            proxy.Configure(_serviceBusConfig, config);
-
-            return await StateManager.GetStateAsync<WebhookConfig>(config.Type, cancellationToken);
         }
 
-        public WebhookConfig UpdateWebhook(WebhookConfig config, CancellationToken cancellationToken)
+        /// <summary>
+        /// Creates a Service Definition for the new event reader
+        /// </summary>
+        /// <param name="uniquePostfix"></param>
+        /// <returns></returns>
+        private ServiceDescription GetServiceDefinition(string uniquePostfix)
+        {
+            return new StatefulServiceDescription
+            {
+                ApplicationName = new Uri(ApplicationName),
+                ServiceName = new Uri($"{EventReaderServiceName}-{uniquePostfix}"),
+                ServiceTypeName = "EventReaderType",
+                HasPersistedState = true,
+                PartitionSchemeDescription = new UniformInt64RangePartitionSchemeDescription(),
+                MinReplicaSetSize = 1,
+                TargetReplicaSetSize = 1
+            };
+        }
+
+        public Task<WebhookConfig> UpdateWebhook(WebhookConfig config, CancellationToken cancellationToken)
         {
             throw new System.NotImplementedException();
         }
@@ -138,21 +179,32 @@ namespace CaptainHook.MessagingDirectorActorService
         /// <returns></returns>
         public async Task DeleteWebhook(string type, CancellationToken cancellationToken)
         {
-            var result = await StateManager.TryGetStateAsync<WebhookConfig>(type, cancellationToken);
-
-            if (result.HasValue)
+            try
             {
+                var result = await StateManager.TryGetStateAsync<WebhookConfig>(type, cancellationToken);
+
+                if (!result.HasValue)
+                {
+                    throw new Exception("actor not found");
+                }
+
                 _bigBrother.Publish(new ActorDeletedEvent(type, "Deleting actor based on api request"));
 
                 using (var client = new FabricClient())
                 {
-                    await client.ServiceManager.DeleteServiceAsync(new DeleteServiceDescription(new Uri("fabric:/CaptainHook/CaptainHook.EventReaderService")), TimeSpan.FromMinutes(30), cancellationToken);
+                    //todo configure this timespan better
+                    await client.ServiceManager.DeleteServiceAsync(new DeleteServiceDescription(new Uri(EventReaderServiceName)), TimeSpan.FromMinutes(30), cancellationToken);
                 }
 
                 await StateManager.RemoveStateAsync(type, cancellationToken);
-            }
 
-            throw new Exception("actor not found");
+                throw new Exception("actor not found");
+            }
+            catch (Exception e)
+            {
+                BigBrother.Write(e.ToExceptionEvent());
+                throw;
+            }
         }
     }
 }

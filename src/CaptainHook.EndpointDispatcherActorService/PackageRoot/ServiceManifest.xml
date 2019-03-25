@@ -3,7 +3,7 @@
   <ServiceTypes>
     <StatefulServiceType ServiceTypeName="EndpointDispatcherActorServiceType" HasPersistedState="true">
       <Extensions>
-        <Extension Name="__GeneratedServiceType__" GeneratedId="3f66ed5d-f81c-4b77-9a17-ca4392033937|Persisted">
+        <Extension Name="__GeneratedServiceType__" GeneratedId="ef465768-6f49-45f5-83dc-a8e05d309825|Persisted">
           <GeneratedNames xmlns="http://schemas.microsoft.com/2015/03/fabact-no-schema">
             <DefaultService Name="EndpointDispatcherActorService" />
             <ReplicatorEndpoint Name="EndpointDispatcherActorServiceReplicatorEndpoint" />
@@ -27,14 +27,13 @@
       <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="N/A" />
     </EnvironmentVariables>
   </CodePackage>
+  <!-- Config package is the contents of the Config directory under PackageRoot that contains an 
+       independently-updateable and versioned set of custom configuration settings for your service. -->
   <ConfigPackage Name="Config" Version="1.0.0" />
   <Resources>
     <Endpoints>
-      <Endpoint Name="CaptainHook.EndpointDispatcherActorEndpointV2_1" />
-      <Endpoint Name="CaptainHook.EndpointDispatcherActorReplicatorEndpoint" />
       <Endpoint Name="EndpointDispatcherActorServiceEndpointV2_1" />
       <Endpoint Name="EndpointDispatcherActorServiceReplicatorEndpoint" />
     </Endpoints>
   </Resources>
-  <!-- The content will be generated during build -->
 </ServiceManifest>

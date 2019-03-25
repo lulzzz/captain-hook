@@ -39,7 +39,7 @@ namespace CaptainHook.Interfaces
         /// </summary>
         /// <param name="config"></param>
         /// <param name="cancellationToken"></param>
-        WebhookConfig UpdateWebhook(WebhookConfig config, CancellationToken cancellationToken);
+        Task<WebhookConfig> UpdateWebhook(WebhookConfig config, CancellationToken cancellationToken);
 
         /// <summary>
         /// Delete an existing webhook
