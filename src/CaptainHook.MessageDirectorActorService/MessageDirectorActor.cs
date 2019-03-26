@@ -14,7 +14,7 @@ using Microsoft.ServiceFabric.Actors.Runtime;
 using Microsoft.ServiceFabric.Services.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 
-namespace CaptainHook.MessagingDirectorActorService
+namespace CaptainHook.MessageDirectorActorService
 {
     /// <remarks>
     /// This class represents an actor.
@@ -25,20 +25,20 @@ namespace CaptainHook.MessagingDirectorActorService
     ///  - None: State is kept in memory only and not replicated.
     /// </remarks>
     [StatePersistence(StatePersistence.Persisted)]
-    public class MessagingDirectorActor : Actor, IMessagingDirector
+    public class MessageDirectorActor : Actor, IMessageDirector
     {
         private readonly IBigBrother _bigBrother;
         private readonly ServiceBusConfig _serviceBusConfig;
 
         /// <inheritdoc />
         /// <summary>
-        /// Initializes a new instance of <see cref="T:CaptainHook.MessagingDirectorActorService.MessagingDirectorActor" />.
+        /// Initializes a new instance of <see cref="T:CaptainHook.MessageDirectorActorService.MessageDirectorActor" />.
         /// </summary>
         /// <param name="actorService">The <see cref="T:Microsoft.ServiceFabric.Actors.Runtime.ActorService" /> that will host this actor instance.</param>
         /// <param name="actorId">The <see cref="T:Microsoft.ServiceFabric.Actors.ActorId" /> for this actor instance.</param>
         /// <param name="bigBrother"></param>
         /// <param name="serviceBusConfig"></param>
-        public MessagingDirectorActor(
+        public MessageDirectorActor(
             ActorService actorService,
             ActorId actorId,
             IBigBrother bigBrother,

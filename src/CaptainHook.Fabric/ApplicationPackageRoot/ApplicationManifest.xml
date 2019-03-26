@@ -14,22 +14,26 @@
     <Parameter Name="CaptainHook.MessageDirectorActorService_TargetReplicaSetSize" DefaultValue="3" />
     <Parameter Name="CaptainHook.Api_InstanceCount" DefaultValue="-1" />
     <Parameter Name="CaptainHook.Test.Api_InstanceCount" DefaultValue="-1" />
-    <Parameter Name="CaptainHook.MessagingDirectorActorService_PartitionCount" DefaultValue="1" />
-    <Parameter Name="CaptainHook.MessagingDirectorActorService_MinReplicaSetSize" DefaultValue="3" />
-    <Parameter Name="CaptainHook.MessagingDirectorActorService_TargetReplicaSetSize" DefaultValue="3" />
-    <Parameter Name="CaptainHook.PoolManagerActorService_PartitionCount" DefaultValue="10" />
-    <Parameter Name="CaptainHook.PoolManagerActorService_MinReplicaSetSize" DefaultValue="3" />
-    <Parameter Name="CaptainHook.PoolManagerActorService_TargetReplicaSetSize" DefaultValue="3" />
     <Parameter Name="CaptainHook.EventHandlerActorService_PartitionCount" DefaultValue="10" />
     <Parameter Name="CaptainHook.EventHandlerActorService_MinReplicaSetSize" DefaultValue="3" />
     <Parameter Name="CaptainHook.EventHandlerActorService_TargetReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="CaptainHook.PoolManagerActorService_PartitionCount" DefaultValue="1" />
+    <Parameter Name="CaptainHook.PoolManagerActorService_TargetReplicaSetSize" DefaultValue="1" />
+    <Parameter Name="CaptainHook.PoolManagerActorService_MinReplicaSetSize" DefaultValue="3" />
     <Parameter Name="CaptainHook.EndpointDispatcherActorService_PartitionCount" DefaultValue="10" />
     <Parameter Name="CaptainHook.EndpointDispatcherActorService_MinReplicaSetSize" DefaultValue="3" />
     <Parameter Name="CaptainHook.EndpointDispatcherActorService_TargetReplicaSetSize" DefaultValue="3" />
   </Parameters>
+
   <!-- Import the ServiceManifest from the ServicePackage. The ServiceManifestName and ServiceManifestVersion 
        should match the Name and Version attributes of the ServiceManifest element defined in the 
        ServiceManifest.xml file. -->
+  <ServiceManifestImport>
+    <ServiceManifestRef ServiceManifestName="CaptainHook.MessageDirectorActorServicePkg" ServiceManifestVersion="1.0.0" />
+    <EnvironmentOverrides CodePackageRef="Code">
+      <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
+    </EnvironmentOverrides>
+  </ServiceManifestImport>
   <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="CaptainHook.EventReaderServicePkg" ServiceManifestVersion="1.0.0" />
     <ConfigOverrides />
@@ -54,40 +58,27 @@
       <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
     </EnvironmentOverrides>
   </ServiceManifestImport>
-  <!--<ServiceManifestImport>
+  <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="CaptainHook.PoolManagerActorServicePkg" ServiceManifestVersion="1.0.0" />
     <EnvironmentOverrides CodePackageRef="Code">
       <EnvironmentVariable Name="KEYVAULT_BASE_URI" Value="[KeyVault_Base_Uri]" />
       <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
     </EnvironmentOverrides>
-  </ServiceManifestImport>-->
-  <!--<ServiceManifestImport>
+  </ServiceManifestImport>
+  <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="CaptainHook.EventHandlerActorServicePkg" ServiceManifestVersion="1.0.0" />
     <EnvironmentOverrides CodePackageRef="Code">
       <EnvironmentVariable Name="KEYVAULT_BASE_URI" Value="[KeyVault_Base_Uri]" />
       <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
     </EnvironmentOverrides>
-  </ServiceManifestImport>-->
-  <!--<ServiceManifestImport>
+  </ServiceManifestImport>
+  <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="CaptainHook.EndpointDispatcherActorServicePkg" ServiceManifestVersion="1.0.0" />
     <EnvironmentOverrides CodePackageRef="Code">
       <EnvironmentVariable Name="KEYVAULT_BASE_URI" Value="[KeyVault_Base_Uri]" />
       <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
     </EnvironmentOverrides>
-  </ServiceManifestImport>-->
-  <!--<ServiceManifestImport>
-    <ServiceManifestRef ServiceManifestName="CaptainHook.EndpointDispatcherActorServicePkg" ServiceManifestVersion="1.0.0" />
-    <EnvironmentOverrides CodePackageRef="Code">
-      <EnvironmentVariable Name="KEYVAULT_BASE_URI" Value="[KeyVault_Base_Uri]" />
-      <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
-    </EnvironmentOverrides>
-  </ServiceManifestImport>-->
-  <!--<ServiceManifestImport>
-    <ServiceManifestRef ServiceManifestName="CaptainHook.MessagingDirectorActorServicePkg" ServiceManifestVersion="1.0.0" />
-    <EnvironmentOverrides CodePackageRef="Code">
-      <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
-    </EnvironmentOverrides>
-  </ServiceManifestImport>-->
+  </ServiceManifestImport>
 
   <DefaultServices>
     <Service Name="CaptainHook.EventReaderService" ServicePackageActivationMode="ExclusiveProcess">
@@ -110,21 +101,21 @@
         <SingletonPartition />
       </StatelessService>
     </Service>
-    <!--<Service Name="CaptainHook.PoolManagerActorService" GeneratedIdRef="496aca60-035e-41de-b3e6-4033471dd6ec|Persisted">
+    <Service Name="CaptainHook.PoolManagerActorService" GeneratedIdRef="496aca60-035e-41de-b3e6-4033471dd6ec|Persisted">
       <StatefulService ServiceTypeName="CaptainHook.PoolManagerActorServiceType" TargetReplicaSetSize="[CaptainHook.PoolManagerActorService_TargetReplicaSetSize]" MinReplicaSetSize="[CaptainHook.PoolManagerActorService_MinReplicaSetSize]">
         <UniformInt64Partition PartitionCount="[CaptainHook.PoolManagerActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
       </StatefulService>
-    </Service>-->
-    <!--<Service Name="CaptainHook.EventHandlerActorService" GeneratedIdRef="cfab5667-15a2-46dc-ae6b-832fa788f82a|Persisted">
+    </Service>
+    <Service Name="CaptainHook.EventHandlerActorService" GeneratedIdRef="cfab5667-15a2-46dc-ae6b-832fa788f82a|Persisted">
       <StatefulService ServiceTypeName="CaptainHook.EventHandlerActorServiceType" TargetReplicaSetSize="[CaptainHook.EventHandlerActorService_TargetReplicaSetSize]" MinReplicaSetSize="[CaptainHook.EventHandlerActorService_MinReplicaSetSize]">
         <UniformInt64Partition PartitionCount="[CaptainHook.EventHandlerActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
       </StatefulService>
-    </Service>-->
-    <!--<Service Name="CaptainHook.EndpointDispatcherActorService" GeneratedIdRef="0d91252e-d358-4524-bc05-8b91a980d8ec|Persisted">
+    </Service>
+    <Service Name="CaptainHook.EndpointDispatcherActorService" GeneratedIdRef="0d91252e-d358-4524-bc05-8b91a980d8ec|Persisted">
       <StatefulService ServiceTypeName="CaptainHook.EndpointDispatcherActorServiceType" TargetReplicaSetSize="[CaptainHook.EndpointDispatcherActorService_TargetReplicaSetSize]" MinReplicaSetSize="[CaptainHook.EndpointDispatcherActorService_MinReplicaSetSize]">
         <UniformInt64Partition PartitionCount="[CaptainHook.EndpointDispatcherActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
       </StatefulService>
-    </Service>-->
+    </Service>
     <!-- The section below creates instances of service types, when an instance of this 
          application type is created. You can also create one or more instances of service type using the 
          ServiceFabric PowerShell module.

@@ -32,7 +32,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.EventHandlerAct
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.EndpointDispatcherActorService", "CaptainHook.EndpointDispatcherActorService\CaptainHook.EndpointDispatcherActorService.csproj", "{546F4799-6D96-4861-8642-B2CD275FA858}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.MessagingDirectorActorService", "CaptainHook.MessagingDirectorActorService\CaptainHook.MessagingDirectorActorService.csproj", "{E78A6D0E-8776-459A-8BFB-7CAD11CC5E61}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.MessageDirectorActorService", "CaptainHook.MessageDirectorActorService\CaptainHook.MessageDirectorActorService.csproj", "{B5B6F464-8C14-435D-B465-B1493A0649DA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -112,12 +112,12 @@ Global
 		{546F4799-6D96-4861-8642-B2CD275FA858}.Release|Any CPU.ActiveCfg = Release|x64
 		{546F4799-6D96-4861-8642-B2CD275FA858}.Release|x64.ActiveCfg = Release|x64
 		{546F4799-6D96-4861-8642-B2CD275FA858}.Release|x64.Build.0 = Release|x64
-		{E78A6D0E-8776-459A-8BFB-7CAD11CC5E61}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{E78A6D0E-8776-459A-8BFB-7CAD11CC5E61}.Debug|x64.ActiveCfg = Debug|x64
-		{E78A6D0E-8776-459A-8BFB-7CAD11CC5E61}.Debug|x64.Build.0 = Debug|x64
-		{E78A6D0E-8776-459A-8BFB-7CAD11CC5E61}.Release|Any CPU.ActiveCfg = Release|x64
-		{E78A6D0E-8776-459A-8BFB-7CAD11CC5E61}.Release|x64.ActiveCfg = Release|x64
-		{E78A6D0E-8776-459A-8BFB-7CAD11CC5E61}.Release|x64.Build.0 = Release|x64
+		{B5B6F464-8C14-435D-B465-B1493A0649DA}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{B5B6F464-8C14-435D-B465-B1493A0649DA}.Debug|x64.ActiveCfg = Debug|x64
+		{B5B6F464-8C14-435D-B465-B1493A0649DA}.Debug|x64.Build.0 = Debug|x64
+		{B5B6F464-8C14-435D-B465-B1493A0649DA}.Release|Any CPU.ActiveCfg = Release|x64
+		{B5B6F464-8C14-435D-B465-B1493A0649DA}.Release|x64.ActiveCfg = Release|x64
+		{B5B6F464-8C14-435D-B465-B1493A0649DA}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

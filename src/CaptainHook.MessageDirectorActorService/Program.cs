@@ -6,7 +6,7 @@ using Autofac.Integration.ServiceFabric;
 using Eshopworld.Core;
 using Eshopworld.Telemetry;
 
-namespace CaptainHook.MessagingDirectorActorService
+namespace CaptainHook.MessageDirectorActorService
 {
     internal static class Program
     {
@@ -19,7 +19,7 @@ namespace CaptainHook.MessagingDirectorActorService
             {
                 var builder = new ContainerBuilder();
                 builder.RegisterServiceFabricSupport();
-                builder.RegisterActor<MessagingDirectorActor>();
+                builder.RegisterActor<MessageDirectorActor>();
                 builder.RegisterType<BigBrother>().As<IBigBrother>();
 
                 using (builder.Build())

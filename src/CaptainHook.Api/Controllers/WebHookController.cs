@@ -47,7 +47,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         public IActionResult Get(string name)
         {
-            return Ok(GetActorRef<IMessagingDirector>(Actors.MessageDirector).ReadWebhook(name, _cancellationToken));
+            return Ok(GetActorRef<IMessageDirector>(Actors.MessageDirector).ReadWebhook(name, _cancellationToken));
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         public IActionResult Post(WebhookConfig config)
         {
-            return Ok(GetActorRef<IMessagingDirector>(Actors.MessageDirector).CreateWebhook(config, _cancellationToken));
+            return Ok(GetActorRef<IMessageDirector>(Actors.MessageDirector).CreateWebhook(config, _cancellationToken));
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         public IActionResult Put(WebhookConfig config)
         {
-            return Ok(GetActorRef<IMessagingDirector>(Actors.MessageDirector).UpdateWebhook(config, _cancellationToken));
+            return Ok(GetActorRef<IMessageDirector>(Actors.MessageDirector).UpdateWebhook(config, _cancellationToken));
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         public IActionResult Delete(string name)
         {
-            GetActorRef<IMessagingDirector>(Actors.MessageDirector).DeleteWebhook(name, _cancellationToken);
+            GetActorRef<IMessageDirector>(Actors.MessageDirector).DeleteWebhook(name, _cancellationToken);
             return NoContent();
         }
     }

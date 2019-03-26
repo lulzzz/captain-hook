@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ServiceManifest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="CaptainHook.MessageDirectorActorServicePkg" Version="1.0.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
+  <ServiceTypes>
+    <StatefulServiceType ServiceTypeName="MessageDirectorActorServiceType" HasPersistedState="true">
+      <Extensions>
+        <Extension Name="__GeneratedServiceType__" GeneratedId="55c5194c-10fc-4043-a033-8fabb536bd44|Persisted">
+          <GeneratedNames xmlns="http://schemas.microsoft.com/2015/03/fabact-no-schema">
+            <DefaultService Name="MessageDirectorActorService" />
+            <ReplicatorEndpoint Name="MessageDirectorActorServiceReplicatorEndpoint" />
+            <ReplicatorConfigSection Name="MessageDirectorActorServiceReplicatorConfig" />
+            <ReplicatorSecurityConfigSection Name="MessageDirectorActorServiceReplicatorSecurityConfig" />
+            <StoreConfigSection Name="MessageDirectorActorServiceLocalStoreConfig" />
+            <ServiceEndpointV2_1 Name="MessageDirectorActorServiceEndpointV2_1" />
+          </GeneratedNames>
+        </Extension>
+      </Extensions>
+    </StatefulServiceType>
+  </ServiceTypes>
+  <CodePackage Name="Code" Version="1.0.0">
+    <EntryPoint>
+      <ExeHost>
+        <Program>CaptainHook.MessageDirectorActorService.exe</Program>
+      </ExeHost>
+    </EntryPoint>
+    <EnvironmentVariables>
+      <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="" />
+    </EnvironmentVariables>
+  </CodePackage>
+  <ConfigPackage Name="Config" Version="1.0.0" />
+  <Resources>
+    <Endpoints>
+      <Endpoint Name="MessageDirectorActorServiceEndpointV2_1" />
+      <Endpoint Name="MessageDirectorActorServiceReplicatorEndpoint" />
+    </Endpoints>
+  </Resources>
+  <!-- The content will be generated during build -->
+</ServiceManifest>
