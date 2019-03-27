@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ApplicationManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ApplicationTypeName="CaptainHookType" ApplicationTypeVersion="1.0.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
   <Parameters>
-
     <Parameter Name="KeyVault_Base_Uri" DefaultValue="N/A" />
     <Parameter Name="AspNetCore_Environment" DefaultValue="N/A" />
 
@@ -30,6 +29,7 @@
        ServiceManifest.xml file. -->
   <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="CaptainHook.MessageDirectorActorServicePkg" ServiceManifestVersion="1.0.0" />
+    <ConfigOverrides />
     <EnvironmentOverrides CodePackageRef="Code">
       <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
     </EnvironmentOverrides>
@@ -60,6 +60,7 @@
   </ServiceManifestImport>
   <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="CaptainHook.PoolManagerActorServicePkg" ServiceManifestVersion="1.0.0" />
+    <ConfigOverrides />
     <EnvironmentOverrides CodePackageRef="Code">
       <EnvironmentVariable Name="KEYVAULT_BASE_URI" Value="[KeyVault_Base_Uri]" />
       <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
@@ -81,11 +82,6 @@
   </ServiceManifestImport>
 
   <DefaultServices>
-    <Service Name="CaptainHook.EventReaderService" ServicePackageActivationMode="ExclusiveProcess">
-      <StatefulService ServiceTypeName="CaptainHook.EventReaderServiceType" TargetReplicaSetSize="[CaptainHook.EventReaderService_TargetReplicaSetSize]" MinReplicaSetSize="[CaptainHook.EventReaderService_MinReplicaSetSize]">
-        <UniformInt64Partition PartitionCount="[CaptainHook.EventReaderService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
-      </StatefulService>
-    </Service>
     <Service Name="CaptainHook.MessageDirectorActorService" ServicePackageActivationMode="ExclusiveProcess">
       <StatefulService ServiceTypeName="CaptainHook.MessageDirectorActorServiceType" TargetReplicaSetSize="[CaptainHook.MessageDirectorActorService_TargetReplicaSetSize]" MinReplicaSetSize="[CaptainHook.MessageDirectorActorService_MinReplicaSetSize]">
         <UniformInt64Partition PartitionCount="[CaptainHook.MessageDirectorActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
@@ -100,21 +96,6 @@
       <StatelessService ServiceTypeName="CaptainHook.Test.ApiType" InstanceCount="[CaptainHook.Test.Api_InstanceCount]">
         <SingletonPartition />
       </StatelessService>
-    </Service>
-    <Service Name="CaptainHook.PoolManagerActorService" GeneratedIdRef="496aca60-035e-41de-b3e6-4033471dd6ec|Persisted">
-      <StatefulService ServiceTypeName="CaptainHook.PoolManagerActorServiceType" TargetReplicaSetSize="[CaptainHook.PoolManagerActorService_TargetReplicaSetSize]" MinReplicaSetSize="[CaptainHook.PoolManagerActorService_MinReplicaSetSize]">
-        <UniformInt64Partition PartitionCount="[CaptainHook.PoolManagerActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
-      </StatefulService>
-    </Service>
-    <Service Name="CaptainHook.EventHandlerActorService" GeneratedIdRef="cfab5667-15a2-46dc-ae6b-832fa788f82a|Persisted">
-      <StatefulService ServiceTypeName="CaptainHook.EventHandlerActorServiceType" TargetReplicaSetSize="[CaptainHook.EventHandlerActorService_TargetReplicaSetSize]" MinReplicaSetSize="[CaptainHook.EventHandlerActorService_MinReplicaSetSize]">
-        <UniformInt64Partition PartitionCount="[CaptainHook.EventHandlerActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
-      </StatefulService>
-    </Service>
-    <Service Name="CaptainHook.EndpointDispatcherActorService" GeneratedIdRef="0d91252e-d358-4524-bc05-8b91a980d8ec|Persisted">
-      <StatefulService ServiceTypeName="CaptainHook.EndpointDispatcherActorServiceType" TargetReplicaSetSize="[CaptainHook.EndpointDispatcherActorService_TargetReplicaSetSize]" MinReplicaSetSize="[CaptainHook.EndpointDispatcherActorService_MinReplicaSetSize]">
-        <UniformInt64Partition PartitionCount="[CaptainHook.EndpointDispatcherActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
-      </StatefulService>
     </Service>
     <!-- The section below creates instances of service types, when an instance of this 
          application type is created. You can also create one or more instances of service type using the 

@@ -29,7 +29,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\CaptainHook.Common\CaptainHook.Common.csproj" />
-    <ProjectReference Include="..\..\CaptainHook.EventHandlerActorService\CaptainHook.EventHandlerActorService.csproj" />
   </ItemGroup>
 
 </Project>

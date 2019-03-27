@@ -10,8 +10,18 @@ namespace CaptainHook.Interfaces
     /// </summary>
     public interface IEventHandlerActor : IActor
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="messageData"></param>
+        /// <returns></returns>
         Task HandleMessage(MessageData messageData);
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="baseUri"></param>
+        /// <returns></returns>
         Task CompleteDispatch(string baseUri);
     }
 }
