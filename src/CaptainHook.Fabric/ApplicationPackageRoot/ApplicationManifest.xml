@@ -5,23 +5,11 @@
     <Parameter Name="AspNetCore_Environment" DefaultValue="N/A" />
 
     <!-- Actors and Service Instance/Partition Config -->
-    <Parameter Name="CaptainHook.EventReaderService_MinReplicaSetSize" DefaultValue="3" />
-    <Parameter Name="CaptainHook.EventReaderService_PartitionCount" DefaultValue="1" />
-    <Parameter Name="CaptainHook.EventReaderService_TargetReplicaSetSize" DefaultValue="3" />
     <Parameter Name="CaptainHook.MessageDirectorActorService_MinReplicaSetSize" DefaultValue="3" />
     <Parameter Name="CaptainHook.MessageDirectorActorService_PartitionCount" DefaultValue="1" />
     <Parameter Name="CaptainHook.MessageDirectorActorService_TargetReplicaSetSize" DefaultValue="3" />
     <Parameter Name="CaptainHook.Api_InstanceCount" DefaultValue="-1" />
     <Parameter Name="CaptainHook.Test.Api_InstanceCount" DefaultValue="-1" />
-    <Parameter Name="CaptainHook.EventHandlerActorService_PartitionCount" DefaultValue="10" />
-    <Parameter Name="CaptainHook.EventHandlerActorService_MinReplicaSetSize" DefaultValue="3" />
-    <Parameter Name="CaptainHook.EventHandlerActorService_TargetReplicaSetSize" DefaultValue="3" />
-    <Parameter Name="CaptainHook.PoolManagerActorService_PartitionCount" DefaultValue="1" />
-    <Parameter Name="CaptainHook.PoolManagerActorService_TargetReplicaSetSize" DefaultValue="1" />
-    <Parameter Name="CaptainHook.PoolManagerActorService_MinReplicaSetSize" DefaultValue="3" />
-    <Parameter Name="CaptainHook.EndpointDispatcherActorService_PartitionCount" DefaultValue="10" />
-    <Parameter Name="CaptainHook.EndpointDispatcherActorService_MinReplicaSetSize" DefaultValue="3" />
-    <Parameter Name="CaptainHook.EndpointDispatcherActorService_TargetReplicaSetSize" DefaultValue="3" />
   </Parameters>
 
   <!-- Import the ServiceManifest from the ServicePackage. The ServiceManifestName and ServiceManifestVersion 
