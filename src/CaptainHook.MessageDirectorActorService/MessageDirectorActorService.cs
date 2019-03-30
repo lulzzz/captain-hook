@@ -52,7 +52,7 @@ namespace CaptainHook.MessageDirectorActorService
         /// <summary>
         /// Generates the Event Reader Name from the Actor
         /// </summary>
-        public string EventReaderServiceName => $"{ApplicationName}/CaptainHook.EventReaderService";
+        public string EventReaderServiceName => $"{ApplicationName}/EventReaderService";
 
         /// <summary>
         /// 

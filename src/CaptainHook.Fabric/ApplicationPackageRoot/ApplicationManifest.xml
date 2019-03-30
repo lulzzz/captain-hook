@@ -70,14 +70,10 @@
     </EnvironmentOverrides>
   </ServiceManifestImport>
 
+  <!--Default Services equate to services which should be there when the application is deployed on the fabric, nothing more.
+  There are issues with having too many and volume of the replicates on startup so do look into it more before modifying the below-->
   <DefaultServices>
-    <!--<Service Name="CaptainHook.MessageDirectorActorService" ServicePackageActivationMode="ExclusiveProcess">
-      <StatefulService ServiceTypeName="CaptainHook.MessageDirectorActorServiceType" TargetReplicaSetSize="[CaptainHook.MessageDirectorActorService_TargetReplicaSetSize]" MinReplicaSetSize="[CaptainHook.MessageDirectorActorService_MinReplicaSetSize]">
-        <UniformInt64Partition PartitionCount="[CaptainHook.MessageDirectorActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
-      </StatefulService>
-    </Service>-->
-
-    <Service Name="MessageDirectorActorService" GeneratedIdRef="c25625f9-6afc-4382-9eb4-b06a972851b0|Persisted">
+    <Service Name="MessageDirector" GeneratedIdRef="c25625f9-6afc-4382-9eb4-b06a972851b0|Persisted">
       <StatefulService ServiceTypeName="MessageDirectorActorServiceType" TargetReplicaSetSize="[CaptainHook.MessageDirectorActorService_TargetReplicaSetSize]" MinReplicaSetSize="[CaptainHook.MessageDirectorActorService_MinReplicaSetSize]">
         <UniformInt64Partition PartitionCount="[CaptainHook.MessageDirectorActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
       </StatefulService>
