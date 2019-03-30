@@ -19,6 +19,7 @@
     <ServiceManifestRef ServiceManifestName="CaptainHook.MessageDirectorActorServicePkg" ServiceManifestVersion="1.0.0" />
     <ConfigOverrides />
     <EnvironmentOverrides CodePackageRef="Code">
+      <EnvironmentVariable Name="KEYVAULT_BASE_URI" Value="[KeyVault_Base_Uri]" />
       <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
     </EnvironmentOverrides>
   </ServiceManifestImport>
@@ -70,17 +71,23 @@
   </ServiceManifestImport>
 
   <DefaultServices>
-    <Service Name="CaptainHook.MessageDirectorActorService" ServicePackageActivationMode="ExclusiveProcess">
+    <!--<Service Name="CaptainHook.MessageDirectorActorService" ServicePackageActivationMode="ExclusiveProcess">
       <StatefulService ServiceTypeName="CaptainHook.MessageDirectorActorServiceType" TargetReplicaSetSize="[CaptainHook.MessageDirectorActorService_TargetReplicaSetSize]" MinReplicaSetSize="[CaptainHook.MessageDirectorActorService_MinReplicaSetSize]">
         <UniformInt64Partition PartitionCount="[CaptainHook.MessageDirectorActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
       </StatefulService>
+    </Service>-->
+
+    <Service Name="MessageDirectorActorService" GeneratedIdRef="c25625f9-6afc-4382-9eb4-b06a972851b0|Persisted">
+      <StatefulService ServiceTypeName="MessageDirectorActorServiceType" TargetReplicaSetSize="[CaptainHook.MessageDirectorActorService_TargetReplicaSetSize]" MinReplicaSetSize="[CaptainHook.MessageDirectorActorService_MinReplicaSetSize]">
+        <UniformInt64Partition PartitionCount="[CaptainHook.MessageDirectorActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
+      </StatefulService>
     </Service>
-    <Service Name="CaptainHook.Api" ServicePackageActivationMode="ExclusiveProcess">
+    <Service Name="Api" ServicePackageActivationMode="ExclusiveProcess">
       <StatelessService ServiceTypeName="CaptainHook.ApiType" InstanceCount="[CaptainHook.Api_InstanceCount]">
         <SingletonPartition />
       </StatelessService>
     </Service>
-    <Service Name="CaptainHook.Test.Api" ServicePackageActivationMode="ExclusiveProcess">
+    <Service Name="Test.Api" ServicePackageActivationMode="ExclusiveProcess">
       <StatelessService ServiceTypeName="CaptainHook.Test.ApiType" InstanceCount="[CaptainHook.Test.Api_InstanceCount]">
         <SingletonPartition />
       </StatelessService>

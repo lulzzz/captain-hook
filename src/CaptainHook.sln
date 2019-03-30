@@ -30,9 +30,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.PoolManagerActo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.EndpointDispatcherActorService", "CaptainHook.EndpointDispatcherActorService\CaptainHook.EndpointDispatcherActorService.csproj", "{546F4799-6D96-4861-8642-B2CD275FA858}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.MessageDirectorActorService", "CaptainHook.MessageDirectorActorService\CaptainHook.MessageDirectorActorService.csproj", "{B5B6F464-8C14-435D-B465-B1493A0649DA}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.EventHandlerActorService", "CaptainHook.EventHandlerActorService\CaptainHook.EventHandlerActorService.csproj", "{5E900857-55B9-42C6-A1E4-39E8C80AF908}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.MessageDirectorActorService", "CaptainHook.MessageDirectorActorService\CaptainHook.MessageDirectorActorService.csproj", "{A73B1FCD-3963-4CAB-9415-E2F4A60ABBB4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -106,18 +106,20 @@ Global
 		{546F4799-6D96-4861-8642-B2CD275FA858}.Release|Any CPU.ActiveCfg = Release|x64
 		{546F4799-6D96-4861-8642-B2CD275FA858}.Release|x64.ActiveCfg = Release|x64
 		{546F4799-6D96-4861-8642-B2CD275FA858}.Release|x64.Build.0 = Release|x64
-		{B5B6F464-8C14-435D-B465-B1493A0649DA}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{B5B6F464-8C14-435D-B465-B1493A0649DA}.Debug|x64.ActiveCfg = Debug|x64
-		{B5B6F464-8C14-435D-B465-B1493A0649DA}.Debug|x64.Build.0 = Debug|x64
-		{B5B6F464-8C14-435D-B465-B1493A0649DA}.Release|Any CPU.ActiveCfg = Release|x64
-		{B5B6F464-8C14-435D-B465-B1493A0649DA}.Release|x64.ActiveCfg = Release|x64
-		{B5B6F464-8C14-435D-B465-B1493A0649DA}.Release|x64.Build.0 = Release|x64
 		{5E900857-55B9-42C6-A1E4-39E8C80AF908}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{5E900857-55B9-42C6-A1E4-39E8C80AF908}.Debug|x64.ActiveCfg = Debug|x64
 		{5E900857-55B9-42C6-A1E4-39E8C80AF908}.Debug|x64.Build.0 = Debug|x64
 		{5E900857-55B9-42C6-A1E4-39E8C80AF908}.Release|Any CPU.ActiveCfg = Release|x64
 		{5E900857-55B9-42C6-A1E4-39E8C80AF908}.Release|x64.ActiveCfg = Release|x64
 		{5E900857-55B9-42C6-A1E4-39E8C80AF908}.Release|x64.Build.0 = Release|x64
+		{A73B1FCD-3963-4CAB-9415-E2F4A60ABBB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A73B1FCD-3963-4CAB-9415-E2F4A60ABBB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A73B1FCD-3963-4CAB-9415-E2F4A60ABBB4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A73B1FCD-3963-4CAB-9415-E2F4A60ABBB4}.Debug|x64.Build.0 = Debug|Any CPU
+		{A73B1FCD-3963-4CAB-9415-E2F4A60ABBB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A73B1FCD-3963-4CAB-9415-E2F4A60ABBB4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A73B1FCD-3963-4CAB-9415-E2F4A60ABBB4}.Release|x64.ActiveCfg = Release|Any CPU
+		{A73B1FCD-3963-4CAB-9415-E2F4A60ABBB4}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
