@@ -15,7 +15,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.Swagger;
 using System.Reflection;
+using CaptainHook.Common.Configuration;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.Services.AppAuthentication;
+using Microsoft.Extensions.Configuration.AzureKeyVault;
 
 namespace CaptainHook.Api
 {
@@ -36,8 +40,20 @@ namespace CaptainHook.Api
         {
             try
             {
-                _configuration = EswDevOpsSdk.BuildConfiguration(env.ContentRootPath, env.EnvironmentName);
-                _configuration.GetSection("Telemetry").Bind(_telemetrySettings);
+                var kvUri = Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable);
+
+                _configuration = new ConfigurationBuilder().AddAzureKeyVault(
+                    kvUri,
+                    new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
+                    new DefaultKeyVaultSecretManager()).Build();
+
+                var settings = new ConfigurationSettings();
+                _configuration.Bind(settings);
+
+                //_configuration = EswDevOpsSdk.BuildConfiguration(env.ContentRootPath, env.EnvironmentName);
+                //_configuration.GetSection("Telemetry").Bind(_telemetrySettings);
+                _telemetrySettings.InstrumentationKey = settings.InstrumentationKey;
+                _telemetrySettings.InternalKey = "captain-hook";
                 _bb = new BigBrother(_telemetrySettings.InstrumentationKey, _telemetrySettings.InternalKey);
             }
             catch (Exception e)
@@ -64,13 +80,17 @@ namespace CaptainHook.Api
 
                 services.AddMvc(options =>
                 {
-                    var policy = ScopePolicy.Create(serviceConfigurationOptions.Value.RequiredScopes.ToArray());
+                    //todo this needs wiring up to keyvault or perhaps we need to import from kv first and then take in the data from appsettings
+                    //var policy = ScopePolicy.Create(serviceConfigurationOptions.Value.RequiredScopes.ToArray());
 
-                    var filter = EnvironmentHelper.IsInFabric ? 
-                        (IFilterMetadata) new AuthorizeFilter(policy): 
-                        new AllowAnonymousFilter();
+                    //var filter = EnvironmentHelper.IsInFabric ? 
+                    //    (IFilterMetadata) new AuthorizeFilter(policy): 
+                    //    new AllowAnonymousFilter();
 
-                    options.Filters.Add(filter);
+                    //options.Filters.Add(filter);
+
+                    //todo remove for proper auth
+                    options.Filters.Add(new AllowAnonymousFilter());
                 });
                 services.AddApiVersioning();
 

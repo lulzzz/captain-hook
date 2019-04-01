@@ -83,11 +83,11 @@
         <SingletonPartition />
       </StatelessService>
     </Service>
-    <Service Name="Test.Api" ServicePackageActivationMode="ExclusiveProcess">
+    <!--<Service Name="Test.Api" ServicePackageActivationMode="ExclusiveProcess">
       <StatelessService ServiceTypeName="CaptainHook.Test.ApiType" InstanceCount="[CaptainHook.Test.Api_InstanceCount]">
         <SingletonPartition />
       </StatelessService>
-    </Service>
+    </Service>-->
     <!-- The section below creates instances of service types, when an instance of this 
          application type is created. You can also create one or more instances of service type using the 
          ServiceFabric PowerShell module.
