@@ -1,25 +1,26 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Eshopworld.Core;
-using Eshopworld.DevOps;
 using Eshopworld.Web;
 using Eshopworld.Telemetry;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using Swashbuckle.AspNetCore.Swagger;
 using System.Reflection;
 using CaptainHook.Common.Configuration;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
+using Microsoft.OpenApi.Models;
 
 namespace CaptainHook.Api
 {
@@ -28,33 +29,28 @@ namespace CaptainHook.Api
     /// </summary>
     public class Startup
     {
-        private readonly TelemetrySettings _telemetrySettings = new TelemetrySettings();
         private readonly IBigBrother _bb;
-        private readonly IConfigurationRoot _configuration;
+        private readonly ConfigurationSettings _settings;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="env">hosting environment</param>
-        public Startup(IHostingEnvironment env)
+        public Startup()
         {
             try
             {
                 var kvUri = Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable);
 
-                _configuration = new ConfigurationBuilder().AddAzureKeyVault(
+                var configuration = new ConfigurationBuilder().AddAzureKeyVault(
                     kvUri,
                     new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
                     new DefaultKeyVaultSecretManager()).Build();
 
-                var settings = new ConfigurationSettings();
-                _configuration.Bind(settings);
+                _settings = new ConfigurationSettings();
+                configuration.Bind(_settings);
 
-                //_configuration = EswDevOpsSdk.BuildConfiguration(env.ContentRootPath, env.EnvironmentName);
-                //_configuration.GetSection("Telemetry").Bind(_telemetrySettings);
-                _telemetrySettings.InstrumentationKey = settings.InstrumentationKey;
-                _telemetrySettings.InternalKey = "captain-hook";
-                _bb = new BigBrother(_telemetrySettings.InstrumentationKey, _telemetrySettings.InternalKey);
+                _bb = new BigBrother(_settings.InstrumentationKey, _settings.InstrumentationKey);
+                _bb.UseEventSourceSink().ForExceptions();
             }
             catch (Exception e)
             {
@@ -72,25 +68,16 @@ namespace CaptainHook.Api
         {
             try
             {
-                services.AddApplicationInsightsTelemetry(_telemetrySettings.InstrumentationKey);
-                services.Configure<ServiceConfigurationOptions>(_configuration.GetSection("ServiceConfigurationOptions"));
-
-                var serviceConfigurationOptions = services.BuildServiceProvider()
-                    .GetService<IOptions<ServiceConfigurationOptions>>();
-
                 services.AddMvc(options =>
                 {
                     //todo this needs wiring up to keyvault or perhaps we need to import from kv first and then take in the data from appsettings
-                    //var policy = ScopePolicy.Create(serviceConfigurationOptions.Value.RequiredScopes.ToArray());
+                    var policy = ScopePolicy.Create(_settings.RequiredScopes.ToArray());
 
-                    //var filter = EnvironmentHelper.IsInFabric ? 
-                    //    (IFilterMetadata) new AuthorizeFilter(policy): 
-                    //    new AllowAnonymousFilter();
+                    var filter = EnvironmentHelper.IsInFabric ?
+                        (IFilterMetadata)new AuthorizeFilter(policy) :
+                        new AllowAnonymousFilter();
 
-                    //options.Filters.Add(filter);
-
-                    //todo remove for proper auth
-                    options.Filters.Add(new AllowAnonymousFilter());
+                    options.Filters.Add(filter);
                 });
                 services.AddApiVersioning();
 
@@ -108,42 +95,66 @@ namespace CaptainHook.Api
                     {
                         c.IncludeXmlComments(path);
                         c.DescribeAllEnumsAsStrings();
-                        c.SwaggerDoc("v1", new Info { Version = Assembly.GetExecutingAssembly().GetName().Version.ToString(), Title = "CaptainHook.Api" });
+                        c.SwaggerDoc(CaptainHookVersion.ApiVersion, new OpenApiInfo { Version = Assembly.GetExecutingAssembly().GetName().Version.ToString(), Title = CaptainHookVersion.CaptainHook });
                         c.CustomSchemaIds(x => x.FullName);
+                        c.AddSecurityDefinition("Bearer",
+                            new OpenApiSecurityScheme
+                            {
+                                In = ParameterLocation.Header,
+                                Description = "Please insert JWT with Bearer into field",
+                                Name = "Authorization",
+                                Type = CaptainHookVersion.UseOpenApi
+                                    ? SecuritySchemeType.ApiKey
+                                    : SecuritySchemeType.Http,
+                                Scheme = "bearer",
+                                BearerFormat = "JWT",
+                            });
+                        c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                        {
+                            {
+                                new OpenApiSecurityScheme
+                                {
+                                    Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" },
+                                },
+                                new string[0]
+                            }
+                        });
+                        var docFiles = Directory.EnumerateFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CaptainHook.*.xml").ToList();
+                        if (docFiles.Count > 0)
+                        {
+                            foreach (var file in docFiles)
+                            {
+                                c.IncludeXmlComments(file);
+                            }
+                        }
+                        else
+                        {
+                            if (Debugger.IsAttached)
+                            {
+                                // Couldn't find the XML file! check that XML comments are being built and that the file name checks
+                                Debugger.Break();
+                            }
+                        }
 
-                        //c.AddSecurityDefinition("Bearer",
-                        //    new ApiKeyScheme
-                        //    {
-                        //        In = "header",
-                        //        Description = "Please insert JWT with Bearer into field",
-                        //        Name = "Authorization",
-                        //        Type = "apiKey"
-                        //    });
-
-                        //c.AddSecurityRequirement(
-                        //    new Dictionary<string, IEnumerable<string>>
-                        //    {
-                        //        {"Bearer", Array.Empty<string>()}
-                        //    });
+                        c.OperationFilter<DefaultResponseFixFilter>();
                     });
                 }
 
-                //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddIdentityServerAuthentication(
-                //    x =>
-                //    {
-                //        x.ApiName = serviceConfigurationOptions.Value.ApiName;
-                //        x.ApiSecret = serviceConfigurationOptions.Value.ApiSecret;
-                //        x.Authority = serviceConfigurationOptions.Value.Authority;
-                //        x.RequireHttpsMetadata = serviceConfigurationOptions.Value.IsHttps;
+                services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddIdentityServerAuthentication(
+                    x =>
+                    {
+                        x.ApiName = _settings.ApiName;
+                        x.ApiSecret = _settings.ApiSecret;
+                        x.Authority = _settings.Authority;
+                        x.RequireHttpsMetadata = _settings.IsHttps;
+                    });
 
-                //        //TODO: this requires Eshopworld.Beatles.Security to be refactored
-                //        //x.AddJwtBearerEventsTelemetry(bb); 
-                //    });
+                services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
 
                 var builder = new ContainerBuilder();
                 builder.Populate(services);
                 builder.RegisterInstance(_bb).As<IBigBrother>().SingleInstance();
-
                 var container = builder.Build();
                 return new AutofacServiceProvider(container);
             }
@@ -160,17 +171,26 @@ namespace CaptainHook.Api
         /// <param name="app">application builder</param>
         public void Configure(IApplicationBuilder app)
         {
-            app.UseBigBrotherExceptionHandler();
-            app.UseSwagger(o => o.RouteTemplate = "swagger/{documentName}/swagger.json");
-            app.UseSwaggerUI(o =>
+            try
             {
-                o.SwaggerEndpoint("v1/swagger.json", "CaptainHook.Api");
-                o.RoutePrefix = "swagger";
-            });
+                app.UseBigBrotherExceptionHandler();
+                app.UseSwagger(c => c.SerializeAsV2 = CaptainHookVersion.UseOpenApi);
+                app.UseSwagger(o => o.RouteTemplate = "swagger/{documentName}/swagger.json");
+                app.UseSwaggerUI(o =>
+                {
+                    o.SwaggerEndpoint($"{CaptainHookVersion.ApiVersion}/swagger.json", $"Captain Hook API Version {CaptainHookVersion.ApiVersion}");
+                    o.RoutePrefix = "swagger";
+                });
 
-            app.UseAuthentication();
-
-            app.UseMvc();
+                app.UseAuthentication();
+                app.UseMvc();
+            }
+            catch (Exception e)
+            {
+                _bb.Publish(e.ToExceptionEvent());
+                _bb.Flush();
+                throw;
+            }
         }
     }
 }

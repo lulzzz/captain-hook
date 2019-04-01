@@ -1,4 +1,6 @@
-﻿namespace CaptainHook.Common.Configuration
+﻿using System.Collections.Generic;
+
+namespace CaptainHook.Common.Configuration
 {
     public class ConfigurationSettings
     {
@@ -11,5 +13,15 @@
         public string ServiceBusConnectionString { get; set; }
 
         public string ServiceBusNamespace { get; set; }
+
+        public string ApiName { get; set; }
+
+        public string ApiSecret { get; set; }
+
+        public List<string> RequiredScopes { get; set; }
+
+        public string Authority { get; set; }
+
+        public bool IsHttps => !string.IsNullOrWhiteSpace(Authority) && Authority.StartsWith("https");
     }
 }
