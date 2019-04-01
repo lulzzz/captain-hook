@@ -13,8 +13,11 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using System.Threading;
+using Autofac.Integration.ServiceFabric;
 using CaptainHook.Common.Configuration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Azure.KeyVault;
@@ -31,6 +34,8 @@ namespace CaptainHook.Api
     {
         private readonly IBigBrother _bb;
         private readonly ConfigurationSettings _settings;
+        private readonly IConfigurationRoot _configuration;
+        private IContainer _applicationContainer;
 
         /// <summary>
         /// Constructor
@@ -41,13 +46,13 @@ namespace CaptainHook.Api
             {
                 var kvUri = Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable);
 
-                var configuration = new ConfigurationBuilder().AddAzureKeyVault(
+                _configuration = new ConfigurationBuilder().AddAzureKeyVault(
                     kvUri,
                     new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
                     new DefaultKeyVaultSecretManager()).Build();
 
                 _settings = new ConfigurationSettings();
-                configuration.Bind(_settings);
+                _configuration.Bind(_settings);
 
                 _bb = new BigBrother(_settings.InstrumentationKey, _settings.InstrumentationKey);
                 _bb.UseEventSourceSink().ForExceptions();
@@ -63,8 +68,9 @@ namespace CaptainHook.Api
         /// configure services to be used by the asp.net runtime
         /// </summary>
         /// <param name="services">service collection</param>
+        /// <param name="applicationLifetime"></param>
         /// <returns>service provider instance (Autofac provider)</returns>
-        public IServiceProvider ConfigureServices(IServiceCollection services)
+        public IServiceProvider ConfigureServices(IServiceCollection services, IApplicationLifetime applicationLifetime)
         {
             try
             {
@@ -150,13 +156,20 @@ namespace CaptainHook.Api
                     });
 
                 services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-
-
+                
                 var builder = new ContainerBuilder();
                 builder.Populate(services);
+                _applicationContainer = builder.Build();
+
+                builder.RegisterInstance(_configuration).As<IConfigurationRoot>().SingleInstance();
+                builder.RegisterInstance(_settings).As<ConfigurationSettings>().SingleInstance();
                 builder.RegisterInstance(_bb).As<IBigBrother>().SingleInstance();
-                var container = builder.Build();
-                return new AutofacServiceProvider(container);
+
+                //registers an application wide cancellation token so that shutdown can be graceful.
+                builder.Register(_ => applicationLifetime.ApplicationStopping).As<CancellationToken>();
+                builder.RegisterServiceFabricSupport();
+
+                return new AutofacServiceProvider(_applicationContainer);
             }
             catch (Exception e)
             {
