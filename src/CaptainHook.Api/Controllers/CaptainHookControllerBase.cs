@@ -17,7 +17,7 @@ namespace CaptainHook.Api.Controllers
 
         internal IBigBrother BigBrother { get; }
 
-        internal StatelessServiceContext StatelessServiceContext { get; }
+        internal StatefulServiceContext StatelessServiceContext { get; }
 
         /// <summary>
         /// constructor to inject hosting environment
@@ -28,7 +28,7 @@ namespace CaptainHook.Api.Controllers
         protected CaptainHookControllerBase(
             IHostingEnvironment hostingEnvironment, 
             IBigBrother bigBrother, 
-            StatelessServiceContext sfContext)
+            StatefulServiceContext sfContext)
         {
             HostingEnvironment = hostingEnvironment;
             BigBrother = bigBrother;

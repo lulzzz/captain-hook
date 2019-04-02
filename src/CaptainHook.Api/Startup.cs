@@ -16,6 +16,7 @@ using System.Reflection;
 using System.Threading;
 using Autofac.Integration.ServiceFabric;
 using CaptainHook.Common.Configuration;
+using CaptainHook.Common.Telemetry.Api;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -32,15 +33,18 @@ namespace CaptainHook.Api
     /// </summary>
     public class Startup
     {
-        private readonly IBigBrother _bb;
-        private readonly ConfigurationSettings _settings;
-        private readonly IConfigurationRoot _configuration;
+        private IBigBrother _bb;
+        private ConfigurationSettings _settings;
+        private IConfigurationRoot _configuration;
         private IContainer _applicationContainer;
+        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         /// <summary>
-        /// Constructor
+        /// configure services to be used by the asp.net runtime
         /// </summary>
-        public Startup()
+        /// <param name="services">service collection</param>
+        /// <returns>service provider instance (Autofac provider)</returns>
+        public IServiceProvider ConfigureServices(IServiceCollection services)
         {
             try
             {
@@ -56,24 +60,8 @@ namespace CaptainHook.Api
 
                 _bb = new BigBrother(_settings.InstrumentationKey, _settings.InstrumentationKey);
                 _bb.UseEventSourceSink().ForExceptions();
-            }
-            catch (Exception e)
-            {
-                BigBrother.Write(e);
-                throw;
-            }
-        }
 
-        /// <summary>
-        /// configure services to be used by the asp.net runtime
-        /// </summary>
-        /// <param name="services">service collection</param>
-        /// <param name="applicationLifetime"></param>
-        /// <returns>service provider instance (Autofac provider)</returns>
-        public IServiceProvider ConfigureServices(IServiceCollection services, IApplicationLifetime applicationLifetime)
-        {
-            try
-            {
+                services.AddApplicationInsightsTelemetry(_configuration);
                 services.AddMvc(options =>
                 {
                     //todo this needs wiring up to keyvault or perhaps we need to import from kv first and then take in the data from appsettings
@@ -156,7 +144,7 @@ namespace CaptainHook.Api
                     });
 
                 services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-                
+
                 var builder = new ContainerBuilder();
                 builder.Populate(services);
                 _applicationContainer = builder.Build();
@@ -165,8 +153,8 @@ namespace CaptainHook.Api
                 builder.RegisterInstance(_settings).As<ConfigurationSettings>().SingleInstance();
                 builder.RegisterInstance(_bb).As<IBigBrother>().SingleInstance();
 
-                //registers an application wide cancellation token so that shutdown can be graceful.
-                builder.Register(_ => applicationLifetime.ApplicationStopping).As<CancellationToken>();
+                //registers an application wide cancellation token so that shutdowns are graceful
+                builder.Register(_ => _cancellationTokenSource.Token).As<CancellationToken>();
                 builder.RegisterServiceFabricSupport();
 
                 return new AutofacServiceProvider(_applicationContainer);
@@ -182,10 +170,13 @@ namespace CaptainHook.Api
         /// configure asp.net pipeline
         /// </summary>
         /// <param name="app">application builder</param>
-        public void Configure(IApplicationBuilder app)
+        /// <param name="applicationLifetime"></param>
+        public void Configure(IApplicationBuilder app, IApplicationLifetime applicationLifetime)
         {
             try
             {
+                applicationLifetime.ApplicationStarted.Register(OnStartup);
+                applicationLifetime.ApplicationStopped.Register(OnShutdown);
                 app.UseBigBrotherExceptionHandler();
                 app.UseSwagger(c => c.SerializeAsV2 = CaptainHookVersion.UseOpenApi);
                 app.UseSwagger(o => o.RouteTemplate = "swagger/{documentName}/swagger.json");
@@ -204,6 +195,23 @@ namespace CaptainHook.Api
                 _bb.Flush();
                 throw;
             }
+        }
+
+        /// <summary>
+        /// On Startup callback which gets called when the service is started.
+        /// </summary>
+        private void OnStartup()
+        {
+            _bb.Publish(new ApiStartedEvent());
+        }
+
+        /// <summary>
+        /// On Shutdown callback which gets called when the service is asked to shutdown, cancels the applications cancellation token
+        /// </summary>
+        private void OnShutdown()
+        {
+            _bb.Publish(new ApiShutdownEvent());
+            _cancellationTokenSource.Cancel();
         }
     }
 }
