@@ -14,6 +14,9 @@ namespace CaptainHook.Common.Configuration
             WebhookRequestRules = new List<WebhookRequestRule>();
         }
 
+        /// <summary>
+        /// Authentication Config used to auth against the webhook endpoint
+        /// </summary>
         public AuthenticationConfig AuthenticationConfig { get; set; }
 
         /// <summary>
@@ -26,9 +29,15 @@ namespace CaptainHook.Common.Configuration
         /// </summary>
         public string Type { get; set; }
 
+        /// <summary>
+        /// Http Verb used in the request
+        /// </summary>
         //todo implement this on the calls to the webhook to select http verb
         public HttpVerb HttpVerb { get; set; }
 
+        /// <summary>
+        /// Rules used to determine how the webhook should operate
+        /// </summary>
         public List<WebhookRequestRule> WebhookRequestRules { get; set; }
         
         /// <summary>
@@ -36,6 +45,9 @@ namespace CaptainHook.Common.Configuration
         /// </summary>
         public WebhookConfig CallbackConfig { get; set; }
 
+        /// <summary>
+        /// Check if callback is enabled
+        /// </summary>
         public bool CallBackEnabled => CallbackConfig != null;
     }
 
