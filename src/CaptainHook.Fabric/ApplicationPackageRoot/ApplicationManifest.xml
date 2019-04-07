@@ -31,7 +31,7 @@
       <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
     </EnvironmentOverrides>
   </ServiceManifestImport>
-  <ServiceManifestImport>
+  <ServiceManifestImport> 
     <ServiceManifestRef ServiceManifestName="CaptainHook.ApiPkg" ServiceManifestVersion="1.0.0" />
     <ConfigOverrides />
     <EnvironmentOverrides CodePackageRef="code">

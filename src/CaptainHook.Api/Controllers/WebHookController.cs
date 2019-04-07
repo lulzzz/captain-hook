@@ -27,7 +27,7 @@ namespace CaptainHook.Api.Controllers
         /// 
         /// </summary>
         public WebhookController(
-            IHostingEnvironment hostingEnvironment,
+            IWebHostEnvironment hostingEnvironment,
             IBigBrother bigBrother,
             StatefulServiceContext sfContext,
             CancellationToken cancellationToken) 

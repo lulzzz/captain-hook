@@ -17,7 +17,7 @@ namespace CaptainHook.Test.Api
         private readonly TelemetrySettings _telemetrySettings = new TelemetrySettings();
         private readonly IBigBrother _bb;
 
-        public Startup(IHostingEnvironment env)
+        public Startup(IWebHostEnvironment env)
         {
             try
             {
@@ -35,7 +35,7 @@ namespace CaptainHook.Test.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
 
             var builder = new ContainerBuilder();
             builder.Populate(services);

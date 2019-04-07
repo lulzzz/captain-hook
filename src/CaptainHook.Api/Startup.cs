@@ -18,12 +18,12 @@ using Autofac.Integration.ServiceFabric;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry.Api;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
+using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 
 namespace CaptainHook.Api
@@ -143,7 +143,7 @@ namespace CaptainHook.Api
                         x.RequireHttpsMetadata = _settings.IsHttps;
                     });
 
-                services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+                services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
 
                 var builder = new ContainerBuilder();
                 builder.Populate(services);
@@ -170,13 +170,13 @@ namespace CaptainHook.Api
         /// configure asp.net pipeline
         /// </summary>
         /// <param name="app">application builder</param>
-        /// <param name="applicationLifetime"></param>
-        public void Configure(IApplicationBuilder app, IApplicationLifetime applicationLifetime)
+        /// <param name="hostApplicationLifetime"></param>
+        public void Configure(IApplicationBuilder app, IHostApplicationLifetime hostApplicationLifetime)
         {
             try
             {
-                applicationLifetime.ApplicationStarted.Register(OnStartup);
-                applicationLifetime.ApplicationStopped.Register(OnShutdown);
+                hostApplicationLifetime.ApplicationStarted.Register(OnStartup);
+                hostApplicationLifetime.ApplicationStopped.Register(OnShutdown);
                 app.UseBigBrotherExceptionHandler();
                 app.UseSwagger(c => c.SerializeAsV2 = CaptainHookVersion.UseOpenApi);
                 app.UseSwagger(o => o.RouteTemplate = "swagger/{documentName}/swagger.json");

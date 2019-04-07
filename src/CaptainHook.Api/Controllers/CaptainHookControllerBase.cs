@@ -13,7 +13,7 @@ namespace CaptainHook.Api.Controllers
     /// </summary>
     public abstract class CaptainHookControllerBase : Controller
     {
-        internal IHostingEnvironment HostingEnvironment { get; }
+        internal IWebHostEnvironment HostingEnvironment { get; }
 
         internal IBigBrother BigBrother { get; }
 
@@ -26,7 +26,7 @@ namespace CaptainHook.Api.Controllers
         /// <param name="bigBrother">big brother instance</param>
         /// <param name="sfContext">service fabric context</param>
         protected CaptainHookControllerBase(
-            IHostingEnvironment hostingEnvironment, 
+            IWebHostEnvironment hostingEnvironment, 
             IBigBrother bigBrother, 
             StatefulServiceContext sfContext)
         {
