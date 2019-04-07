@@ -1,49 +1,47 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Autofac;
-using Autofac.Extensions.DependencyInjection;
-using Eshopworld.Core;
-using Eshopworld.Web;
-using Eshopworld.Telemetry;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using System.Threading;
+using Autofac;
+using Autofac.Extensions.DependencyInjection;
 using Autofac.Integration.ServiceFabric;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry.Api;
+using Eshopworld.Core;
+using Eshopworld.Telemetry;
+using Eshopworld.Web;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 
 namespace CaptainHook.Api
 {
-    /// <summary>
-    /// Startup class for ASP.NET runtime
-    /// </summary>
     public class Startup
     {
         private IBigBrother _bb;
         private ConfigurationSettings _settings;
         private IConfigurationRoot _configuration;
-        private IContainer _applicationContainer;
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
-        /// <summary>
-        /// configure services to be used by the asp.net runtime
-        /// </summary>
-        /// <param name="services">service collection</param>
-        /// <returns>service provider instance (Autofac provider)</returns>
+        public Startup(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
+
+        public IConfiguration Configuration { get; }
+
+        // This method gets called by the runtime. Use this method to add services to the container.
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
             try
@@ -62,17 +60,16 @@ namespace CaptainHook.Api
                 _bb.UseEventSourceSink().ForExceptions();
 
                 services.AddApplicationInsightsTelemetry(_configuration);
+
                 services.AddMvc(options =>
                 {
-                    //todo this needs wiring up to keyvault or perhaps we need to import from kv first and then take in the data from appsettings
                     var policy = ScopePolicy.Create(_settings.RequiredScopes.ToArray());
 
-                    var filter = EnvironmentHelper.IsInFabric ?
-                        (IFilterMetadata)new AuthorizeFilter(policy) :
-                        new AllowAnonymousFilter();
+                    var filter = new AuthorizeFilter(policy);
 
                     options.Filters.Add(filter);
-                });
+                }).AddNewtonsoftJson();
+
                 services.AddApiVersioning();
 
                 //Get XML documentation
@@ -104,7 +101,7 @@ namespace CaptainHook.Api
                                 BearerFormat = "JWT",
                             });
                         c.AddSecurityRequirement(new OpenApiSecurityRequirement
-                        {
+                            {
                             {
                                 new OpenApiSecurityScheme
                                 {
@@ -112,7 +109,7 @@ namespace CaptainHook.Api
                                 },
                                 new string[0]
                             }
-                        });
+                            });
                         var docFiles = Directory.EnumerateFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CaptainHook.*.xml").ToList();
                         if (docFiles.Count > 0)
                         {
@@ -143,11 +140,8 @@ namespace CaptainHook.Api
                         x.RequireHttpsMetadata = _settings.IsHttps;
                     });
 
-                services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
-
                 var builder = new ContainerBuilder();
                 builder.Populate(services);
-                _applicationContainer = builder.Build();
 
                 builder.RegisterInstance(_configuration).As<IConfigurationRoot>().SingleInstance();
                 builder.RegisterInstance(_settings).As<ConfigurationSettings>().SingleInstance();
@@ -157,42 +151,51 @@ namespace CaptainHook.Api
                 builder.Register(_ => _cancellationTokenSource.Token).As<CancellationToken>();
                 builder.RegisterServiceFabricSupport();
 
-                return new AutofacServiceProvider(_applicationContainer);
+                return new AutofacServiceProvider(builder.Build());
             }
             catch (Exception e)
             {
                 _bb.Publish(e.ToExceptionEvent());
                 throw;
             }
+
         }
 
-        /// <summary>
-        /// configure asp.net pipeline
-        /// </summary>
-        /// <param name="app">application builder</param>
-        /// <param name="hostApplicationLifetime"></param>
-        public void Configure(IApplicationBuilder app, IHostApplicationLifetime hostApplicationLifetime)
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
+            IHostApplicationLifetime hostApplicationLifetime)
         {
             try
             {
+                if (env.IsDevelopment())
+                {
+                    app.UseDeveloperExceptionPage();
+                }
+
                 hostApplicationLifetime.ApplicationStarted.Register(OnStartup);
                 hostApplicationLifetime.ApplicationStopped.Register(OnShutdown);
                 app.UseBigBrotherExceptionHandler();
-                app.UseSwagger(c => c.SerializeAsV2 = CaptainHookVersion.UseOpenApi);
-                app.UseSwagger(o => o.RouteTemplate = "swagger/{documentName}/swagger.json");
+                app.UseSwagger(c =>
+                {
+                    c.SerializeAsV2 = CaptainHookVersion.UseOpenApi;
+                    c.RouteTemplate = "swagger/{documentName}/swagger.json";
+                });
                 app.UseSwaggerUI(o =>
                 {
-                    o.SwaggerEndpoint($"{CaptainHookVersion.ApiVersion}/swagger.json", $"Captain Hook API Version {CaptainHookVersion.ApiVersion}");
+                    o.SwaggerEndpoint($"{CaptainHookVersion.ApiVersion}/swagger.json",
+                        $"Captain Hook API Version {CaptainHookVersion.ApiVersion}");
                     o.RoutePrefix = "swagger";
                 });
 
+
+                app.UseRouting(routes => { routes.MapControllers(); });
+
                 app.UseAuthentication();
-                app.UseMvc();
+                //app.UseMvc();
             }
             catch (Exception e)
             {
                 _bb.Publish(e.ToExceptionEvent());
-                _bb.Flush();
                 throw;
             }
         }
@@ -211,6 +214,8 @@ namespace CaptainHook.Api
         private void OnShutdown()
         {
             _bb.Publish(new ApiShutdownEvent());
+            _bb.Flush();
+
             _cancellationTokenSource.Cancel();
         }
     }

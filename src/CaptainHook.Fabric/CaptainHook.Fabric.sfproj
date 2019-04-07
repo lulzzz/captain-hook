@@ -41,7 +41,9 @@
     <Content Include="PublishProfiles\TEST.xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CaptainHook.Api\CaptainHook.Api.csproj" />
+    <ProjectReference Include="..\CaptainHook.Api\CaptainHook.Api.csproj">
+      <ServiceLaunchUrl>http://{MachineName}:{ServicePort}/swagger</ServiceLaunchUrl>
+    </ProjectReference>
     <ProjectReference Include="..\CaptainHook.EndpointDispatcherActorService\CaptainHook.EndpointDispatcherActorService.csproj" />
     <ProjectReference Include="..\CaptainHook.EventHandlerActorService\CaptainHook.EventHandlerActorService.csproj" />
     <ProjectReference Include="..\CaptainHook.EventReaderService\CaptainHook.EventReaderService.csproj" />

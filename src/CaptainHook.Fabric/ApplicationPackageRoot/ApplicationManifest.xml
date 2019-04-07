@@ -2,7 +2,7 @@
 <ApplicationManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ApplicationTypeName="CaptainHookType" ApplicationTypeVersion="1.0.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
   <Parameters>
     <Parameter Name="KeyVault_Base_Uri" DefaultValue="N/A" />
-    <Parameter Name="AspNetCore_Environment" DefaultValue="N/A" />
+    <Parameter Name="AspNetCore_Environment" DefaultValue="Development" />
 
     <!-- Actors and Service Instance/Partition Config -->
     <Parameter Name="CaptainHook.MessageDirectorActorService_MinReplicaSetSize" DefaultValue="3" />
@@ -16,6 +16,14 @@
        should match the Name and Version attributes of the ServiceManifest element defined in the 
        ServiceManifest.xml file. -->
   <ServiceManifestImport>
+    <ServiceManifestRef ServiceManifestName="CaptainHook.ApiPkg" ServiceManifestVersion="1.0.0" />
+    <ConfigOverrides />
+    <EnvironmentOverrides CodePackageRef="code">
+      <EnvironmentVariable Name="KEYVAULT_BASE_URI" Value="[KeyVault_Base_Uri]" />
+      <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
+    </EnvironmentOverrides>
+  </ServiceManifestImport>
+  <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="CaptainHook.MessageDirectorActorServicePkg" ServiceManifestVersion="1.0.0" />
     <ConfigOverrides />
     <EnvironmentOverrides CodePackageRef="Code">
@@ -25,14 +33,6 @@
   </ServiceManifestImport>
   <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="CaptainHook.EventReaderServicePkg" ServiceManifestVersion="1.0.0" />
-    <ConfigOverrides />
-    <EnvironmentOverrides CodePackageRef="code">
-      <EnvironmentVariable Name="KEYVAULT_BASE_URI" Value="[KeyVault_Base_Uri]" />
-      <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
-    </EnvironmentOverrides>
-  </ServiceManifestImport>
-  <ServiceManifestImport> 
-    <ServiceManifestRef ServiceManifestName="CaptainHook.ApiPkg" ServiceManifestVersion="1.0.0" />
     <ConfigOverrides />
     <EnvironmentOverrides CodePackageRef="code">
       <EnvironmentVariable Name="KEYVAULT_BASE_URI" Value="[KeyVault_Base_Uri]" />
@@ -73,15 +73,15 @@
   <!--Default Services equate to services which should be there when the application is deployed on the fabric, nothing more.
   There are issues with having too many and volume of the replicates on startup so do look into it more before modifying the below-->
   <DefaultServices>
-    <Service Name="MessageDirector" GeneratedIdRef="c25625f9-6afc-4382-9eb4-b06a972851b0|Persisted">
-      <StatefulService ServiceTypeName="MessageDirectorActorServiceType" TargetReplicaSetSize="[CaptainHook.MessageDirectorActorService_TargetReplicaSetSize]" MinReplicaSetSize="[CaptainHook.MessageDirectorActorService_MinReplicaSetSize]">
-        <UniformInt64Partition PartitionCount="[CaptainHook.MessageDirectorActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
-      </StatefulService>
-    </Service>
     <Service Name="Api" ServicePackageActivationMode="ExclusiveProcess">
       <StatelessService ServiceTypeName="CaptainHook.ApiType" InstanceCount="[CaptainHook.Api_InstanceCount]">
         <SingletonPartition />
       </StatelessService>
+    </Service>
+    <Service Name="MessageDirector" GeneratedIdRef="c25625f9-6afc-4382-9eb4-b06a972851b0|Persisted">
+      <StatefulService ServiceTypeName="MessageDirectorActorServiceType" TargetReplicaSetSize="[CaptainHook.MessageDirectorActorService_TargetReplicaSetSize]" MinReplicaSetSize="[CaptainHook.MessageDirectorActorService_MinReplicaSetSize]">
+        <UniformInt64Partition PartitionCount="[CaptainHook.MessageDirectorActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
+      </StatefulService>
     </Service>
     <!--<Service Name="Test.Api" ServicePackageActivationMode="ExclusiveProcess">
       <StatelessService ServiceTypeName="CaptainHook.Test.ApiType" InstanceCount="[CaptainHook.Test.Api_InstanceCount]">

@@ -11,13 +11,13 @@ namespace CaptainHook.Api.Controllers
     /// <summary>
     /// base class for some controller base logic
     /// </summary>
-    public abstract class CaptainHookControllerBase : Controller
+    public abstract class CaptainHookControllerBase : ControllerBase
     {
         internal IWebHostEnvironment HostingEnvironment { get; }
 
         internal IBigBrother BigBrother { get; }
 
-        internal StatefulServiceContext StatelessServiceContext { get; }
+        internal StatefulServiceContext StatefulServiceContext { get; }
 
         /// <summary>
         /// constructor to inject hosting environment
@@ -26,13 +26,13 @@ namespace CaptainHook.Api.Controllers
         /// <param name="bigBrother">big brother instance</param>
         /// <param name="sfContext">service fabric context</param>
         protected CaptainHookControllerBase(
-            IWebHostEnvironment hostingEnvironment, 
-            IBigBrother bigBrother, 
+            IWebHostEnvironment hostingEnvironment,
+            IBigBrother bigBrother,
             StatefulServiceContext sfContext)
         {
             HostingEnvironment = hostingEnvironment;
             BigBrother = bigBrother;
-            StatelessServiceContext = sfContext;
+            StatefulServiceContext = sfContext;
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace CaptainHook.Api.Controllers
         /// <returns>proxy instance</returns>
         internal T GetActorRef<T>(string serviceName) where T : IActor
         {
-            var actorUri = new Uri($"{StatelessServiceContext.CodePackageActivationContext.ApplicationName}/{serviceName}");
+            var actorUri = new Uri($"{StatefulServiceContext.CodePackageActivationContext.ApplicationName}/{serviceName}");
 
             return ActorProxy.Create<T>(ActorId.CreateRandom(), actorUri);
         }

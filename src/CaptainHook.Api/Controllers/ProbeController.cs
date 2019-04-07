@@ -8,10 +8,11 @@ namespace CaptainHook.Api.Controllers
     /// </summary>
     ///
     [ApiVersionNeutral]
+    [ApiController]
     [Route("[controller]")]
     [Produces("application/json")]
     [AllowAnonymous]
-    public class ProbeController : Controller
+    public class ProbeController : ControllerBase
     {
         /// <summary>
         /// empty get to serve as health probe endpoint
@@ -19,6 +20,7 @@ namespace CaptainHook.Api.Controllers
         [HttpGet]
         public void Get()
         {
+
         }
     }
 }

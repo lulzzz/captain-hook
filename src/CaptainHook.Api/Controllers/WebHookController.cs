@@ -16,6 +16,7 @@ namespace CaptainHook.Api.Controllers
     /// The Webhook configuration
     /// </summary>
     [ApiVersion("1.0")]
+    [ApiController]
     [Route("api/v{version:apiVersion}/[controller]")]
     [Produces("application/json")]
     [Authorize]
@@ -30,7 +31,7 @@ namespace CaptainHook.Api.Controllers
             IWebHostEnvironment hostingEnvironment,
             IBigBrother bigBrother,
             StatefulServiceContext sfContext,
-            CancellationToken cancellationToken) 
+            CancellationToken cancellationToken)
             : base(hostingEnvironment, bigBrother, sfContext)
         {
             _cancellationToken = cancellationToken;
