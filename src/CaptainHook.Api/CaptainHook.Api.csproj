@@ -19,10 +19,6 @@
     <Platform>x64</Platform>
   </PropertyGroup>
 
-
-
-
-
   <ItemGroup>
     <PackageReference Include="Autofac.ServiceFabric" Version="2.2.0" />
     <PackageReference Include="Autofac" Version="4.9.2" />

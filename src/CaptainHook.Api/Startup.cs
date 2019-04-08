@@ -64,10 +64,8 @@ namespace CaptainHook.Api
                 services.AddMvc(options =>
                 {
                     var policy = ScopePolicy.Create(_settings.RequiredScopes.ToArray());
+                    options.Filters.Add(new AuthorizeFilter(policy));
 
-                    var filter = new AuthorizeFilter(policy);
-
-                    options.Filters.Add(filter);
                 }).AddNewtonsoftJson();
 
                 services.AddApiVersioning();
@@ -187,11 +185,10 @@ namespace CaptainHook.Api
                     o.RoutePrefix = "swagger";
                 });
 
-
                 app.UseRouting(routes => { routes.MapControllers(); });
 
                 app.UseAuthentication();
-                //app.UseMvc();
+                app.UseMvc();
             }
             catch (Exception e)
             {
