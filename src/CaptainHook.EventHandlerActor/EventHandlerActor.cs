@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Telemetry;
@@ -52,11 +53,10 @@ namespace CaptainHook.EventHandlerActor
         protected override async Task OnActivateAsync()
         {
             _bigBrother.Publish(new ActorActivated(this));
-            if ((await StateManager.TryGetStateAsync<MessageData>(nameof(EventHandlerActor))).HasValue)
-            {
-                // There's a message to handle, but we're not sure if it was fully handled or not, so we are going to handle it anyways
-                // Assuming whatever I'm calling can handle idempotency
 
+            var names = await StateManager.GetStateNamesAsync();
+            if (names.Any())
+            {
                 _handleTimer = RegisterTimer(
                     InternalHandle,
                     null,
@@ -80,7 +80,7 @@ namespace CaptainHook.EventHandlerActor
                 Type = type
             };
 
-            await StateManager.AddOrUpdateStateAsync(nameof(EventHandlerActor), messageData, (s, pair) => pair);
+            await StateManager.AddOrUpdateStateAsync(messageData.HandleAsString, messageData, (s, pair) => pair);
 
             _handleTimer = RegisterTimer(
                 InternalHandle,
@@ -100,29 +100,56 @@ namespace CaptainHook.EventHandlerActor
 
         private async Task InternalHandle(object _)
         {
+            var handle = string.Empty;
             try
             {
                 UnregisterTimer(_handleTimer);
 
-                var messageData = await StateManager.TryGetStateAsync<MessageData>(nameof(EventHandlerActor));
-                if (!messageData.HasValue)
+                var handleList = (await StateManager.GetStateNamesAsync()).ToList();
+
+                if (!handleList.Any())
+                {
+                    return;
+                }
+
+                var messageDataConditional = await StateManager.TryGetStateAsync<MessageData>(handleList.First());
+                if (!messageDataConditional.HasValue)
                 {
                     _bigBrother.Publish(new WebhookEvent("message was empty"));
                     return;
                 }
 
-                var eventType = messageData.Value.Type;
+                var messageData = messageDataConditional.Value;
+                handle = messageData.HandleAsString;
 
-                var handler = _eventHandlerFactory.CreateEventHandler(eventType);
+                var handler = _eventHandlerFactory.CreateEventHandler(messageData.Type);
 
-                await handler.Call(messageData.Value);
+                await handler.Call(messageData);
 
-                await StateManager.RemoveStateAsync(nameof(EventHandlerActor));
-                await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).CompleteWork(messageData.Value.Handle);
+                await StateManager.RemoveStateAsync(messageData.HandleAsString);
+                await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).CompleteWork(messageData.Handle);
             }
             catch (Exception e)
             {
+                //don't want msg state managed by fabric just yet, let failures be backed by the service bus subscriptions
+                if (handle != string.Empty)
+                {
+                    await StateManager.RemoveStateAsync(handle);
+                }
+
                 BigBrother.Write(e.ToExceptionEvent());
+            }
+            finally
+            {
+                //restarts the timer in case there are more than one msg in the state, if not then let it be restarted in the standard msg population flow.
+                if ((await StateManager.GetStateNamesAsync()).Any())
+                {
+                    _handleTimer = RegisterTimer(
+                        InternalHandle,
+                        null,
+                        TimeSpan.FromMilliseconds(100),
+                        TimeSpan.MaxValue);
+                }
             }
         }
     }
