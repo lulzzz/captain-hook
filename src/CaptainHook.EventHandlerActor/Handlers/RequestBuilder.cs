@@ -10,22 +10,18 @@ namespace CaptainHook.EventHandlerActor.Handlers
 {
     public class RequestBuilder : IRequestBuilder
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="config"></param>
-        /// <param name="payload"></param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public string BuildUri(WebhookConfig config, string payload)
         {
             var uri = config.Uri;
+
             //build the uri from the routes first
-            var routingRules = config.WebhookRequestRules.FirstOrDefault(l => l.Routes.Any());
-            if (routingRules != null)
+            var rules = config.WebhookRequestRules.FirstOrDefault(r => r.Destination.RuleAction == RuleAction.Route);
+            if (rules != null)
             {
-                if (routingRules.Source.Location == Location.Body)
+                if (rules.Source.Location == Location.Body)
                 {
-                    var path = routingRules.Source.Path;
+                    var path = rules.Source.Path;
                     var value = ModelParser.ParsePayloadPropertyAsString(path, payload);
 
                     if (string.IsNullOrWhiteSpace(value))
@@ -34,20 +30,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     }
 
                     //selects the route based on the value found in the payload of the message
-                    WebhookConfigRoute route = null;
-                    foreach (var rules in config.WebhookRequestRules.Where(r => r.Routes.Any()))
+                    var route = rules.Routes.FirstOrDefault(r => r.Selector.Equals(value, StringComparison.OrdinalIgnoreCase));
+                    if (route == null)
                     {
-                        route = rules.Routes.FirstOrDefault(r => r.Selector.Equals(value, StringComparison.OrdinalIgnoreCase));
-                        if (route != null)
-                        {
-                            break;
-                        }
+                        throw new Exception("route mapping/selector not found between config and the properties on the domain object");
                     }
-
-                    if (route != null)
-                    {
-                        uri = route.Uri;
-                    }
+                    uri = route.Uri;
                 }
             }
 
@@ -82,12 +70,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
         }
 
         /// <inheritdoc />
-        /// <summary>
-        /// </summary>
-        /// <param name="config"></param>
-        /// <param name="sourcePayload"></param>
-        /// <param name="metadata"></param>
-        /// <returns></returns>
         public string BuildPayload(WebhookConfig config, string sourcePayload, IDictionary<string, object> metadata = null)
         {
             var rules = config.WebhookRequestRules.Where(l => l.Destination.Location == Location.Body).ToList();
@@ -122,9 +104,15 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     continue;
                 }
 
+                if (rule.Source.RuleAction == RuleAction.Route)
+                {
+                    continue;
+                }
+
                 object value;
                 switch (rule.Source.Type)
                 {
+                    case DataType.String:
                     case DataType.Property:
                     case DataType.Model:
                         value = ModelParser.ParsePayloadProperty(rule.Source, sourcePayload, rule.Destination.Type);
@@ -146,7 +134,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
                 if (string.IsNullOrWhiteSpace(rule.Destination.Path))
                 {
-                    payload = (JContainer) value;
+                    payload = (JContainer)value;
                     continue;
                 }
 
@@ -154,6 +142,37 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
 
             return payload.ToString(Formatting.None);
+        }
+
+        /// <inheritdoc />
+
+        public HttpVerb SelectHttpVerb(WebhookConfig webhookConfig, string payload)
+        {
+            //build the uri from the routes first
+            var rules = webhookConfig.WebhookRequestRules.FirstOrDefault(r => r.Destination.RuleAction == RuleAction.Route);
+            if (rules == null)
+            {
+                return webhookConfig.HttpVerb;
+            }
+
+            if (rules.Source.Location != Location.Body)
+            {
+                return webhookConfig.HttpVerb;
+            }
+
+            var value = ModelParser.ParsePayloadPropertyAsString(rules.Source.Path, payload);
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw new ArgumentNullException(nameof(rules.Source.Path), "routing path value in message payload is null or empty");
+            }
+
+            var route = rules.Routes.FirstOrDefault(r => r.Selector.Equals(value, StringComparison.OrdinalIgnoreCase));
+            if (route == null)
+            {
+                throw new Exception("route http verb mapping/selector not found between config and the properties on the domain object");
+            }
+            return route.HttpVerb;
         }
     }
 }

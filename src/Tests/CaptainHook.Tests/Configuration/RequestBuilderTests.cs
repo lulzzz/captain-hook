@@ -33,6 +33,19 @@ namespace CaptainHook.Tests.Configuration
             Assert.Equal(expectedPayload, requestPayload);
         }
 
+        [IsLayer0]
+        [Theory]
+        [MemberData(nameof(HttpVerbData))]
+        public void HttpVerbSelectionTests(
+            WebhookConfig config,
+            string sourcePayload,
+            HttpVerb expectedVerb)
+        {
+            var selectedVerb = new RequestBuilder().SelectHttpVerb(config, sourcePayload);
+
+            Assert.Equal(expectedVerb, selectedVerb);
+        }
+
         public static IEnumerable<object[]> UriData =>
             new List<object[]>
             {
@@ -86,6 +99,10 @@ namespace CaptainHook.Tests.Configuration
                                     Source = new ParserLocation
                                     {
                                         Path = "BrandType"
+                                    },
+                                    Destination = new ParserLocation
+                                    {
+                                        RuleAction = RuleAction.Route
                                     },
                                     Routes = new List<WebhookConfigRoute>
                                     {
@@ -149,6 +166,11 @@ namespace CaptainHook.Tests.Configuration
                                     {
                                         Path = "BrandType"
                                     },
+                                    Destination = new ParserLocation
+                                    {
+
+                                        RuleAction = RuleAction.Route
+                                    },
                                     Routes = new List<WebhookConfigRoute>
                                     {
                                         new WebhookConfigRoute
@@ -191,6 +213,10 @@ namespace CaptainHook.Tests.Configuration
                                     {
                                         Path = "BrandType"
                                     },
+                                    Destination = new ParserLocation
+                                    {
+                                        RuleAction = RuleAction.Route
+                                    },
                                     Routes = new List<WebhookConfigRoute>
                                     {
                                         new WebhookConfigRoute
@@ -205,7 +231,7 @@ namespace CaptainHook.Tests.Configuration
                                         },
                                         new WebhookConfigRoute
                                         {
-                                            Uri = "https://blah.blah.brand2.eshopworld.com/webhook",
+                                            Uri = "https://blah.blah.brand3.eshopworld.com/webhook",
                                             HttpVerb = HttpVerb.Put,
                                             Selector = "Brand2",
                                             AuthenticationConfig = new AuthenticationConfig
@@ -218,7 +244,7 @@ namespace CaptainHook.Tests.Configuration
                             }
                         },
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand2\"}",
-                    "https://blah.blah.brand2.eshopworld.com/webhook"
+                    "https://blah.blah.brand3.eshopworld.com/webhook"
                 }
             };
 
@@ -368,6 +394,95 @@ namespace CaptainHook.Tests.Configuration
                     new Dictionary<string, object>(),
                     "{\"Msg\":\"Buy this thing\"}"
                 },
+            };
+
+        public static IEnumerable<object[]> HttpVerbData =>
+            new List<object[]>
+            {
+                new object[]
+                {
+                    new WebhookConfig
+                    {
+                        Name = "Webhook1",
+                        HttpVerb = HttpVerb.Post,
+                        Uri = "https://blah.blah.eshopworld.com/webhook/",
+                        WebhookRequestRules = new List<WebhookRequestRule>
+                        {
+                            new WebhookRequestRule
+                            {
+                                Source = new ParserLocation
+                                {
+                                    Path = "OrderCode"
+                                },
+                                Destination = new ParserLocation
+                                {
+                                    Location = Location.Uri
+                                }
+                            }
+                        }
+                    },
+                    "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\"}",
+                    HttpVerb.Post
+                },
+                new object[]
+                {
+                    new WebhookConfig
+                        {
+                            Name = "Webhook3",
+                            HttpVerb = HttpVerb.Post,
+                            Uri = "https://blah.blah.eshopworld.com/webhook/",
+                            WebhookRequestRules = new List<WebhookRequestRule>
+                            {
+                                new WebhookRequestRule
+                                {
+                                    Source = new ParserLocation
+                                    {
+                                        Path = "OrderCode"
+                                    },
+                                    Destination = new ParserLocation
+                                    {
+                                        Location = Location.Uri,
+                                    }
+                                },
+                                new WebhookRequestRule
+                                {
+                                    Source = new ParserLocation
+                                    {
+                                        Path = "BrandType"
+                                    },
+                                    Destination = new ParserLocation
+                                    {
+                                        RuleAction = RuleAction.Route
+                                    },
+                                    Routes = new List<WebhookConfigRoute>
+                                    {
+                                        new WebhookConfigRoute
+                                        {
+                                            Uri = "https://blah.blah.brand1.eshopworld.com/webhook",
+                                            HttpVerb = HttpVerb.Post,
+                                            Selector = "Brand1",
+                                            AuthenticationConfig = new AuthenticationConfig
+                                            {
+                                                Type = AuthenticationType.None
+                                            }
+                                        },
+                                        new WebhookConfigRoute
+                                        {
+                                            Uri = "https://blah.blah.brand2.eshopworld.com/webhook",
+                                            HttpVerb = HttpVerb.Put,
+                                            Selector = "Brand2",
+                                            AuthenticationConfig = new AuthenticationConfig
+                                            {
+                                                Type = AuthenticationType.None
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                    "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand2\"}",
+                    HttpVerb.Put
+                }
             };
     }
 }
