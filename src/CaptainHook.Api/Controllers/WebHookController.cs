@@ -46,7 +46,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType(typeof(WebhookConfig), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
-        public IActionResult Get(string name)
+        public IActionResult Get([FromQuery]string name)
         {
             return Ok(GetActorRef<IMessageDirector>(Actors.MessageDirector).ReadWebhook(name, _cancellationToken));
         }
@@ -60,7 +60,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType(typeof(WebhookConfig), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string[]), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
-        public IActionResult Post(WebhookConfig config)
+        public IActionResult Post([FromBody]WebhookConfig config)
         {
             return Ok(GetActorRef<IMessageDirector>(Actors.MessageDirector).CreateWebhook(config, _cancellationToken));
         }
@@ -74,7 +74,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType(typeof(string[]), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string[]), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
-        public IActionResult Put(WebhookConfig config)
+        public IActionResult Put([FromBody]WebhookConfig config)
         {
             return Ok(GetActorRef<IMessageDirector>(Actors.MessageDirector).UpdateWebhook(config, _cancellationToken));
         }
@@ -87,7 +87,7 @@ namespace CaptainHook.Api.Controllers
         [HttpDelete]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
-        public IActionResult Delete(string name)
+        public IActionResult Delete([FromBody]string name)
         {
             GetActorRef<IMessageDirector>(Actors.MessageDirector).DeleteWebhook(name, _cancellationToken);
             return NoContent();

@@ -1,7 +1,5 @@
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Autofac;
@@ -84,22 +82,20 @@ namespace CaptainHook.Api
                     {
                         c.IncludeXmlComments(path);
                         c.DescribeAllEnumsAsStrings();
-                        c.SwaggerDoc(CaptainHookVersion.ApiVersion, new OpenApiInfo { Version = Assembly.GetExecutingAssembly().GetName().Version.ToString(), Title = CaptainHookVersion.CaptainHook });
+                        c.SwaggerDoc(CaptainHookVersion.ApiVersion, new OpenApiInfo { Version = CaptainHookVersion.ApiVersion, Title = "Captain Hook API" });
                         c.CustomSchemaIds(x => x.FullName);
-                        c.AddSecurityDefinition("Bearer",
-                            new OpenApiSecurityScheme
-                            {
-                                In = ParameterLocation.Header,
-                                Description = "Please insert JWT with Bearer into field",
-                                Name = "Authorization",
-                                Type = CaptainHookVersion.UseOpenApi
-                                    ? SecuritySchemeType.ApiKey
-                                    : SecuritySchemeType.Http,
-                                Scheme = "bearer",
-                                BearerFormat = "JWT",
-                            });
+                        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                        {
+                            In = ParameterLocation.Header,
+                            Description = "Please insert JWT with Bearer into field",
+                            Name = "Authorization",
+                            Type = CaptainHookVersion.UseOpenApi ? SecuritySchemeType.ApiKey : SecuritySchemeType.Http,
+                            Scheme = "bearer",
+                            BearerFormat = "JWT",
+                        });
+
                         c.AddSecurityRequirement(new OpenApiSecurityRequirement
-                            {
+                        {
                             {
                                 new OpenApiSecurityScheme
                                 {
@@ -107,25 +103,7 @@ namespace CaptainHook.Api
                                 },
                                 new string[0]
                             }
-                            });
-                        var docFiles = Directory.EnumerateFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CaptainHook.*.xml").ToList();
-                        if (docFiles.Count > 0)
-                        {
-                            foreach (var file in docFiles)
-                            {
-                                c.IncludeXmlComments(file);
-                            }
-                        }
-                        else
-                        {
-                            if (Debugger.IsAttached)
-                            {
-                                // Couldn't find the XML file! check that XML comments are being built and that the file name checks
-                                Debugger.Break();
-                            }
-                        }
-
-                        c.OperationFilter<DefaultResponseFixFilter>();
+                        });
                     });
                 }
 
@@ -160,8 +138,7 @@ namespace CaptainHook.Api
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
-            IHostApplicationLifetime hostApplicationLifetime)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime hostApplicationLifetime)
         {
             try
             {
@@ -170,18 +147,16 @@ namespace CaptainHook.Api
                     app.UseDeveloperExceptionPage();
                 }
 
-                hostApplicationLifetime.ApplicationStarted.Register(OnStartup);
-                hostApplicationLifetime.ApplicationStopped.Register(OnShutdown);
                 app.UseBigBrotherExceptionHandler();
                 app.UseSwagger(c =>
                 {
                     c.SerializeAsV2 = CaptainHookVersion.UseOpenApi;
                     c.RouteTemplate = "swagger/{documentName}/swagger.json";
                 });
+
                 app.UseSwaggerUI(o =>
                 {
-                    o.SwaggerEndpoint($"{CaptainHookVersion.ApiVersion}/swagger.json",
-                        $"Captain Hook API Version {CaptainHookVersion.ApiVersion}");
+                    o.SwaggerEndpoint($"{CaptainHookVersion.ApiVersion}/swagger.json", $"Captain Hook API Version {CaptainHookVersion.ApiVersion}");
                     o.RoutePrefix = "swagger";
                 });
 
@@ -189,6 +164,10 @@ namespace CaptainHook.Api
 
                 app.UseAuthentication();
                 app.UseMvc();
+
+
+                hostApplicationLifetime.ApplicationStarted.Register(OnStartup);
+                hostApplicationLifetime.ApplicationStopped.Register(OnShutdown);
             }
             catch (Exception e)
             {
