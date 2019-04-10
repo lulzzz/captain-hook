@@ -24,6 +24,11 @@ namespace CaptainHook.Common.Configuration
         public HttpVerb HttpVerb { get; set; }
 
         public List<WebhookRequestRule> WebhookRequestRules { get; set; }
+
+        /// <summary>
+        /// Request duration maximum timeout in seconds
+        /// </summary>
+        public int TimeoutInSeconds { get; set; } = 5 * 60;
     }
 
     /// <summary>
@@ -60,7 +65,7 @@ namespace CaptainHook.Common.Configuration
         /// ie uri, body, header
         /// </summary>
         public ParserLocation Destination { get; set; }
-        
+
         /// <summary>
         /// Routes used for webhook rule types
         /// </summary>
