@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Nasty;
 using Newtonsoft.Json;

@@ -27,8 +27,9 @@ namespace CaptainHook.Common.Configuration
 
         /// <summary>
         /// Request duration maximum timeout in seconds
+        /// Left at 100 seconds as the default value for the http client timeout
         /// </summary>
-        public int TimeoutInSeconds { get; set; } = 5 * 60;
+        public int TimeoutInSeconds { get; set; } = 100;
     }
 
     /// <summary>
